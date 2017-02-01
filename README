@@ -1,0 +1,16 @@
+Installing:
+
+```
+git clone https://github.com/asmjit/asmjit.git
+```
+
+Probably won't keep using nanojit, but if so, here's some steps:
+```
+git clone https://github.com/doublec/nanojit-central.git
+cd nanojit-central
+autoconf
+./configure
+make
+```
+
+I did have to mess with the build here a bit: I removed -Wall from the resulting build file and had to add a pragma in clang to ignore NULL checks on the this pointer.
