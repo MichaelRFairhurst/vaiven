@@ -3,6 +3,7 @@
 #include "visitor/print_visitor.h"
 #include "visitor/interpreter.h"
 #include "visitor/compiler.h"
+#include "visitor/autocompiler.h"
 #include "visitor/location_resolver.h"
 
 #include "asmjit/src/asmjit/asmjit.h"
@@ -40,23 +41,24 @@ void printExpressionStream(Parser& parser) {
     codeHolder.init(jt.getCodeInfo());
     codeHolder.setLogger(&logger);
     X86Assembler assembler(&codeHolder);
-    visitor::Compiler compiler(assembler);
-    resolved->accept(compiler);
-    assembler.ret();
-    int (*func)();
+    X86Compiler cc(&codeHolder);
+    //visitor::Compiler compiler(assembler);
+    visitor::AutoCompiler compiler(cc);
+    compiler.compile(*resolved);
+    int (*func)(int rdi, int rsi, int rdx, int rcx, int r8, int r9);
     jt.add(&func, &codeHolder);
 
     visitor::PrintVisitor printer;
     cur->accept(printer);
     cout << "=";
     visitor::Interpreter interpreter;
-    cout << func() << endl << endl;
+    cout << func(1, 2, 3, 4, 5, 6) << endl << endl;
     //cur->accept(interpreter);
     //cout << interpreter.stack.top() << endl;
     //interpreter.stack.pop();
 
-    for (size_t i = 0; i < 000000000; ++i) {
-      func();
+    for (size_t i = 0; i < 5000000000; ++i) {
+      func(i, i + 1, i + 2, i + 3, i + 4, i + 5);
       //cur->accept(interpreter);
       //interpreter.stack.pop();
     }

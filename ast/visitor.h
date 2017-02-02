@@ -15,6 +15,8 @@ template<typename ResolvedData>
 class DivisionExpression;
 template<typename ResolvedData>
 class IntegerExpression;
+template<typename ResolvedData>
+class VariableExpression;
 
 template<typename ResolvedData>
 class Visitor {
@@ -25,6 +27,7 @@ class Visitor {
   virtual void visitMultiplicationExpression(MultiplicationExpression<ResolvedData>& expr)=0;
   virtual void visitDivisionExpression(DivisionExpression<ResolvedData>& expr)=0;
   virtual void visitIntegerExpression(IntegerExpression<ResolvedData>& expr)=0;
+  virtual void visitVariableExpression(VariableExpression<ResolvedData>& expr)=0;
 
 };
 

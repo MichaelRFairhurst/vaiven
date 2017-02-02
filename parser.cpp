@@ -82,8 +82,9 @@ unique_ptr<ast::Expression<bool> > Parser::parseValue() {
   }
 
   if (current->type == TOKEN_TYPE_ID) {
-    // TODO
-    return unique_ptr<ast::Expression<bool> >(NULL);
+    unique_ptr<StringToken> idtok(static_cast<StringToken*>(current.release()));
+    next();
+    return unique_ptr<ast::Expression<bool> >(new ast::VariableExpression<bool> (idtok->lexeme));
   }
   
   return unique_ptr<ast::Expression<bool> >(NULL);

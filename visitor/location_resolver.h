@@ -1,8 +1,10 @@
 #ifndef VAIVEN_VISITOR_HEADER_LOCATION_RESOLVER
 #define VAIVEN_VISITOR_HEADER_LOCATION_RESOLVER
 
-#include <stack>
+#include <map>
 #include <memory>
+#include <stack>
+#include <string>
 
 #include "../ast/visitor.h"
 #include "../ast/all.h"
@@ -22,8 +24,10 @@ class LocationResolver : public Visitor<bool> {
   virtual void visitMultiplicationExpression(MultiplicationExpression<bool>& expr);
   virtual void visitDivisionExpression(DivisionExpression<bool>& expr);
   virtual void visitIntegerExpression(IntegerExpression<bool>& expr);
+  virtual void visitVariableExpression(VariableExpression<bool>& expr);
 
   stack<Expression<Location>* > copyStack;
+  map<string, int> argIndexes;
 
 };
 

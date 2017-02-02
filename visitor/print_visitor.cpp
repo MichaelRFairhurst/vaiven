@@ -39,3 +39,6 @@ void PrintVisitor::visitDivisionExpression(DivisionExpression<bool>& expr) {
 void PrintVisitor::visitIntegerExpression(IntegerExpression<bool>& expr) {
   cout << expr.value;
 }
+void PrintVisitor::visitVariableExpression(VariableExpression<bool>& expr) {
+  cout << expr.id;
+}

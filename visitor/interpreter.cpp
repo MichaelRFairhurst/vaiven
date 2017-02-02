@@ -39,3 +39,6 @@ void Interpreter::visitDivisionExpression(DivisionExpression<bool>& expr) {
 void Interpreter::visitIntegerExpression(IntegerExpression<bool>& expr) {
   stack.push(expr.value);
 }
+void Interpreter::visitVariableExpression(VariableExpression<bool>& expr) {
+  stack.push(1000);
+}
