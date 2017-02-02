@@ -4,11 +4,13 @@ AST_OBJECTS = \
 	ast/multiplication_expression.o \
 	ast/division_expression.o \
 	ast/integer_expression.o \
+	ast/variable_expression.o \
 
 VISITOR_OBJECTS = \
 	visitor/print_visitor.o \
 	visitor/interpreter.o \
 	visitor/compiler.o \
+	visitor/autocompiler.o \
 	visitor/location_resolver.o \
 
 NANOJIT_OBJECTS = \
