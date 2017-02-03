@@ -22,7 +22,7 @@ class Compiler : public Visitor<Location> {
   public:
   Compiler(X86Assembler& asm) : asm(asm) {};
 
-  void compile(Expression<Location>& root);
+  void compile(Expression<Location>& root, int argc);
 
   virtual void visitAdditionExpression(AdditionExpression<Location>& expr);
   virtual void visitSubtractionExpression(SubtractionExpression<Location>& expr);

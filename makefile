@@ -61,6 +61,7 @@ MAIN_OBJECTS = \
 	main.o \
 	tokenizer.o \
 	parser.o \
+	location.o \
 	#nanojitsupport.o \
 
 CXXFLAGS := -DASMJIT_EMBED -g

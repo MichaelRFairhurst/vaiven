@@ -6,6 +6,8 @@
 #include "visitor/autocompiler.h"
 #include "visitor/location_resolver.h"
 
+#include <stdint.h>
+
 #include "asmjit/src/asmjit/asmjit.h"
 
 using std::cin;
@@ -44,23 +46,24 @@ void printExpressionStream(Parser& parser) {
     X86Compiler cc(&codeHolder);
     //visitor::Compiler compiler(assembler);
     visitor::AutoCompiler compiler(cc);
-    compiler.compile(*resolved);
-    int (*func)(int rdi, int rsi, int rdx, int rcx, int r8, int r9);
+    compiler.compile(*resolved, locResolver.argIndexes.size());
+    int64_t (*func)(int64_t rdi, int64_t rsi, int64_t rdx, int64_t rcx, int64_t r8, int64_t r9, int64_t stack1, int64_t stack2);
     jt.add(&func, &codeHolder);
 
     visitor::PrintVisitor printer;
     cur->accept(printer);
     cout << "=";
     visitor::Interpreter interpreter;
-    cout << func(1, 2, 3, 4, 5, 6) << endl << endl;
-    //cur->accept(interpreter);
-    //cout << interpreter.stack.top() << endl;
-    //interpreter.stack.pop();
+    int64_t result = func(1, 2, 3, 4, 5, 6, 7, 8);
+    std::vector<int> args;
+    args.push_back(1); args.push_back(2); args.push_back(3);
+    args.push_back(4); args.push_back(5); args.push_back(6);
+    //int result = interpreter.interpret(*cur, args, &locResolver.argIndexes);
+    cout << result << endl << endl;
 
-    for (size_t i = 0; i < 5000000000; ++i) {
-      func(i, i + 1, i + 2, i + 3, i + 4, i + 5);
-      //cur->accept(interpreter);
-      //interpreter.stack.pop();
+    for (size_t i = 0; i < 000000000; ++i) {
+      func(i, i + 1, i + 2, i + 3, i + 4, i + 5, i + 6, i + 7);
+      //interpreter.interpret(*cur, args, &locResolver.argIndexes);
     }
 
     jt.release(func);

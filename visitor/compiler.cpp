@@ -5,8 +5,15 @@
 using namespace asmjit;
 using namespace vaiven::visitor;
 
-void Compiler::compile(Expression<Location>& root) {
-  root.accept(*this);
+void Compiler::compile(Expression<Location>& root, int argc) {
+  if (argc > 6) {
+    asm.push(x86::rbp);
+    asm.mov(x86::rbp, x86::rsp);
+    root.accept(*this);
+    asm.pop(x86::rbp);
+  } else {
+    root.accept(*this);
+  }
   asm.ret();
 }
 
@@ -15,47 +22,38 @@ void Compiler::visitAdditionExpression(AdditionExpression<Location>& expr) {
   Location& right_loc = expr.right->resolvedData;
   bool leftImm = left_loc.type == LOCATION_TYPE_IMM;
   bool rightImm = right_loc.type == LOCATION_TYPE_IMM;
-  bool leftExactReg = left_loc.type == LOCATION_TYPE_REG;
-  bool rightExactReg = right_loc.type == LOCATION_TYPE_REG;
-  bool leftTmp = !leftImm && !leftExactReg;
-  bool rightTmp = !rightImm && !rightExactReg;
+  bool leftTmp = left_loc.type == LOCATION_TYPE_SPILLED;
+  bool rightTmp = right_loc.type == LOCATION_TYPE_SPILLED;
 
-  if (!leftTmp && !rightTmp) {
-    // mov rax, lhsImm or exact reg
-    // add rax, rhsImm or exact reg
-    expr.left->accept(*this);
-  } else if (leftTmp) {
+  if (!leftTmp && rightTmp) {
+    expr.right->accept(*this);
+    if (leftImm) {
+      asm.add(x86::rax, left_loc.data.imm);
+    } else {
+      const X86Gp* argreg = left_loc.getReg();
+      if (argreg != NULL) {
+        asm.add(x86::rax, *argreg);
+      } else {
+        asm.add(x86::rax, right_loc.getArgPtr());
+      }
+    }
+  } else {
     expr.left->accept(*this);
     if (rightTmp) {
-      // now rax holds lhs, but calcing rhs will clobber it
       asm.push(x86::rax);
-    }
-  }
-
-  if (rightTmp) {
-    expr.right->accept(*this);
-    if (leftTmp) {
-      // two non immediates fight over rax, required stack manip
+      expr.right->accept(*this);
       asm.pop(x86::rcx);
+      asm.add(x86::rax, x86::rcx);
+    } else if (rightImm) {
+      asm.add(x86::rax, right_loc.data.imm);
+    } else {
+      const X86Gp* argreg = right_loc.getReg();
+      if (argreg != NULL) {
+        asm.add(x86::rax, *argreg);
+      } else {
+        asm.add(x86::rax, right_loc.getArgPtr());
+      }
     }
-  }
-
-  if (rightImm) {
-    // we already ensured that if right is imm, left is in rax
-    // just add right imm
-    asm.add(x86::rax, right_loc.data.imm);
-  } else if (rightExactReg) {
-    // we already ensured that if right is imm, left is in rax
-    // just add right imm
-    asm.add(x86::rax, *right_loc.data.reg);
-  } else if (leftImm) {
-    // then rhs is in rax 
-    asm.add(x86::rax, left_loc.data.imm);
-  } else if (leftExactReg) {
-    // then rhs is in rax 
-    asm.add(x86::rax, *left_loc.data.reg);
-  } else {
-    asm.add(x86::rax, x86::rcx);
   }
 }
 void Compiler::visitSubtractionExpression(SubtractionExpression<Location>& expr) {
@@ -63,49 +61,42 @@ void Compiler::visitSubtractionExpression(SubtractionExpression<Location>& expr)
   Location& right_loc = expr.right->resolvedData;
   bool leftImm = left_loc.type == LOCATION_TYPE_IMM;
   bool rightImm = right_loc.type == LOCATION_TYPE_IMM;
-  bool leftExactReg = left_loc.type == LOCATION_TYPE_REG;
-  bool rightExactReg = right_loc.type == LOCATION_TYPE_REG;
-  bool leftTmp = !leftImm && !leftExactReg;
-  bool rightTmp = !rightImm && !rightExactReg;
+  bool leftTmp = left_loc.type == LOCATION_TYPE_SPILLED;
+  bool rightTmp = right_loc.type == LOCATION_TYPE_SPILLED;
 
-  if (!leftTmp && !rightTmp) {
-    // mov rax, lhsImm or exact reg
-    // mul rax, rhsImm or exact reg
-    expr.left->accept(*this);
-  } else if (leftTmp) {
-    expr.left->accept(*this);
-    if (rightTmp) {
-      // now rax holds lhs, but calcing rhs will clobber it
-      asm.push(x86::rax);
-    }
-  }
-
-  if (rightTmp) {
+  if (!leftTmp && rightTmp) {
     expr.right->accept(*this);
-    if (leftTmp) {
-      // two non immediates fight over rax, required stack manip
-      asm.pop(x86::rcx);
+    // rhs is in rax, but we want lhs -= rhs. So instead rhs = -rhs + lhs
+    asm.neg(x86::rax);
+    if (leftImm) {
+      asm.add(x86::rax, left_loc.data.imm);
+    } else {
+      const X86Gp* argreg = left_loc.getReg();
+      if (argreg != NULL) {
+        asm.add(x86::rax, *argreg);
+      } else {
+        asm.add(x86::rax, right_loc.getArgPtr());
+      }
     }
-  }
-
-  if (rightImm) {
-    // we already ensured that if right is imm, left is in rax
-    // just add right imm
-    asm.sub(x86::rax, right_loc.data.imm);
-  } else if (rightExactReg) {
-    asm.sub(x86::rax, *right_loc.data.reg);
-  } else if (leftImm) {
-    // then rhs is in rax. run -rhs + lhs
-    asm.neg(x86::rax);
-    asm.add(x86::rax, left_loc.data.imm);
-  } else if (leftExactReg) {
-    // then rhs is in rax. run -rhs + lhs
-    asm.neg(x86::rax);
-    asm.add(x86::rax, *left_loc.data.reg);
   } else {
-    // rhs is in rax. run -rhs + lhs
-    asm.neg(x86::rax);
-    asm.add(x86::rax, x86::rcx);
+    if (rightTmp) {
+      expr.right->accept(*this);
+      asm.push(x86::rax);
+      expr.left->accept(*this);
+      asm.pop(x86::rcx);
+      asm.sub(x86::rax, x86::rcx);
+    } else if (rightImm) {
+      expr.left->accept(*this);
+      asm.sub(x86::rax, right_loc.data.imm);
+    } else {
+      expr.left->accept(*this);
+      const X86Gp* argreg = right_loc.getReg();
+      if (argreg != NULL) {
+        asm.sub(x86::rax, *argreg);
+      } else {
+        asm.sub(x86::rax, right_loc.getArgPtr());
+      }
+    }
   }
 }
 void Compiler::visitMultiplicationExpression(MultiplicationExpression<Location>& expr) {
@@ -113,47 +104,38 @@ void Compiler::visitMultiplicationExpression(MultiplicationExpression<Location>&
   Location& right_loc = expr.right->resolvedData;
   bool leftImm = left_loc.type == LOCATION_TYPE_IMM;
   bool rightImm = right_loc.type == LOCATION_TYPE_IMM;
-  bool leftExactReg = left_loc.type == LOCATION_TYPE_REG;
-  bool rightExactReg = right_loc.type == LOCATION_TYPE_REG;
-  bool leftTmp = !leftImm && !leftExactReg;
-  bool rightTmp = !rightImm && !rightExactReg;
+  bool leftTmp = left_loc.type == LOCATION_TYPE_SPILLED;
+  bool rightTmp = right_loc.type == LOCATION_TYPE_SPILLED;
 
-  if (!leftTmp && !rightTmp) {
-    // mov rax, lhsImm or exact reg
-    // mul rax, rhsImm or exact reg
-    expr.left->accept(*this);
-  } else if (leftTmp) {
+  if (!leftTmp && rightTmp) {
+    expr.right->accept(*this);
+    if (leftImm) {
+      asm.imul(x86::rax, left_loc.data.imm);
+    } else {
+      const X86Gp* argreg = left_loc.getReg();
+      if (argreg != NULL) {
+        asm.imul(x86::rax, *argreg);
+      } else {
+        asm.imul(x86::rax, right_loc.getArgPtr());
+      }
+    }
+  } else {
     expr.left->accept(*this);
     if (rightTmp) {
-      // now rax holds lhs, but calcing rhs will clobber it
       asm.push(x86::rax);
-    }
-  }
-
-  if (rightTmp) {
-    expr.right->accept(*this);
-    if (leftTmp) {
-      // two non immediates fight over rax, required stack manip
+      expr.right->accept(*this);
       asm.pop(x86::rcx);
+      asm.imul(x86::rax, x86::rcx);
+    } else if (rightImm) {
+      asm.imul(x86::rax, right_loc.data.imm);
+    } else {
+      const X86Gp* argreg = right_loc.getReg();
+      if (argreg != NULL) {
+        asm.imul(x86::rax, *argreg);
+      } else {
+        asm.imul(x86::rax, right_loc.getArgPtr());
+      }
     }
-  }
-
-  if (rightImm) {
-    // we already ensured that if right is imm, left is in rax
-    // just mul right imm
-    asm.imul(x86::rax, right_loc.data.imm);
-  } else if (rightExactReg) {
-    // we already ensured that if right is imm, left is in rax
-    // just mul right imm
-    asm.imul(x86::rax, *right_loc.data.reg);
-  } else if (leftImm) {
-    // then rhs is in rax 
-    asm.imul(x86::rax, left_loc.data.imm);
-  } else if (leftExactReg) {
-    // then rhs is in rax 
-    asm.imul(x86::rax, *left_loc.data.reg);
-  } else {
-    asm.imul(x86::rax, x86::rcx);
   }
 }
 void Compiler::visitDivisionExpression(DivisionExpression<Location>& expr) {
@@ -161,55 +143,54 @@ void Compiler::visitDivisionExpression(DivisionExpression<Location>& expr) {
   Location& right_loc = expr.right->resolvedData;
   bool leftImm = left_loc.type == LOCATION_TYPE_IMM;
   bool rightImm = right_loc.type == LOCATION_TYPE_IMM;
-  bool leftExactReg = left_loc.type == LOCATION_TYPE_REG;
-  bool rightExactReg = right_loc.type == LOCATION_TYPE_REG;
-  bool leftTmp = !leftImm && !leftExactReg;
-  bool rightTmp = !rightImm && !rightExactReg;
+  bool leftTmp = left_loc.type == LOCATION_TYPE_SPILLED;
+  bool rightTmp = right_loc.type == LOCATION_TYPE_SPILLED;
 
-  if (!leftTmp && !rightTmp) {
-    // mov rax, lhsImm or exact reg
-    // mul rax, rhsImm or exact reg
-    expr.left->accept(*this);
-  } else if (leftTmp) {
-    expr.left->accept(*this);
-    if (rightTmp) {
-      // now rax holds lhs, but calcing rhs will clobber it
-      asm.push(x86::rax);
-    }
-  }
-
-  if (rightTmp) {
+  // division takes no immediates or effective addrs.
+  // These only set up rax and the div reg (usually rcx)
+  X86Gp divReg = x86::rcx;
+  if (!leftTmp && rightTmp) {
     expr.right->accept(*this);
-    if (leftTmp) {
-      // two non immediates fight over rax, required stack manip
-      asm.mov(x86::rcx, x86::rax);
-      asm.pop(x86::rax);
+    asm.mov(divReg, x86::rax);
+    if (leftImm) {
+      asm.mov(x86::rax, left_loc.data.imm);
+    } else {
+      const X86Gp* argreg = left_loc.getReg();
+      if (argreg != NULL) {
+        asm.mov(x86::rax, right_loc.getArgPtr());
+      } else {
+        asm.mov(x86::rax, right_loc.getArgPtr());
+      }
+    }
+  } else {
+    if (rightTmp) {
+      expr.right->accept(*this);
+      asm.push(x86::rax);
+      expr.left->accept(*this);
+      asm.pop(x86::rcx);
+    } else if (rightImm) {
+      expr.left->accept(*this);
+      asm.mov(x86::rcx, right_loc.data.imm);
+    } else {
+      expr.left->accept(*this);
+      const X86Gp* argreg = right_loc.getReg();
+      if (argreg != NULL) {
+        divReg = *argreg;
+      } else {
+        asm.mov(x86::rcx, right_loc.getArgPtr());
+      }
     }
   }
 
-  // clear upper 64 bits
+  // TODO only do this when rdx is in use
+  // save variable 4
+  asm.push(x86::rdx);
+  // clear high div bits
   asm.xor_(x86::rdx, x86::rdx);
-
-  if (rightImm) {
-    // we already ensured that if right is imm, left is in rax
-    // can't idiv by an immediate, so first load it into rcx
-    asm.mov(x86::rcx, right_loc.data.imm);
-    asm.idiv(x86::rcx);
-  } else if (rightExactReg) {
-    asm.idiv(*right_loc.data.reg);
-  } else if (leftImm) {
-    // then rhs is in rax. Want it in rcx
-    asm.mov(x86::rcx, x86::rax);
-    asm.mov(x86::rax, left_loc.data.imm);
-    asm.idiv(x86::rcx);
-  } else if (leftExactReg) {
-    // then rhs is in rax. Want it in rcx
-    asm.mov(x86::rcx, x86::rax);
-    asm.mov(x86::rax, *left_loc.data.reg);
-    asm.idiv(x86::rcx);
-  } else {
-    asm.idiv(x86::rcx);
-  }
+  // run div
+  asm.idiv(x86::rcx);
+  // restore variable 5
+  asm.pop(x86::rdx);
 }
 
 void Compiler::visitIntegerExpression(IntegerExpression<Location>& expr) {
@@ -218,5 +199,10 @@ void Compiler::visitIntegerExpression(IntegerExpression<Location>& expr) {
 }
 
 void Compiler::visitVariableExpression(VariableExpression<Location>& expr) {
-  asm.mov(x86::rax, *expr.resolvedData.data.reg);
+  const X86Gp* reg = expr.resolvedData.getReg();
+  if (reg != NULL) {
+    asm.mov(x86::rax, *reg);
+  } else {
+    asm.mov(x86::rax, expr.resolvedData.getArgPtr());
+  }
 }

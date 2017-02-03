@@ -8,6 +8,23 @@ using std::cout;
 
 using namespace vaiven::visitor;
 
+int Interpreter::interpret(Node<bool>& root, vector<int> args, map<string, int>* variablesMap) {
+  for(vector<int>::iterator it = args.begin(); it != args.end(); ++it) {
+    stack.push(*it);
+  }
+  this->variablesMap = variablesMap;
+
+  root.accept(*this);
+
+  int val = stack.top();
+  for(int i = 0; i < args.size(); ++i) {
+    stack.pop();
+  }
+  stack.pop();
+
+  return val;
+}
+
 void Interpreter::visitAdditionExpression(AdditionExpression<bool>& expr) {
   expr.left->accept(*this);
   expr.right->accept(*this);
@@ -40,5 +57,6 @@ void Interpreter::visitIntegerExpression(IntegerExpression<bool>& expr) {
   stack.push(expr.value);
 }
 void Interpreter::visitVariableExpression(VariableExpression<bool>& expr) {
-  stack.push(1000);
+  int val = stack.c[(*variablesMap)[expr.id]];
+  stack.push(val);
 }

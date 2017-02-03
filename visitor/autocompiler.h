@@ -2,6 +2,8 @@
 #define VAIVEN_VISITOR_HEADER_AUTO_COMPILER
 
 #include <stack>
+#include <vector>
+#include <memory>
 
 #include "../ast/visitor.h"
 #include "../ast/all.h"
@@ -12,6 +14,8 @@
 namespace vaiven { namespace visitor {
 
 using std::stack;
+using std::vector;
+using std::unique_ptr;
 using namespace vaiven::ast;
 using asmjit::X86Compiler;
 
@@ -20,7 +24,7 @@ class AutoCompiler : public Visitor<Location> {
   public:
   AutoCompiler(X86Compiler& cc) : cc(cc) {};
 
-  void compile(Expression<Location>& expr);
+  void compile(Expression<Location>& expr, int numVars);
 
   virtual void visitAdditionExpression(AdditionExpression<Location>& expr);
   virtual void visitSubtractionExpression(SubtractionExpression<Location>& expr);
@@ -32,6 +36,7 @@ class AutoCompiler : public Visitor<Location> {
   private:
   X86Compiler& cc;
   stack<asmjit::X86Gp> vRegs;
+  vector<asmjit::X86Gp> argRegs;
 
 };
 

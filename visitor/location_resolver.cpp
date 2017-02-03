@@ -51,33 +51,19 @@ void LocationResolver::visitDivisionExpression(DivisionExpression<bool>& expr) {
   copyStack.push(copy.release());
 }
 void LocationResolver::visitIntegerExpression(IntegerExpression<bool>& expr) {
-  Location immediate(expr.value);
+  Location immediate = Location::imm(expr.value);
   unique_ptr<Expression<Location> > copy(new IntegerExpression<Location>(expr.value));
   copy->resolvedData = immediate;
   copyStack.push(copy.release());
 }
 void LocationResolver::visitVariableExpression(VariableExpression<bool>& expr) {
   if (argIndexes.find(expr.id) == argIndexes.end()) {
-    int count = argIndexes.size() + 1; // safer to break these up, I think
+    int count = argIndexes.size(); // safer to break these up, I think
     argIndexes[expr.id] = count; // C++ modifyX = modifyX is undefined?
   }
 
-  Location var_loc(1000);
   int argNum = argIndexes[expr.id];
-  switch (argNum) {
-    case 1:
-      var_loc = Location((asmjit::X86Gp*) &asmjit::x86::rdi); break;
-    case 2:
-      var_loc = Location((asmjit::X86Gp*) &asmjit::x86::rsi); break;
-    case 3:
-      var_loc = Location((asmjit::X86Gp*) &asmjit::x86::rdx); break;
-    case 4:
-      var_loc = Location((asmjit::X86Gp*) &asmjit::x86::rcx); break;
-    case 5:
-      var_loc = Location((asmjit::X86Gp*) &asmjit::x86::r8); break;
-    case 6:
-      var_loc = Location((asmjit::X86Gp*) &asmjit::x86::r9); break;
-  }
+  Location var_loc = Location::arg(argNum);
 
   unique_ptr<Expression<Location> > copy(new VariableExpression<Location>(expr.id));
   copy->resolvedData = var_loc;
