@@ -2,7 +2,7 @@
 
 using namespace vaiven::visitor;
 
-void LocationResolver::visitFuncDecl(FuncDecl<bool>& decl) {
+void LocationResolver::visitFuncDecl(FuncDecl<>& decl) {
   int i = 0;
   for (vector<string>::iterator it = decl.args.begin();
       it != decl.args.end();
@@ -26,7 +26,7 @@ void LocationResolver::visitFuncDecl(FuncDecl<bool>& decl) {
   nodeCopyStack.push(copy.release());
 }
 
-void LocationResolver::visitExpressionStatement(ExpressionStatement<bool>& stmt) {
+void LocationResolver::visitExpressionStatement(ExpressionStatement<>& stmt) {
   stmt.expr->accept(*this);
   unique_ptr<Expression<Location> > expr(move(exprCopyStack.top()));
   exprCopyStack.pop();
@@ -36,7 +36,7 @@ void LocationResolver::visitExpressionStatement(ExpressionStatement<bool>& stmt)
   stmtCopyStack.push(copy.release());
 }
 
-void LocationResolver::visitBlock(Block<bool>& block) {
+void LocationResolver::visitBlock(Block<>& block) {
   vector<unique_ptr<Statement<Location> > > newStmts;
   for(vector<unique_ptr<Statement<> > >::iterator it = block.statements.begin();
       it != block.statements.end();
@@ -53,7 +53,7 @@ void LocationResolver::visitBlock(Block<bool>& block) {
   stmtCopyStack.push(copy.release());
 }
 
-void LocationResolver::visitAdditionExpression(AdditionExpression<bool>& expr) {
+void LocationResolver::visitAdditionExpression(AdditionExpression<>& expr) {
   expr.left->accept(*this);
   expr.right->accept(*this);
   unique_ptr<Expression<Location> > rhs(move(exprCopyStack.top()));
@@ -65,7 +65,7 @@ void LocationResolver::visitAdditionExpression(AdditionExpression<bool>& expr) {
   copy->resolvedData = loc;
   exprCopyStack.push(copy.release());
 }
-void LocationResolver::visitSubtractionExpression(SubtractionExpression<bool>& expr) {
+void LocationResolver::visitSubtractionExpression(SubtractionExpression<>& expr) {
   expr.left->accept(*this);
   expr.right->accept(*this);
   unique_ptr<Expression<Location> > rhs(move(exprCopyStack.top()));
@@ -77,7 +77,7 @@ void LocationResolver::visitSubtractionExpression(SubtractionExpression<bool>& e
   copy->resolvedData = loc;
   exprCopyStack.push(copy.release());
 }
-void LocationResolver::visitMultiplicationExpression(MultiplicationExpression<bool>& expr) {
+void LocationResolver::visitMultiplicationExpression(MultiplicationExpression<>& expr) {
   expr.left->accept(*this);
   expr.right->accept(*this);
   unique_ptr<Expression<Location> > rhs(move(exprCopyStack.top()));
@@ -89,7 +89,7 @@ void LocationResolver::visitMultiplicationExpression(MultiplicationExpression<bo
   copy->resolvedData = loc;
   exprCopyStack.push(copy.release());
 }
-void LocationResolver::visitDivisionExpression(DivisionExpression<bool>& expr) {
+void LocationResolver::visitDivisionExpression(DivisionExpression<>& expr) {
   expr.left->accept(*this);
   expr.right->accept(*this);
   unique_ptr<Expression<Location> > rhs(move(exprCopyStack.top()));
@@ -101,13 +101,13 @@ void LocationResolver::visitDivisionExpression(DivisionExpression<bool>& expr) {
   copy->resolvedData = loc;
   exprCopyStack.push(copy.release());
 }
-void LocationResolver::visitIntegerExpression(IntegerExpression<bool>& expr) {
+void LocationResolver::visitIntegerExpression(IntegerExpression<>& expr) {
   Location immediate = Location::imm(expr.value);
   unique_ptr<Expression<Location> > copy(new IntegerExpression<Location>(expr.value));
   copy->resolvedData = immediate;
   exprCopyStack.push(copy.release());
 }
-void LocationResolver::visitVariableExpression(VariableExpression<bool>& expr) {
+void LocationResolver::visitVariableExpression(VariableExpression<>& expr) {
   if (argIndexes.find(expr.id) == argIndexes.end()) {
     throw "unknown arg value";
   }

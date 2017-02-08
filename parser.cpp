@@ -7,7 +7,7 @@ using std::vector;
 
 using namespace vaiven;
 
-unique_ptr<ast::Node<bool> > Parser::parseLogicalGroup() {
+unique_ptr<ast::Node<> > Parser::parseLogicalGroup() {
   if (current->type == TOKEN_TYPE_CLOSE_BRACE) next(); // for next block after {}
   if (current->type == TOKEN_TYPE_END) next(); // for next block after fn..end
   while (current->type == TOKEN_TYPE_SEMICOLON) next(); // consume semicolon
@@ -18,11 +18,11 @@ unique_ptr<ast::Node<bool> > Parser::parseLogicalGroup() {
   }
 
   lastLogicalGroupWasEvaluatable = true;
-  unique_ptr<ast::Statement<bool> > expr = parseStatement();
-  return unique_ptr<ast::Node<bool> >(expr.release());
+  unique_ptr<ast::Statement<> > expr = parseStatement();
+  return unique_ptr<ast::Node<> >(expr.release());
 }
 
-unique_ptr<ast::FuncDecl<bool> > Parser::parseFuncDecl() {
+unique_ptr<ast::FuncDecl<> > Parser::parseFuncDecl() {
   if (current->type != TOKEN_TYPE_FN) {
     throw string("expected fn");
   }
@@ -52,7 +52,7 @@ unique_ptr<ast::FuncDecl<bool> > Parser::parseFuncDecl() {
   }
 
   next();
-  vector<unique_ptr<ast::Statement<bool> > > stmts;
+  vector<unique_ptr<ast::Statement<> > > stmts;
   while (current->type != TOKEN_TYPE_EOF
       && current->type != TOKEN_TYPE_END) {
     stmts.push_back(parseStatement());
@@ -63,13 +63,13 @@ unique_ptr<ast::FuncDecl<bool> > Parser::parseFuncDecl() {
     throw string("missing close brace");
   }
 
-  return unique_ptr<ast::FuncDecl<bool> >(new ast::FuncDecl<>(name, args, std::move(stmts)));
+  return unique_ptr<ast::FuncDecl<> >(new ast::FuncDecl<>(name, args, std::move(stmts)));
 }
 
-unique_ptr<ast::Statement<bool> > Parser::parseStatement() {
+unique_ptr<ast::Statement<> > Parser::parseStatement() {
   if (current->type == TOKEN_TYPE_OPEN_BRACE) {
     next();
-    vector<unique_ptr<ast::Statement<bool> > > stmts;
+    vector<unique_ptr<ast::Statement<> > > stmts;
     while (current->type != TOKEN_TYPE_EOF
         && current->type != TOKEN_TYPE_CLOSE_BRACE) {
       stmts.push_back(parseStatement());
@@ -81,10 +81,10 @@ unique_ptr<ast::Statement<bool> > Parser::parseStatement() {
     }
 
 
-    return unique_ptr<ast::Statement<bool> >(new ast::Block<>(std::move(stmts)));
+    return unique_ptr<ast::Statement<> >(new ast::Block<>(std::move(stmts)));
   }
 
-  unique_ptr<ast::Statement<bool> > stmt(new ast::ExpressionStatement<bool>(parseExpression()));
+  unique_ptr<ast::Statement<> > stmt(new ast::ExpressionStatement<>(parseExpression()));
 
   if (current->type != TOKEN_TYPE_SEMICOLON) {
     throw string("missing close brace");
@@ -93,13 +93,13 @@ unique_ptr<ast::Statement<bool> > Parser::parseStatement() {
   return std::move(stmt);
 }
 
-unique_ptr<ast::Expression<bool> > Parser::parseExpression() {
-  unique_ptr<ast::Expression<bool> > lhs(parseAddSubExpression());
+unique_ptr<ast::Expression<> > Parser::parseExpression() {
+  unique_ptr<ast::Expression<> > lhs(parseAddSubExpression());
   return std::move(lhs);
 }
 
-unique_ptr<ast::Expression<bool> > Parser::parseAddSubExpression() {
-  unique_ptr<ast::Expression<bool> > acc(parseDivMulExpression());
+unique_ptr<ast::Expression<> > Parser::parseAddSubExpression() {
+  unique_ptr<ast::Expression<> > acc(parseDivMulExpression());
 
   while (current->type != TOKEN_TYPE_SEMICOLON
       && current->type != TOKEN_TYPE_CLOSE_PAREN
@@ -107,11 +107,11 @@ unique_ptr<ast::Expression<bool> > Parser::parseAddSubExpression() {
 
     if (current->type == TOKEN_TYPE_PLUS) {
       next();
-      acc = unique_ptr<ast::Expression<bool> >(new ast::AdditionExpression<bool> (
+      acc = unique_ptr<ast::Expression<> >(new ast::AdditionExpression<> (
           std::move(acc), parseDivMulExpression()));
     } else if (current->type == TOKEN_TYPE_MINUS) {
       next();
-      acc = unique_ptr<ast::Expression<bool> >(new ast::SubtractionExpression<bool> (
+      acc = unique_ptr<ast::Expression<> >(new ast::SubtractionExpression<> (
           std::move(acc), parseDivMulExpression()));
     } else {
       // error
@@ -123,8 +123,8 @@ unique_ptr<ast::Expression<bool> > Parser::parseAddSubExpression() {
 
 }
 
-unique_ptr<ast::Expression<bool> > Parser::parseDivMulExpression() {
-  unique_ptr<ast::Expression<bool> > acc(parseValue());
+unique_ptr<ast::Expression<> > Parser::parseDivMulExpression() {
+  unique_ptr<ast::Expression<> > acc(parseValue());
 
   while (current->type != TOKEN_TYPE_SEMICOLON
       && current->type != TOKEN_TYPE_PLUS
@@ -134,11 +134,11 @@ unique_ptr<ast::Expression<bool> > Parser::parseDivMulExpression() {
 
     if (current->type == TOKEN_TYPE_DIVIDE) {
       next();
-      acc = unique_ptr<ast::Expression<bool> >(new ast::DivisionExpression<bool> (
+      acc = unique_ptr<ast::Expression<> >(new ast::DivisionExpression<> (
           std::move(acc), parseValue()));
     } else if (current->type == TOKEN_TYPE_MULTIPLY) {
       next();
-      acc = unique_ptr<ast::Expression<bool> >(new ast::MultiplicationExpression<bool> (
+      acc = unique_ptr<ast::Expression<> >(new ast::MultiplicationExpression<> (
           std::move(acc), parseValue()));
     } else {
       // error
@@ -149,16 +149,16 @@ unique_ptr<ast::Expression<bool> > Parser::parseDivMulExpression() {
   return std::move(acc);
 }
 
-unique_ptr<ast::Expression<bool> > Parser::parseValue() {
+unique_ptr<ast::Expression<> > Parser::parseValue() {
   if (current->type == TOKEN_TYPE_INTEGER) {
     unique_ptr<IntegerToken> inttok(static_cast<IntegerToken*>(current.release()));
     next();
-    return unique_ptr<ast::Expression<bool> >(new ast::IntegerExpression<bool> (inttok->value));
+    return unique_ptr<ast::Expression<> >(new ast::IntegerExpression<> (inttok->value));
   }
 
   if (current->type == TOKEN_TYPE_OPEN_PAREN) {
     next();
-    unique_ptr<ast::Expression<bool> > expr(parseExpression());
+    unique_ptr<ast::Expression<> > expr(parseExpression());
     // TODO check it actually is TYPE_CLOSE_PAREN
     next();
     return std::move(expr);
@@ -167,7 +167,7 @@ unique_ptr<ast::Expression<bool> > Parser::parseValue() {
   if (current->type == TOKEN_TYPE_ID) {
     unique_ptr<StringToken> idtok(static_cast<StringToken*>(current.release()));
     next();
-    return unique_ptr<ast::Expression<bool> >(new ast::VariableExpression<bool> (idtok->lexeme));
+    return unique_ptr<ast::Expression<> >(new ast::VariableExpression<> (idtok->lexeme));
   }
   
   throw string("blah");

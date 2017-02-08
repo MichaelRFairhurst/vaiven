@@ -12,7 +12,7 @@ using std::string;
 
 namespace vaiven { namespace ast {
 
-template<typename RD=bool>
+template<typename RD>
 class FuncDecl : public Node<RD> {
 
   public:

@@ -10,7 +10,7 @@ using std::vector;
 
 namespace vaiven { namespace ast {
 
-template<typename RD=bool>
+template<typename RD>
 class Block : public Statement<RD> {
 
   public:

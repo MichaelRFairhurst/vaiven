@@ -5,7 +5,7 @@
 
 namespace vaiven { namespace ast {
 
-template<typename RD=bool>
+template<typename RD>
 class Node {
   public:
   virtual void accept(Visitor<RD>& v)=0;

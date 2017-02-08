@@ -3,25 +3,25 @@
 
 namespace vaiven { namespace ast {
 
-template<typename RD>
+template<typename RD=bool>
 class Node;
-template<typename RD>
+template<typename RD=bool>
 class AdditionExpression;
-template<typename RD>
+template<typename RD=bool>
 class SubtractionExpression;
-template<typename RD>
+template<typename RD=bool>
 class MultiplicationExpression;
-template<typename RD>
+template<typename RD=bool>
 class DivisionExpression;
-template<typename RD>
+template<typename RD=bool>
 class IntegerExpression;
-template<typename RD>
+template<typename RD=bool>
 class VariableExpression;
-template<typename RD>
+template<typename RD=bool>
 class ExpressionStatement;
-template<typename RD>
+template<typename RD=bool>
 class Block;
-template<typename RD>
+template<typename RD=bool>
 class FuncDecl;
 
 template<typename RD=bool>

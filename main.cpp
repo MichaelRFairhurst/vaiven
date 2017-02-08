@@ -31,7 +31,7 @@ int main() {
 void printExpressionStream(Parser& parser) {
   JitRuntime jt;
   FileLogger logger(stdout);
-  unique_ptr<ast::Node<bool> > cur = parser.parseLogicalGroup();
+  unique_ptr<ast::Node<> > cur = parser.parseLogicalGroup();
 
   while (cur.get() != NULL) {
     visitor::PrintVisitor printer;

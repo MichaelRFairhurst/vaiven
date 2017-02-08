@@ -8,7 +8,7 @@ using std::string;
 
 namespace vaiven { namespace ast {
 
-template<typename RD=bool>
+template<typename RD>
 class VariableExpression : public Expression<RD> {
 
   public:

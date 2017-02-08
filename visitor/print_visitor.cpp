@@ -8,7 +8,7 @@ using std::cout;
 
 using namespace vaiven::visitor;
 
-void PrintVisitor::visitFuncDecl(FuncDecl<bool>& decl) {
+void PrintVisitor::visitFuncDecl(FuncDecl<>& decl) {
   cout << "fn " << decl.name << " of ";
   for (vector<string>::iterator it = decl.args.begin();
       it != decl.args.end();
@@ -16,7 +16,7 @@ void PrintVisitor::visitFuncDecl(FuncDecl<bool>& decl) {
     cout << *it << ", ";
   }
   cout << "is" << std::endl;
-  for(vector<unique_ptr<Statement<bool> > >::iterator it = decl.statements.begin();
+  for(vector<unique_ptr<Statement<> > >::iterator it = decl.statements.begin();
       it != decl.statements.end();
       ++it) {
     (*it)->accept(*this);
@@ -24,14 +24,14 @@ void PrintVisitor::visitFuncDecl(FuncDecl<bool>& decl) {
   cout << std::endl << "end" << std::endl;
 }
 
-void PrintVisitor::visitExpressionStatement(ExpressionStatement<bool>& stmt) {
+void PrintVisitor::visitExpressionStatement(ExpressionStatement<>& stmt) {
   stmt.expr->accept(*this);
   cout << ";" << std::endl;
 }
 
-void PrintVisitor::visitBlock(Block<bool>& block) {
+void PrintVisitor::visitBlock(Block<>& block) {
   cout << "{" << std::endl;
-  for(vector<unique_ptr<Statement<bool> > >::iterator it = block.statements.begin();
+  for(vector<unique_ptr<Statement<> > >::iterator it = block.statements.begin();
       it != block.statements.end();
       ++it) {
     (*it)->accept(*this);
@@ -39,37 +39,37 @@ void PrintVisitor::visitBlock(Block<bool>& block) {
   cout << "}" << std::endl;
 }
 
-void PrintVisitor::visitAdditionExpression(AdditionExpression<bool>& expr) {
+void PrintVisitor::visitAdditionExpression(AdditionExpression<>& expr) {
   cout << "(";
   expr.left->accept(*this);
   cout << "+";
   expr.right->accept(*this);
   cout << ")";
 }
-void PrintVisitor::visitSubtractionExpression(SubtractionExpression<bool>& expr) {
+void PrintVisitor::visitSubtractionExpression(SubtractionExpression<>& expr) {
   cout << "(";
   expr.left->accept(*this);
   cout << "-";
   expr.right->accept(*this);
   cout << ")";
 }
-void PrintVisitor::visitMultiplicationExpression(MultiplicationExpression<bool>& expr) {
+void PrintVisitor::visitMultiplicationExpression(MultiplicationExpression<>& expr) {
   cout << "(";
   expr.left->accept(*this);
   cout << "*";
   expr.right->accept(*this);
   cout << ")";
 }
-void PrintVisitor::visitDivisionExpression(DivisionExpression<bool>& expr) {
+void PrintVisitor::visitDivisionExpression(DivisionExpression<>& expr) {
   cout << "(";
   expr.left->accept(*this);
   cout << "/";
   expr.right->accept(*this);
   cout << ")";
 }
-void PrintVisitor::visitIntegerExpression(IntegerExpression<bool>& expr) {
+void PrintVisitor::visitIntegerExpression(IntegerExpression<>& expr) {
   cout << expr.value;
 }
-void PrintVisitor::visitVariableExpression(VariableExpression<bool>& expr) {
+void PrintVisitor::visitVariableExpression(VariableExpression<>& expr) {
   cout << expr.id;
 }

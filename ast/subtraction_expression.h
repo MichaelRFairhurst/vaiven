@@ -8,7 +8,7 @@ using std::unique_ptr;
 
 namespace vaiven { namespace ast {
 
-template<typename RD=bool>
+template<typename RD>
 class SubtractionExpression : public Expression<RD> {
 
   public:

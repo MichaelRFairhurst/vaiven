@@ -24,21 +24,21 @@ class stack_with_container : public stack<T> {
 
 using namespace vaiven::ast;
 
-class Interpreter : public Visitor<bool> {
+class Interpreter : public Visitor<> {
 
   public:
-  //int interpret(Node<bool>& root, vector<int> args, map<string, int>* variablesMap);
-  int interpret(Node<bool>& root);
+  //int interpret(Node<>& root, vector<int> args, map<string, int>* variablesMap);
+  int interpret(Node<>& root);
 
-  virtual void visitAdditionExpression(AdditionExpression<bool>& expr);
-  virtual void visitSubtractionExpression(SubtractionExpression<bool>& expr);
-  virtual void visitMultiplicationExpression(MultiplicationExpression<bool>& expr);
-  virtual void visitDivisionExpression(DivisionExpression<bool>& expr);
-  virtual void visitIntegerExpression(IntegerExpression<bool>& expr);
-  virtual void visitVariableExpression(VariableExpression<bool>& expr);
-  virtual void visitExpressionStatement(ExpressionStatement<bool>& expr);
-  virtual void visitBlock(Block<bool>& expr);
-  virtual void visitFuncDecl(FuncDecl<bool>& funcDecl);
+  virtual void visitAdditionExpression(AdditionExpression<>& expr);
+  virtual void visitSubtractionExpression(SubtractionExpression<>& expr);
+  virtual void visitMultiplicationExpression(MultiplicationExpression<>& expr);
+  virtual void visitDivisionExpression(DivisionExpression<>& expr);
+  virtual void visitIntegerExpression(IntegerExpression<>& expr);
+  virtual void visitVariableExpression(VariableExpression<>& expr);
+  virtual void visitExpressionStatement(ExpressionStatement<>& expr);
+  virtual void visitBlock(Block<>& expr);
+  virtual void visitFuncDecl(FuncDecl<>& funcDecl);
 
   stack_with_container<int> stack;
   map<string, int>* variablesMap;

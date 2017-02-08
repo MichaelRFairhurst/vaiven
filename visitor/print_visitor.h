@@ -7,18 +7,18 @@ namespace vaiven { namespace visitor {
 
 using namespace vaiven::ast;
 
-class PrintVisitor : public Visitor<bool> {
+class PrintVisitor : public Visitor<> {
 
   public:
-  virtual void visitAdditionExpression(AdditionExpression<bool>& expr);
-  virtual void visitSubtractionExpression(SubtractionExpression<bool>& expr);
-  virtual void visitMultiplicationExpression(MultiplicationExpression<bool>& expr);
-  virtual void visitDivisionExpression(DivisionExpression<bool>& expr);
-  virtual void visitIntegerExpression(IntegerExpression<bool>& expr);
-  virtual void visitVariableExpression(VariableExpression<bool>& expr);
-  virtual void visitExpressionStatement(ExpressionStatement<bool>& expr);
-  virtual void visitBlock(Block<bool>& expr);
-  virtual void visitFuncDecl(FuncDecl<bool>& funcDecl);
+  virtual void visitAdditionExpression(AdditionExpression<>& expr);
+  virtual void visitSubtractionExpression(SubtractionExpression<>& expr);
+  virtual void visitMultiplicationExpression(MultiplicationExpression<>& expr);
+  virtual void visitDivisionExpression(DivisionExpression<>& expr);
+  virtual void visitIntegerExpression(IntegerExpression<>& expr);
+  virtual void visitVariableExpression(VariableExpression<>& expr);
+  virtual void visitExpressionStatement(ExpressionStatement<>& expr);
+  virtual void visitBlock(Block<>& expr);
+  virtual void visitFuncDecl(FuncDecl<>& funcDecl);
 
 };
 
