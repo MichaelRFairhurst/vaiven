@@ -8,6 +8,7 @@
 #include "../ast/visitor.h"
 #include "../ast/all.h"
 #include "../location.h"
+#include "../functions.h"
 
 #include "../asmjit/src/asmjit/asmjit.h"
 
@@ -22,7 +23,7 @@ using asmjit::X86Compiler;
 class AutoCompiler : public Visitor<Location> {
 
   public:
-  AutoCompiler(X86Compiler& cc) : cc(cc) {};
+  AutoCompiler(X86Compiler& cc, asmjit::CodeHolder& codeHolder, Functions& funcs) : cc(cc), codeHolder(codeHolder), funcs(funcs) {};
 
   void compile(Node<Location>& expr, int numVars);
 
@@ -32,12 +33,15 @@ class AutoCompiler : public Visitor<Location> {
   virtual void visitDivisionExpression(DivisionExpression<Location>& expr);
   virtual void visitIntegerExpression(IntegerExpression<Location>& expr);
   virtual void visitVariableExpression(VariableExpression<Location>& expr);
+  virtual void visitFuncCallExpression(FuncCallExpression<Location>& expr);
   virtual void visitExpressionStatement(ExpressionStatement<Location>& expr);
   virtual void visitBlock(Block<Location>& expr);
   virtual void visitFuncDecl(FuncDecl<Location>& funcDecl);
 
   private:
   X86Compiler& cc;
+  asmjit::CodeHolder& codeHolder;
+  Functions& funcs;
   stack<asmjit::X86Gp> vRegs;
   vector<asmjit::X86Gp> argRegs;
 

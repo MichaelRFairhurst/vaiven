@@ -2,6 +2,23 @@
 
 using namespace vaiven::visitor;
 
+void LocationResolver::visitFuncCallExpression(FuncCallExpression<>& expr) {
+  vector<unique_ptr<Expression<Location> > > newParams;
+  for(vector<unique_ptr<Expression<> > >::iterator it = expr.parameters.begin();
+      it != expr.parameters.end();
+      ++it) {
+    (*it)->accept(*this);
+    unique_ptr<Expression<Location> > newParam(move(exprCopyStack.top()));
+    exprCopyStack.pop();
+    newParams.push_back(move(newParam));
+  }
+
+  Location void_ = Location::void_();
+  unique_ptr<Expression<Location> > copy(new FuncCallExpression<Location>(expr.name, move(newParams)));
+  copy->resolvedData = void_;
+  exprCopyStack.push(copy.release());
+}
+
 void LocationResolver::visitFuncDecl(FuncDecl<>& decl) {
   int i = 0;
   for (vector<string>::iterator it = decl.args.begin();

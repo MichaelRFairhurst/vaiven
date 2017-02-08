@@ -11,6 +11,10 @@ void AutoCompiler::compile(Node<Location>& root, int numVars) {
   root.accept(*this);
 }
 
+void AutoCompiler::visitFuncCallExpression(FuncCallExpression<Location>& expr) {
+  throw "not yet supported";
+}
+
 void AutoCompiler::visitFuncDecl(FuncDecl<Location>& decl) {
   uint8_t sigArgs[decl.args.size()];
 
@@ -39,6 +43,8 @@ void AutoCompiler::visitFuncDecl(FuncDecl<Location>& decl) {
   }
   cc.endFunc();
   cc.finalize();
+
+  funcs.addFunc(decl.name, &codeHolder, decl.args.size());
 }
 
 void AutoCompiler::visitExpressionStatement(ExpressionStatement<Location>& stmt) {

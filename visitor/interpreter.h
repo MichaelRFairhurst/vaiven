@@ -8,6 +8,7 @@
 
 #include "../ast/visitor.h"
 #include "../ast/all.h"
+#include "../functions.h"
 
 namespace vaiven { namespace visitor {
 
@@ -27,6 +28,7 @@ using namespace vaiven::ast;
 class Interpreter : public Visitor<> {
 
   public:
+  Interpreter(Functions& funcs) : funcs(funcs) {};
   //int interpret(Node<>& root, vector<int> args, map<string, int>* variablesMap);
   int interpret(Node<>& root);
 
@@ -36,12 +38,14 @@ class Interpreter : public Visitor<> {
   virtual void visitDivisionExpression(DivisionExpression<>& expr);
   virtual void visitIntegerExpression(IntegerExpression<>& expr);
   virtual void visitVariableExpression(VariableExpression<>& expr);
+  virtual void visitFuncCallExpression(FuncCallExpression<>& expr);
   virtual void visitExpressionStatement(ExpressionStatement<>& expr);
   virtual void visitBlock(Block<>& expr);
   virtual void visitFuncDecl(FuncDecl<>& funcDecl);
 
   stack_with_container<int> stack;
   map<string, int>* variablesMap;
+  Functions& funcs;
 };
 
 }}

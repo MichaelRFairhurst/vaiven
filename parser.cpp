@@ -73,7 +73,10 @@ unique_ptr<ast::Statement<> > Parser::parseStatement() {
     while (current->type != TOKEN_TYPE_EOF
         && current->type != TOKEN_TYPE_CLOSE_BRACE) {
       stmts.push_back(parseStatement());
-      next(); // eat semicolon
+
+      if (current->type != TOKEN_TYPE_SEMICOLON) {
+        throw "expected ;";
+      }
     }
 
     if (current->type != TOKEN_TYPE_CLOSE_BRACE) {
@@ -103,6 +106,7 @@ unique_ptr<ast::Expression<> > Parser::parseAddSubExpression() {
 
   while (current->type != TOKEN_TYPE_SEMICOLON
       && current->type != TOKEN_TYPE_CLOSE_PAREN
+      && current->type != TOKEN_TYPE_COMMA
       && current->type != TOKEN_TYPE_EOF) {
 
     if (current->type == TOKEN_TYPE_PLUS) {
@@ -129,6 +133,7 @@ unique_ptr<ast::Expression<> > Parser::parseDivMulExpression() {
   while (current->type != TOKEN_TYPE_SEMICOLON
       && current->type != TOKEN_TYPE_PLUS
       && current->type != TOKEN_TYPE_MINUS
+      && current->type != TOKEN_TYPE_COMMA
       && current->type != TOKEN_TYPE_CLOSE_PAREN
       && current->type != TOKEN_TYPE_EOF) {
 
@@ -167,7 +172,29 @@ unique_ptr<ast::Expression<> > Parser::parseValue() {
   if (current->type == TOKEN_TYPE_ID) {
     unique_ptr<StringToken> idtok(static_cast<StringToken*>(current.release()));
     next();
-    return unique_ptr<ast::Expression<> >(new ast::VariableExpression<> (idtok->lexeme));
+    if (current->type == TOKEN_TYPE_OPEN_PAREN) {
+      next();
+      vector<unique_ptr<ast::Expression<> > > params;
+      while (current->type != TOKEN_TYPE_EOF
+          && current->type != TOKEN_TYPE_CLOSE_PAREN) {
+        params.push_back(parseExpression());
+
+        if (current->type != TOKEN_TYPE_COMMA) {
+          break;
+        }
+
+        next();
+      }
+
+      if (current->type != TOKEN_TYPE_CLOSE_PAREN) {
+        throw string("missing close paren");
+      }
+
+      next();
+      return unique_ptr<ast::Expression<> >(new ast::FuncCallExpression<> (idtok->lexeme, move(params)));
+    } else {
+      return unique_ptr<ast::Expression<> >(new ast::VariableExpression<> (idtok->lexeme));
+    }
   }
   
   throw string("blah");

@@ -16,6 +16,7 @@ class PrintVisitor : public Visitor<> {
   virtual void visitDivisionExpression(DivisionExpression<>& expr);
   virtual void visitIntegerExpression(IntegerExpression<>& expr);
   virtual void visitVariableExpression(VariableExpression<>& expr);
+  virtual void visitFuncCallExpression(FuncCallExpression<>& expr);
   virtual void visitExpressionStatement(ExpressionStatement<>& expr);
   virtual void visitBlock(Block<>& expr);
   virtual void visitFuncDecl(FuncDecl<>& funcDecl);

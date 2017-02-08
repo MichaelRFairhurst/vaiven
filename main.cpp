@@ -1,5 +1,6 @@
 #include "stdio.h"
 #include "parser.h"
+#include "functions.h"
 #include "visitor/print_visitor.h"
 #include "visitor/interpreter.h"
 #include "visitor/compiler.h"
@@ -29,7 +30,7 @@ int main() {
 }
 
 void printExpressionStream(Parser& parser) {
-  JitRuntime jt;
+  Functions funcs;
   FileLogger logger(stdout);
   unique_ptr<ast::Node<> > cur = parser.parseLogicalGroup();
 
@@ -44,24 +45,21 @@ void printExpressionStream(Parser& parser) {
       unique_ptr<ast::Node<Location> > resolved(locResolver.nodeCopyStack.top());
 
       CodeHolder codeHolder;
-      codeHolder.init(jt.getCodeInfo());
+      codeHolder.init(funcs.runtime.getCodeInfo());
       codeHolder.setLogger(&logger);
       X86Assembler assembler(&codeHolder);
       X86Compiler cc(&codeHolder);
       //visitor::Compiler compiler(assembler);
-      visitor::AutoCompiler compiler(cc);
+      visitor::AutoCompiler compiler(cc, codeHolder, funcs);
       compiler.compile(*resolved, locResolver.argIndexes.size());
-      int64_t (*func)(int64_t rdi, int64_t rsi, int64_t rdx, int64_t rcx, int64_t r8, int64_t r9, int64_t stack1, int64_t stack2);
-      jt.add(&func, &codeHolder);
-      int64_t result = func(1, 2, 3, 4, 5, 6, 7, 8);
-      cout << result << endl << endl;
-      jt.release(func);
+      //int64_t result = func(1, 2, 3, 4, 5, 6, 7, 8);
+      //cout << result << endl << endl;
       cur = parser.parseLogicalGroup();
       continue;
     }
 
     cout << "=";
-    visitor::Interpreter interpreter;
+    visitor::Interpreter interpreter(funcs);
     //std::vector<int> args;
     //args.push_back(1); args.push_back(2); args.push_back(3);
     //args.push_back(4); args.push_back(5); args.push_back(6);

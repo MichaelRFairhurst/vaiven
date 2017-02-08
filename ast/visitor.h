@@ -23,6 +23,8 @@ template<typename RD=void>
 class Block;
 template<typename RD=void>
 class FuncDecl;
+template<typename RD=void>
+class FuncCallExpression;
 
 template<typename RD=void>
 class Visitor {
@@ -34,6 +36,7 @@ class Visitor {
   virtual void visitDivisionExpression(DivisionExpression<RD>& expr)=0;
   virtual void visitIntegerExpression(IntegerExpression<RD>& expr)=0;
   virtual void visitVariableExpression(VariableExpression<RD>& expr)=0;
+  virtual void visitFuncCallExpression(FuncCallExpression<RD>& expr)=0;
   virtual void visitExpressionStatement(ExpressionStatement<RD>& stmt)=0;
   virtual void visitBlock(Block<RD>& block)=0;
   virtual void visitFuncDecl(FuncDecl<RD>& funcDecl)=0;

@@ -30,6 +30,7 @@ class Compiler : public Visitor<Location> {
   virtual void visitDivisionExpression(DivisionExpression<Location>& expr);
   virtual void visitIntegerExpression(IntegerExpression<Location>& expr);
   virtual void visitVariableExpression(VariableExpression<Location>& expr);
+  virtual void visitFuncCallExpression(FuncCallExpression<Location>& expr);
   virtual void visitExpressionStatement(ExpressionStatement<Location>& expr);
   virtual void visitBlock(Block<Location>& expr);
   virtual void visitFuncDecl(FuncDecl<Location>& funcDecl);

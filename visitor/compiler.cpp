@@ -17,6 +17,10 @@ void Compiler::compile(Node<Location>& root, int argc) {
   asm.ret();
 }
 
+void Compiler::visitFuncCallExpression(FuncCallExpression<Location>& expr) {
+  throw "not yet supported";
+}
+
 void Compiler::visitFuncDecl(FuncDecl<Location>& decl) {
   // TODO compile this
 }
