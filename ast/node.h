@@ -14,6 +14,15 @@ class Node {
   RD resolvedData;
 };
 
+// save space on Node<>
+template<>
+class Node<void> {
+  public:
+  virtual void accept(Visitor<>& v)=0;
+  virtual ~Node() {};
+};
+
+
 }}
 
 #endif

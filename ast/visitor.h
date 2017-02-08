@@ -3,28 +3,28 @@
 
 namespace vaiven { namespace ast {
 
-template<typename RD=bool>
+template<typename RD=void>
 class Node;
-template<typename RD=bool>
+template<typename RD=void>
 class AdditionExpression;
-template<typename RD=bool>
+template<typename RD=void>
 class SubtractionExpression;
-template<typename RD=bool>
+template<typename RD=void>
 class MultiplicationExpression;
-template<typename RD=bool>
+template<typename RD=void>
 class DivisionExpression;
-template<typename RD=bool>
+template<typename RD=void>
 class IntegerExpression;
-template<typename RD=bool>
+template<typename RD=void>
 class VariableExpression;
-template<typename RD=bool>
+template<typename RD=void>
 class ExpressionStatement;
-template<typename RD=bool>
+template<typename RD=void>
 class Block;
-template<typename RD=bool>
+template<typename RD=void>
 class FuncDecl;
 
-template<typename RD=bool>
+template<typename RD=void>
 class Visitor {
 
   public:

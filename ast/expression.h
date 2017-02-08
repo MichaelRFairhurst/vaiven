@@ -6,7 +6,7 @@
 namespace vaiven { namespace ast {
 
 // nothing yet
-template<typename RD=bool>
+template<typename RD=void>
 class Expression : public Node<RD> {
   public:
   virtual ~Expression() {};

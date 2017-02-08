@@ -6,7 +6,7 @@
 namespace vaiven { namespace ast {
 
 // nothing yet
-template<typename RD=bool>
+template<typename RD=void>
 class Statement : public Node<RD> {
   public:
   virtual ~Statement() {};
