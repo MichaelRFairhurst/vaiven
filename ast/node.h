@@ -5,13 +5,13 @@
 
 namespace vaiven { namespace ast {
 
-template<typename ResolvedData=void>
+template<typename RD=bool>
 class Node {
   public:
-  virtual void accept(Visitor<ResolvedData>& v)=0;
+  virtual void accept(Visitor<RD>& v)=0;
   virtual ~Node() {};
 
-  ResolvedData resolvedData;
+  RD resolvedData;
 };
 
 }}

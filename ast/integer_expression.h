@@ -8,14 +8,14 @@ using std::unique_ptr;
 
 namespace vaiven { namespace ast {
 
-template<typename ResolvedData>
-class IntegerExpression : public Expression<ResolvedData> {
+template<typename RD=bool>
+class IntegerExpression : public Expression<RD> {
 
   public:
   IntegerExpression(int value) : value(value) {};
 
-  void accept(Visitor<ResolvedData>& v) {
-    v.visitIntegerExpression(*this);
+  void accept(Visitor<RD>& v) {
+    return v.visitIntegerExpression(*this);
   }
   virtual ~IntegerExpression() {};
 

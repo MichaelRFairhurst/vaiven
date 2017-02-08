@@ -5,3 +5,7 @@
 #include "division_expression.h"
 #include "integer_expression.h"
 #include "variable_expression.h"
+#include "statement.h"
+#include "expression_statement.h"
+#include "block.h"
+#include "funcdecl.h"

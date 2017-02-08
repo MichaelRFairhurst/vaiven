@@ -2,12 +2,95 @@
 
 #include "ast/all.h"
 
+#include <vector>
+using std::vector;
+
 using namespace vaiven;
 
-unique_ptr<ast::Node<bool> > Parser::nextEvaluatableBlock() {
+unique_ptr<ast::Node<bool> > Parser::parseLogicalGroup() {
+  if (current->type == TOKEN_TYPE_CLOSE_BRACE) next(); // for next block after {}
+  if (current->type == TOKEN_TYPE_END) next(); // for next block after fn..end
   while (current->type == TOKEN_TYPE_SEMICOLON) next(); // consume semicolon
-  unique_ptr<ast::Expression<bool> > expr = parseExpression();
+
+  if (current->type == TOKEN_TYPE_FN) {
+    lastLogicalGroupWasEvaluatable = false;
+    return parseFuncDecl();
+  }
+
+  lastLogicalGroupWasEvaluatable = true;
+  unique_ptr<ast::Statement<bool> > expr = parseStatement();
   return unique_ptr<ast::Node<bool> >(expr.release());
+}
+
+unique_ptr<ast::FuncDecl<bool> > Parser::parseFuncDecl() {
+  if (current->type != TOKEN_TYPE_FN) {
+    throw string("expected fn");
+  }
+  next();
+  if(current->type != TOKEN_TYPE_ID) {
+    throw string("expected function name");
+  }
+  unique_ptr<StringToken> nametok(static_cast<StringToken*>(current.release()));
+  string name = nametok->lexeme;
+  next();
+  vector<string> args;
+  if (current->type == TOKEN_TYPE_OF) {
+    next();
+    while(current->type == TOKEN_TYPE_ID) {
+      unique_ptr<StringToken> idtok(static_cast<StringToken*>(current.release()));
+      next();
+      args.push_back(idtok->lexeme);
+      if (current->type != TOKEN_TYPE_COMMA) {
+        break;
+      }
+      next();
+    }
+  }
+
+  if (current->type != TOKEN_TYPE_IS) {
+    throw string("expected is");
+  }
+
+  next();
+  vector<unique_ptr<ast::Statement<bool> > > stmts;
+  while (current->type != TOKEN_TYPE_EOF
+      && current->type != TOKEN_TYPE_END) {
+    stmts.push_back(parseStatement());
+    next(); // eat semicolon
+  }
+
+  if (current->type != TOKEN_TYPE_END) {
+    throw string("missing close brace");
+  }
+
+  return unique_ptr<ast::FuncDecl<bool> >(new ast::FuncDecl<>(name, args, std::move(stmts)));
+}
+
+unique_ptr<ast::Statement<bool> > Parser::parseStatement() {
+  if (current->type == TOKEN_TYPE_OPEN_BRACE) {
+    next();
+    vector<unique_ptr<ast::Statement<bool> > > stmts;
+    while (current->type != TOKEN_TYPE_EOF
+        && current->type != TOKEN_TYPE_CLOSE_BRACE) {
+      stmts.push_back(parseStatement());
+      next(); // eat semicolon
+    }
+
+    if (current->type != TOKEN_TYPE_CLOSE_BRACE) {
+      throw string("missing close brace");
+    }
+
+
+    return unique_ptr<ast::Statement<bool> >(new ast::Block<>(std::move(stmts)));
+  }
+
+  unique_ptr<ast::Statement<bool> > stmt(new ast::ExpressionStatement<bool>(parseExpression()));
+
+  if (current->type != TOKEN_TYPE_SEMICOLON) {
+    throw string("missing close brace");
+  }
+  
+  return std::move(stmt);
 }
 
 unique_ptr<ast::Expression<bool> > Parser::parseExpression() {
@@ -32,7 +115,7 @@ unique_ptr<ast::Expression<bool> > Parser::parseAddSubExpression() {
           std::move(acc), parseDivMulExpression()));
     } else {
       // error
-      return unique_ptr<ast::Expression<bool> >(NULL);
+      throw string("blah");
     }
   }
 
@@ -59,7 +142,7 @@ unique_ptr<ast::Expression<bool> > Parser::parseDivMulExpression() {
           std::move(acc), parseValue()));
     } else {
       // error
-      return unique_ptr<ast::Expression<bool> >(NULL);
+      throw string("blah");
     }
   }
 
@@ -87,7 +170,7 @@ unique_ptr<ast::Expression<bool> > Parser::parseValue() {
     return unique_ptr<ast::Expression<bool> >(new ast::VariableExpression<bool> (idtok->lexeme));
   }
   
-  return unique_ptr<ast::Expression<bool> >(NULL);
+  throw string("blah");
 }
 
 void Parser::next() {

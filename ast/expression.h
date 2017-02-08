@@ -6,10 +6,9 @@
 namespace vaiven { namespace ast {
 
 // nothing yet
-template<typename ResolvedData=void>
-class Expression : public Node<ResolvedData> {
+template<typename RD=bool>
+class Expression : public Node<RD> {
   public:
-  void accept(Visitor<ResolvedData>& v)=0;
   virtual ~Expression() {};
 };
 

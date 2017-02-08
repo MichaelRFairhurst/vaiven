@@ -7,19 +7,50 @@
 using namespace asmjit;
 using namespace vaiven::visitor;
 
-void AutoCompiler::compile(Expression<Location>& root, int numVars) {
-  cc.addFunc(FuncSignature8<int64_t, int64_t, int64_t, int64_t, int64_t, int64_t, int64_t, int64_t, int64_t>());
+void AutoCompiler::compile(Node<Location>& root, int numVars) {
+  root.accept(*this);
+}
 
-  for (int i = 0; i < numVars; ++i) {
+void AutoCompiler::visitFuncDecl(FuncDecl<Location>& decl) {
+  uint8_t sigArgs[decl.args.size()];
+
+  for (int i = 0; i < decl.args.size(); ++i) {
+    sigArgs[i] = TypeIdOf<int64_t>::kTypeId;
+  }
+
+  FuncSignature sig;
+  sig.init(CallConv::kIdHost, TypeIdOf<int64_t>::kTypeId, sigArgs, decl.args.size());
+  cc.addFunc(sig);
+
+  for (int i = 0; i < decl.args.size(); ++i) {
     X86Gp arg = cc.newInt64();
     cc.setArg(i, arg);
     argRegs.push_back(arg);
   }
 
-  root.accept(*this);
-  cc.ret(vRegs.top());
+  for(vector<unique_ptr<Statement<Location> > >::iterator it = decl.statements.begin();
+      it != decl.statements.end();
+      ++it) {
+    (*it)->accept(*this);
+  }
+
+  if (vRegs.size()) {
+    cc.ret(vRegs.top());
+  }
   cc.endFunc();
   cc.finalize();
+}
+
+void AutoCompiler::visitExpressionStatement(ExpressionStatement<Location>& stmt) {
+  stmt.expr->accept(*this);
+}
+
+void AutoCompiler::visitBlock(Block<Location>& block) {
+  for(vector<unique_ptr<Statement<Location> > >::iterator it = block.statements.begin();
+      it != block.statements.end();
+      ++it) {
+    (*it)->accept(*this);
+  }
 }
 
 void AutoCompiler::visitAdditionExpression(AdditionExpression<Location>& expr) {

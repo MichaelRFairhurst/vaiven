@@ -15,6 +15,16 @@ Location Location::arg(int val) {
   return Location(LOCATION_TYPE_ARG, data);
 }
 
+Location Location::void_() {
+  LocationDataUnion data;
+  return Location(LOCATION_TYPE_VOID, data);
+}
+
+Location Location::spilled() {
+  LocationDataUnion data;
+  return Location(LOCATION_TYPE_SPILLED, data);
+}
+
 const asmjit::X86Gp* Location::getReg() {
   if (type == LOCATION_TYPE_REG) {
     return data.reg;

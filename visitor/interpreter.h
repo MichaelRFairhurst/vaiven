@@ -27,7 +27,8 @@ using namespace vaiven::ast;
 class Interpreter : public Visitor<bool> {
 
   public:
-  int interpret(Node<bool>& root, vector<int> args, map<string, int>* variablesMap);
+  //int interpret(Node<bool>& root, vector<int> args, map<string, int>* variablesMap);
+  int interpret(Node<bool>& root);
 
   virtual void visitAdditionExpression(AdditionExpression<bool>& expr);
   virtual void visitSubtractionExpression(SubtractionExpression<bool>& expr);
@@ -35,6 +36,9 @@ class Interpreter : public Visitor<bool> {
   virtual void visitDivisionExpression(DivisionExpression<bool>& expr);
   virtual void visitIntegerExpression(IntegerExpression<bool>& expr);
   virtual void visitVariableExpression(VariableExpression<bool>& expr);
+  virtual void visitExpressionStatement(ExpressionStatement<bool>& expr);
+  virtual void visitBlock(Block<bool>& expr);
+  virtual void visitFuncDecl(FuncDecl<bool>& funcDecl);
 
   stack_with_container<int> stack;
   map<string, int>* variablesMap;

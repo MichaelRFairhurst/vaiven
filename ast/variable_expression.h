@@ -8,14 +8,14 @@ using std::string;
 
 namespace vaiven { namespace ast {
 
-template<typename ResolvedData=void>
-class VariableExpression : public Expression<ResolvedData> {
+template<typename RD=bool>
+class VariableExpression : public Expression<RD> {
 
   public:
   VariableExpression(string id) : id(id) {};
 
-  void accept(Visitor<ResolvedData>& v) {
-    v.visitVariableExpression(*this);
+  void accept(Visitor<RD>& v) {
+    return v.visitVariableExpression(*this);
   }
   virtual ~VariableExpression() {};
 

@@ -25,8 +25,13 @@ class LocationResolver : public Visitor<bool> {
   virtual void visitDivisionExpression(DivisionExpression<bool>& expr);
   virtual void visitIntegerExpression(IntegerExpression<bool>& expr);
   virtual void visitVariableExpression(VariableExpression<bool>& expr);
+  virtual void visitExpressionStatement(ExpressionStatement<bool>& expr);
+  virtual void visitBlock(Block<bool>& expr);
+  virtual void visitFuncDecl(FuncDecl<bool>& funcDecl);
 
-  stack<Expression<Location>* > copyStack;
+  stack<Expression<Location>* > exprCopyStack;
+  stack<Statement<Location>* > stmtCopyStack;
+  stack<Node<Location>* > nodeCopyStack;
   map<string, int> argIndexes;
 
 };

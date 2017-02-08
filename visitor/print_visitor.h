@@ -16,6 +16,9 @@ class PrintVisitor : public Visitor<bool> {
   virtual void visitDivisionExpression(DivisionExpression<bool>& expr);
   virtual void visitIntegerExpression(IntegerExpression<bool>& expr);
   virtual void visitVariableExpression(VariableExpression<bool>& expr);
+  virtual void visitExpressionStatement(ExpressionStatement<bool>& expr);
+  virtual void visitBlock(Block<bool>& expr);
+  virtual void visitFuncDecl(FuncDecl<bool>& funcDecl);
 
 };
 

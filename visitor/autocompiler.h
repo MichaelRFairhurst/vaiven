@@ -24,7 +24,7 @@ class AutoCompiler : public Visitor<Location> {
   public:
   AutoCompiler(X86Compiler& cc) : cc(cc) {};
 
-  void compile(Expression<Location>& expr, int numVars);
+  void compile(Node<Location>& expr, int numVars);
 
   virtual void visitAdditionExpression(AdditionExpression<Location>& expr);
   virtual void visitSubtractionExpression(SubtractionExpression<Location>& expr);
@@ -32,6 +32,9 @@ class AutoCompiler : public Visitor<Location> {
   virtual void visitDivisionExpression(DivisionExpression<Location>& expr);
   virtual void visitIntegerExpression(IntegerExpression<Location>& expr);
   virtual void visitVariableExpression(VariableExpression<Location>& expr);
+  virtual void visitExpressionStatement(ExpressionStatement<Location>& expr);
+  virtual void visitBlock(Block<Location>& expr);
+  virtual void visitFuncDecl(FuncDecl<Location>& funcDecl);
 
   private:
   X86Compiler& cc;

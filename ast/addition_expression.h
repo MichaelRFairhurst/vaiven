@@ -8,22 +8,22 @@ using std::unique_ptr;
 
 namespace vaiven { namespace ast {
 
-template<typename ResolvedData=void>
-class AdditionExpression : public Expression<ResolvedData> {
+template<typename RD=bool>
+class AdditionExpression : public Expression<RD> {
 
   public:
   AdditionExpression(
-      unique_ptr<Expression<ResolvedData> > left,
-      unique_ptr<Expression<ResolvedData> > right)
+      unique_ptr<Expression<RD> > left,
+      unique_ptr<Expression<RD> > right)
       : left(std::move(left)), right(std::move(right)) {};
 
-  void accept(Visitor<ResolvedData>& v) {
-  v.visitAdditionExpression(*this);
-}
+  void accept(Visitor<RD>& v) {
+    return v.visitAdditionExpression(*this);
+  }
   virtual ~AdditionExpression() {};
 
-  unique_ptr<Expression<ResolvedData> > left;
-  unique_ptr<Expression<ResolvedData> > right;
+  unique_ptr<Expression<RD> > left;
+  unique_ptr<Expression<RD> > right;
 };
 
 }}

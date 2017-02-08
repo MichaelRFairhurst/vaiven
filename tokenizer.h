@@ -4,9 +4,11 @@
 #include <iostream>
 #include <string>
 #include <memory>
+#include <vector>
 
 using std::istream;
 using std::string;
+using std::vector;
 using std::unique_ptr;
 
 namespace vaiven {
@@ -19,12 +21,21 @@ class Tokenizer {
 
     unique_ptr<Token> next();
   private:
+    unique_ptr<Token> tokenizeIs();
+    unique_ptr<Token> tokenizeEnd();
+    unique_ptr<Token> tokenizeFn();
+    unique_ptr<Token> tokenizeOf();
+    unique_ptr<Token> tokenizeId(vector<char>& buffer);
     istream& input;
   
 };
 
 enum TokenType {
   TOKEN_TYPE_ID,
+  TOKEN_TYPE_FN,
+  TOKEN_TYPE_END,
+  TOKEN_TYPE_IS,
+  TOKEN_TYPE_OF,
   TOKEN_TYPE_INTEGER,
   TOKEN_TYPE_PLUS,
   TOKEN_TYPE_MINUS,
@@ -32,6 +43,9 @@ enum TokenType {
   TOKEN_TYPE_MULTIPLY,
   TOKEN_TYPE_OPEN_PAREN,
   TOKEN_TYPE_CLOSE_PAREN,
+  TOKEN_TYPE_OPEN_BRACE,
+  TOKEN_TYPE_CLOSE_BRACE,
+  TOKEN_TYPE_COMMA,
   TOKEN_TYPE_SEMICOLON,
   TOKEN_TYPE_ERROR,
   TOKEN_TYPE_EOF

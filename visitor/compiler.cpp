@@ -5,7 +5,7 @@
 using namespace asmjit;
 using namespace vaiven::visitor;
 
-void Compiler::compile(Expression<Location>& root, int argc) {
+void Compiler::compile(Node<Location>& root, int argc) {
   if (argc > 6) {
     asm.push(x86::rbp);
     asm.mov(x86::rbp, x86::rsp);
@@ -16,6 +16,23 @@ void Compiler::compile(Expression<Location>& root, int argc) {
   }
   asm.ret();
 }
+
+void Compiler::visitFuncDecl(FuncDecl<Location>& decl) {
+  // TODO compile this
+}
+
+void Compiler::visitExpressionStatement(ExpressionStatement<Location>& stmt) {
+  stmt.expr->accept(*this);
+}
+
+void Compiler::visitBlock(Block<Location>& block) {
+  for(vector<unique_ptr<Statement<Location> > >::iterator it = block.statements.begin();
+      it != block.statements.end();
+      ++it) {
+    (*it)->accept(*this);
+  }
+}
+
 
 void Compiler::visitAdditionExpression(AdditionExpression<Location>& expr) {
   Location& left_loc = expr.left->resolvedData;
