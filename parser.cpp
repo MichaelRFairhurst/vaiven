@@ -85,12 +85,32 @@ unique_ptr<ast::Statement<> > Parser::parseStatement() {
 
 
     return unique_ptr<ast::Statement<> >(new ast::Block<>(std::move(stmts)));
+  } else if (current->type == TOKEN_TYPE_VAR) {
+    next();
+    if(current->type != TOKEN_TYPE_ID) {
+      throw string("expected var name");
+    }
+    unique_ptr<StringToken> nametok(static_cast<StringToken*>(current.release()));
+    string name = nametok->lexeme;
+    next();
+    if(current->type != TOKEN_TYPE_EQ) {
+      throw string("expected =");
+    }
+    next();
+    unique_ptr<ast::Expression<> > initializer = parseExpression();
+    if (current->type != TOKEN_TYPE_SEMICOLON) {
+      throw string("missing end semicolon");
+    }
+
+    return unique_ptr<ast::Statement<> >(new ast::VarDecl<>(name, std::move(initializer)));
   }
+    
+    
 
   unique_ptr<ast::Statement<> > stmt(new ast::ExpressionStatement<>(parseExpression()));
 
   if (current->type != TOKEN_TYPE_SEMICOLON) {
-    throw string("missing close brace");
+    throw string("missing end semicolon");
   }
   
   return std::move(stmt);

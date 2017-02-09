@@ -10,3 +10,4 @@
 #include "block.h"
 #include "funcdecl.h"
 #include "func_call_expression.h"
+#include "var_decl.h"

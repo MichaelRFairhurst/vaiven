@@ -21,6 +21,36 @@ bool isIdChar(char c) {
   return isIdStartChar(c) || isNumChar(c);
 }
 
+unique_ptr<Token> Tokenizer::tokenizeVar() {
+  char c = input.peek();
+  if (c != 'a') {
+    vector<char> buffer;
+    buffer.reserve(ID_BUFFER_RESERVE_SIZE);
+    buffer.push_back('v');
+    return tokenizeId(buffer);
+  }
+  input.get();
+  c = input.peek();
+  if (c != 'r') {
+    vector<char> buffer;
+    buffer.reserve(ID_BUFFER_RESERVE_SIZE);
+    buffer.push_back('v');
+    buffer.push_back('a');
+    return tokenizeId(buffer);
+  }
+  input.get();
+  if (isIdChar(input.peek())) {
+    vector<char> buffer;
+    buffer.reserve(ID_BUFFER_RESERVE_SIZE);
+    buffer.push_back('v');
+    buffer.push_back('a');
+    buffer.push_back('r');
+    return tokenizeId(buffer);
+  }
+
+  return unique_ptr<Token>(new Token(TOKEN_TYPE_VAR));
+}
+
 unique_ptr<Token> Tokenizer::tokenizeEnd() {
   char c = input.peek();
   if (c != 'n') {
@@ -141,6 +171,8 @@ unique_ptr<Token> Tokenizer::next() {
       return unique_ptr<Token>(new Token(TOKEN_TYPE_MULTIPLY));
     case '/':
       return unique_ptr<Token>(new Token(TOKEN_TYPE_DIVIDE));
+    case '=':
+      return unique_ptr<Token>(new Token(TOKEN_TYPE_EQ));
     case ';':
       return unique_ptr<Token>(new Token(TOKEN_TYPE_SEMICOLON));
     case ',':
@@ -155,6 +187,8 @@ unique_ptr<Token> Tokenizer::next() {
       return tokenizeFn();
     case 'o':
       return tokenizeOf();
+    case 'v':
+      return tokenizeVar();
     case ' ':
     case '\n':
       return next();

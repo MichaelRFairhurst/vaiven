@@ -26,6 +26,10 @@ int Interpreter::interpret(Node<>& root) {
   return val;
 }
 
+void Interpreter::visitVarDecl(VarDecl<>& varDecl) {
+  throw "not supported";
+}
+
 void Interpreter::visitFuncCallExpression(FuncCallExpression<>& expr) {
   if (funcs.funcs.find(expr.name) == funcs.funcs.end()) {
     throw "func not known";

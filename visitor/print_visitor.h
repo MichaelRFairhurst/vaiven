@@ -20,6 +20,7 @@ class PrintVisitor : public Visitor<> {
   virtual void visitExpressionStatement(ExpressionStatement<>& expr);
   virtual void visitBlock(Block<>& expr);
   virtual void visitFuncDecl(FuncDecl<>& funcDecl);
+  virtual void visitVarDecl(VarDecl<>& varDecl);
 
 };
 

@@ -9,6 +9,7 @@
 #include "../ast/visitor.h"
 #include "../ast/all.h"
 #include "../location.h"
+#include "../scope.h"
 
 namespace vaiven { namespace visitor {
 
@@ -29,11 +30,14 @@ class LocationResolver : public Visitor<> {
   virtual void visitExpressionStatement(ExpressionStatement<>& expr);
   virtual void visitBlock(Block<>& expr);
   virtual void visitFuncDecl(FuncDecl<>& funcDecl);
+  virtual void visitVarDecl(VarDecl<>& varDecl);
 
   stack<Expression<Location>* > exprCopyStack;
   stack<Statement<Location>* > stmtCopyStack;
   stack<Node<Location>* > nodeCopyStack;
   map<string, int> argIndexes;
+
+  Scope<bool> scope;
 
 };
 

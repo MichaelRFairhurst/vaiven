@@ -2,6 +2,17 @@
 
 using namespace vaiven::visitor;
 
+void LocationResolver::visitVarDecl(VarDecl<>& varDecl) {
+  varDecl.expr->accept(*this);
+  scope.put(varDecl.varname, true);
+  unique_ptr<Expression<Location> > expr(move(exprCopyStack.top()));
+  exprCopyStack.pop();
+  Location void_ = Location::void_();
+  unique_ptr<Statement<Location> > copy(new VarDecl<Location>(varDecl.varname, move(expr)));
+  copy->resolvedData = void_;
+  stmtCopyStack.push(copy.release());
+}
+
 void LocationResolver::visitFuncCallExpression(FuncCallExpression<>& expr) {
   vector<unique_ptr<Expression<Location> > > newParams;
   for(vector<unique_ptr<Expression<> > >::iterator it = expr.parameters.begin();
@@ -54,6 +65,7 @@ void LocationResolver::visitExpressionStatement(ExpressionStatement<>& stmt) {
 }
 
 void LocationResolver::visitBlock(Block<>& block) {
+  ScopeFrame<bool> scopeFrame(scope);
   vector<unique_ptr<Statement<Location> > > newStmts;
   for(vector<unique_ptr<Statement<> > >::iterator it = block.statements.begin();
       it != block.statements.end();
@@ -126,7 +138,13 @@ void LocationResolver::visitIntegerExpression(IntegerExpression<>& expr) {
 }
 void LocationResolver::visitVariableExpression(VariableExpression<>& expr) {
   if (argIndexes.find(expr.id) == argIndexes.end()) {
-    throw "unknown arg value";
+    if (scope.contains(expr.id)) {
+      unique_ptr<Expression<Location> > copy(new VariableExpression<Location>(expr.id));
+      copy->resolvedData = Location::local();
+      exprCopyStack.push(copy.release());
+      return;
+    }
+    throw "unknown var name";
   }
 
   int argNum = argIndexes[expr.id];

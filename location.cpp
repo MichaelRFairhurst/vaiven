@@ -20,6 +20,11 @@ Location Location::void_() {
   return Location(LOCATION_TYPE_VOID, data);
 }
 
+Location Location::local() {
+  LocationDataUnion data;
+  return Location(LOCATION_TYPE_LOCAL, data);
+}
+
 Location Location::spilled() {
   LocationDataUnion data;
   return Location(LOCATION_TYPE_SPILLED, data);

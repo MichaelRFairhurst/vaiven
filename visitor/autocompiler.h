@@ -9,6 +9,7 @@
 #include "../ast/all.h"
 #include "../location.h"
 #include "../functions.h"
+#include "../scope.h"
 
 #include "../asmjit/src/asmjit/asmjit.h"
 
@@ -37,6 +38,7 @@ class AutoCompiler : public Visitor<Location> {
   virtual void visitExpressionStatement(ExpressionStatement<Location>& expr);
   virtual void visitBlock(Block<Location>& expr);
   virtual void visitFuncDecl(FuncDecl<Location>& funcDecl);
+  virtual void visitVarDecl(VarDecl<Location>& varDecl);
 
   private:
   X86Compiler& cc;
@@ -46,6 +48,7 @@ class AutoCompiler : public Visitor<Location> {
   vector<asmjit::X86Gp> argRegs;
   string curFuncName;
   asmjit::CCFunc* curFunc;
+  Scope<asmjit::X86Gp> scope;
 
 };
 

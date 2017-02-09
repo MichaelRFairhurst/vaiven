@@ -8,6 +8,7 @@ namespace vaiven {
 enum LocationType {
   LOCATION_TYPE_REG,
   LOCATION_TYPE_ARG,
+  LOCATION_TYPE_LOCAL,
   LOCATION_TYPE_IMM,
   LOCATION_TYPE_SPILLED,
   LOCATION_TYPE_VOID,
@@ -24,6 +25,7 @@ class Location {
   public:
   static Location imm(int val);
   static Location arg(int val);
+  static Location local();
   static Location void_();
   static Location spilled();
 

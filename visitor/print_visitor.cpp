@@ -8,6 +8,12 @@ using std::cout;
 
 using namespace vaiven::visitor;
 
+void PrintVisitor::visitVarDecl(VarDecl<>& varDecl) {
+  cout << "var " << varDecl.varname << " = ";
+  varDecl.expr->accept(*this);
+  cout << ";" << std::endl;
+}
+
 void PrintVisitor::visitFuncCallExpression(FuncCallExpression<>& expr) {
   cout << expr.name << "(";
   for(vector<unique_ptr<Expression<> > >::iterator it = expr.parameters.begin();

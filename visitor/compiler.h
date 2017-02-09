@@ -34,6 +34,7 @@ class Compiler : public Visitor<Location> {
   virtual void visitExpressionStatement(ExpressionStatement<Location>& expr);
   virtual void visitBlock(Block<Location>& expr);
   virtual void visitFuncDecl(FuncDecl<Location>& funcDecl);
+  virtual void visitVarDecl(VarDecl<Location>& varDecl);
 
   private:
   X86Assembler& asm;

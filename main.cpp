@@ -98,6 +98,8 @@ void printTokenStream(Tokenizer& tokenizer) {
         cout << "*" << endl; break;
       case TOKEN_TYPE_DIVIDE:
         cout << "/" << endl; break;
+      case TOKEN_TYPE_EQ:
+        cout << "=" << endl; break;
       case TOKEN_TYPE_COMMA:
         cout << "," << endl; break;
       case TOKEN_TYPE_SEMICOLON:
@@ -106,6 +108,8 @@ void printTokenStream(Tokenizer& tokenizer) {
         cout << "fn" << endl; break;
       case TOKEN_TYPE_END:
         cout << "end" << endl; break;
+      case TOKEN_TYPE_VAR:
+        cout << "var" << endl; break;
       case TOKEN_TYPE_IS:
         cout << "is" << endl; break;
       case TOKEN_TYPE_OF:

@@ -11,6 +11,17 @@ void AutoCompiler::compile(Node<Location>& root, int numVars) {
   root.accept(*this);
 }
 
+void AutoCompiler::visitVarDecl(VarDecl<Location>& varDecl) {
+  X86Gp varReg = cc.newInt64();
+
+  scope.put(varDecl.varname, varReg);
+
+  varDecl.expr->accept(*this);
+
+  cc.mov(varReg, vRegs.top());
+  vRegs.pop();
+}
+
 void AutoCompiler::visitFuncCallExpression(FuncCallExpression<Location>& expr) {
   CCFuncCall* funcCall;
   if (expr.name != curFuncName && funcs.funcs.find(expr.name) == funcs.funcs.end()) {
@@ -286,5 +297,9 @@ void AutoCompiler::visitIntegerExpression(IntegerExpression<Location>& expr) {
 }
 
 void AutoCompiler::visitVariableExpression(VariableExpression<Location>& expr) {
-  vRegs.push(argRegs[expr.resolvedData.data.argIndex]);
+  if (scope.contains(expr.id)) {
+    vRegs.push(scope.get(expr.id));
+  } else {
+    vRegs.push(argRegs[expr.resolvedData.data.argIndex]);
+  }
 }

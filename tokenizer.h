@@ -25,6 +25,7 @@ class Tokenizer {
     unique_ptr<Token> tokenizeEnd();
     unique_ptr<Token> tokenizeFn();
     unique_ptr<Token> tokenizeOf();
+    unique_ptr<Token> tokenizeVar();
     unique_ptr<Token> tokenizeId(vector<char>& buffer);
     istream& input;
   
@@ -36,11 +37,13 @@ enum TokenType {
   TOKEN_TYPE_END,
   TOKEN_TYPE_IS,
   TOKEN_TYPE_OF,
+  TOKEN_TYPE_VAR,
   TOKEN_TYPE_INTEGER,
   TOKEN_TYPE_PLUS,
   TOKEN_TYPE_MINUS,
   TOKEN_TYPE_DIVIDE,
   TOKEN_TYPE_MULTIPLY,
+  TOKEN_TYPE_EQ,
   TOKEN_TYPE_OPEN_PAREN,
   TOKEN_TYPE_CLOSE_PAREN,
   TOKEN_TYPE_OPEN_BRACE,
