@@ -44,6 +44,8 @@ class AutoCompiler : public Visitor<Location> {
   Functions& funcs;
   stack<asmjit::X86Gp> vRegs;
   vector<asmjit::X86Gp> argRegs;
+  string curFuncName;
+  asmjit::CCFunc* curFunc;
 
 };
 

@@ -12,7 +12,41 @@ void AutoCompiler::compile(Node<Location>& root, int numVars) {
 }
 
 void AutoCompiler::visitFuncCallExpression(FuncCallExpression<Location>& expr) {
-  throw "not yet supported";
+  CCFuncCall* funcCall;
+  if (expr.name != curFuncName && funcs.funcs.find(expr.name) == funcs.funcs.end()) {
+    throw "func not known";
+  }
+  // TODO check arg counts
+
+  uint8_t sigArgs[expr.parameters.size()];
+  vector<X86Gp> paramRegs;
+
+  X86Gp retReg = cc.newInt64();
+  for (int i = 0; i < expr.parameters.size(); ++i) {
+    sigArgs[i] = TypeIdOf<int64_t>::kTypeId;
+    expr.parameters[i]->accept(*this);
+    paramRegs.push_back(vRegs.top());
+    if (expr.parameters[i]->resolvedData.type == LOCATION_TYPE_SPILLED) {
+      retReg = vRegs.top();
+    }
+    vRegs.pop();
+  }
+
+  FuncSignature sig;
+  sig.init(CallConv::kIdHost, TypeIdOf<int64_t>::kTypeId, sigArgs, expr.parameters.size());
+
+  CCFuncCall* call;
+  if (expr.name == curFuncName) {
+    call = cc.call(curFunc->getLabel(), sig);
+  } else {
+    call = cc.call((unsigned long long) funcs.funcs[expr.name]->fptr, sig);
+  }
+
+  for (int i = 0; i < expr.parameters.size(); ++i) {
+    call->setArg(i, paramRegs[i]);
+  }
+
+  vRegs.push(retReg);
 }
 
 void AutoCompiler::visitFuncDecl(FuncDecl<Location>& decl) {
@@ -24,7 +58,8 @@ void AutoCompiler::visitFuncDecl(FuncDecl<Location>& decl) {
 
   FuncSignature sig;
   sig.init(CallConv::kIdHost, TypeIdOf<int64_t>::kTypeId, sigArgs, decl.args.size());
-  cc.addFunc(sig);
+  curFunc = cc.addFunc(sig);
+  curFuncName = decl.name;
 
   for (int i = 0; i < decl.args.size(); ++i) {
     X86Gp arg = cc.newInt64();
