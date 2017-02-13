@@ -17,13 +17,46 @@ int Interpreter::interpret(Node<>& root) {
 
   root.accept(*this);
 
-  int val = stack.top();
+  if (stack.size()) {
+    return stack.top();
+  } else {
+    return 0;
+  }
   //for(int i = 0; i < args.size(); ++i) {
   //  stack.pop();
   //}
   //stack.pop();
 
-  return val;
+  //return val;
+}
+
+void Interpreter::visitIfStatement(IfStatement<>& stmt) {
+  stmt.condition->accept(*this);
+  int condVal = stack.top(); stack.pop();
+  if (condVal) {
+    for(vector<unique_ptr<Statement<> > >::iterator it = stmt.trueStatements.begin();
+        it != stmt.trueStatements.end();
+        ++it) {
+      if (it != stmt.trueStatements.begin()) {
+        stack.pop();
+      }
+      (*it)->accept(*this);
+    }
+  } else {
+    for(vector<unique_ptr<Statement<> > >::iterator it = stmt.falseStatements.begin();
+        it != stmt.falseStatements.end();
+        ++it) {
+      if (it != stmt.falseStatements.begin()) {
+        stack.pop();
+      }
+      (*it)->accept(*this);
+    }
+  }
+}
+
+void Interpreter::visitReturnStatement(ReturnStatement<>& stmt) {
+  stmt.expr->accept(*this);
+  throw(stack.top());
 }
 
 void Interpreter::visitVarDecl(VarDecl<>& varDecl) {

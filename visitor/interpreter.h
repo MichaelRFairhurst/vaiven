@@ -39,7 +39,9 @@ class Interpreter : public Visitor<> {
   virtual void visitIntegerExpression(IntegerExpression<>& expr);
   virtual void visitVariableExpression(VariableExpression<>& expr);
   virtual void visitFuncCallExpression(FuncCallExpression<>& expr);
-  virtual void visitExpressionStatement(ExpressionStatement<>& expr);
+  virtual void visitExpressionStatement(ExpressionStatement<>& stmt);
+  virtual void visitIfStatement(IfStatement<>& stmt);
+  virtual void visitReturnStatement(ReturnStatement<>& stmt);
   virtual void visitBlock(Block<>& expr);
   virtual void visitFuncDecl(FuncDecl<>& funcDecl);
   virtual void visitVarDecl(VarDecl<>& varDecl);

@@ -17,6 +17,15 @@ void Compiler::compile(Node<Location>& root, int argc) {
   asm.ret();
 }
 
+void Compiler::visitIfStatement(IfStatement<Location>& stmt) {
+  throw "not supported";
+}
+
+void Compiler::visitReturnStatement(ReturnStatement<Location>& stmt) {
+  stmt.expr->accept(*this);
+  asm.ret();
+}
+
 void Compiler::visitVarDecl(VarDecl<Location>& varDecl) {
   throw "not supported";
 }

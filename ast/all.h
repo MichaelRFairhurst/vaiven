@@ -11,3 +11,5 @@
 #include "funcdecl.h"
 #include "func_call_expression.h"
 #include "var_decl.h"
+#include "if_statement.h"
+#include "return_statement.h"

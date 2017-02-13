@@ -108,12 +108,20 @@ void printTokenStream(Tokenizer& tokenizer) {
         cout << "fn" << endl; break;
       case TOKEN_TYPE_END:
         cout << "end" << endl; break;
+      case TOKEN_TYPE_ELSE:
+        cout << "else" << endl; break;
       case TOKEN_TYPE_VAR:
         cout << "var" << endl; break;
       case TOKEN_TYPE_IS:
         cout << "is" << endl; break;
+      case TOKEN_TYPE_IF:
+        cout << "if" << endl; break;
       case TOKEN_TYPE_OF:
         cout << "of" << endl; break;
+      case TOKEN_TYPE_DO:
+        cout << "do" << endl; break;
+      case TOKEN_TYPE_RET:
+        cout << "ret" << endl; break;
       case TOKEN_TYPE_INTEGER:
 	{
 	  IntegerToken* inttok = static_cast<IntegerToken*>(cur.get());

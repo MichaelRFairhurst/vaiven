@@ -2,6 +2,56 @@
 
 using namespace vaiven::visitor;
 
+void LocationResolver::visitIfStatement(IfStatement<>& stmt) {
+  stmt.condition->accept(*this);
+  unique_ptr<Expression<Location> > condition(move(exprCopyStack.top()));
+  exprCopyStack.pop();
+
+  vector<unique_ptr<Statement<Location> > > newTrueStmts;
+  vector<unique_ptr<Statement<Location> > > newFalseStmts;
+  {
+    ScopeFrame<bool> scopeFrame(scope);
+    for(vector<unique_ptr<Statement<> > >::iterator it = stmt.trueStatements.begin();
+        it != stmt.trueStatements.end();
+        ++it) {
+      (*it)->accept(*this);
+      unique_ptr<Statement<Location> > newStmt(move(stmtCopyStack.top()));
+      stmtCopyStack.pop();
+      newTrueStmts.push_back(move(newStmt));
+    }
+  }
+
+  {
+    ScopeFrame<bool> scopeFrame(scope);
+    for(vector<unique_ptr<Statement<> > >::iterator it = stmt.falseStatements.begin();
+        it != stmt.falseStatements.end();
+        ++it) {
+      (*it)->accept(*this);
+      unique_ptr<Statement<Location> > newStmt(move(stmtCopyStack.top()));
+      stmtCopyStack.pop();
+      newFalseStmts.push_back(move(newStmt));
+    }
+  }
+
+  Location void_ = Location::void_();
+  unique_ptr<Statement<Location> > copy(new IfStatement<Location>(
+    move(condition),
+    move(newTrueStmts),
+    move(newFalseStmts)));
+  copy->resolvedData = void_;
+  stmtCopyStack.push(copy.release());
+}
+
+void LocationResolver::visitReturnStatement(ReturnStatement<>& stmt) {
+  stmt.expr->accept(*this);
+  unique_ptr<Expression<Location> > expr(move(exprCopyStack.top()));
+  exprCopyStack.pop();
+  Location void_ = Location::void_();
+  unique_ptr<Statement<Location> > copy(new ReturnStatement<Location>(move(expr)));
+  copy->resolvedData = void_;
+  stmtCopyStack.push(copy.release());
+}
+
 void LocationResolver::visitVarDecl(VarDecl<>& varDecl) {
   varDecl.expr->accept(*this);
   scope.put(varDecl.varname, true);

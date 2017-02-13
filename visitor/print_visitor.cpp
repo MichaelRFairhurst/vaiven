@@ -8,6 +8,34 @@ using std::cout;
 
 using namespace vaiven::visitor;
 
+void PrintVisitor::visitIfStatement(IfStatement<>& stmt) {
+  cout << "if ";
+  stmt.condition->accept(*this);
+  cout << std::endl;
+
+  for(vector<unique_ptr<Statement<> > >::iterator it = stmt.trueStatements.begin();
+      it != stmt.trueStatements.end();
+      ++it) {
+    (*it)->accept(*this);
+  }
+
+  cout << " else " << std::endl;
+
+  for(vector<unique_ptr<Statement<> > >::iterator it = stmt.falseStatements.begin();
+      it != stmt.falseStatements.end();
+      ++it) {
+    (*it)->accept(*this);
+  }
+ 
+  cout << "end" << std::endl;
+}
+
+void PrintVisitor::visitReturnStatement(ReturnStatement<>& stmt) {
+  cout << "return ";
+  stmt.expr->accept(*this);
+  cout << ";" << std::endl;
+}
+
 void PrintVisitor::visitVarDecl(VarDecl<>& varDecl) {
   cout << "var " << varDecl.varname << " = ";
   varDecl.expr->accept(*this);

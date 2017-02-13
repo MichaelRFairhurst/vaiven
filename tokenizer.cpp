@@ -21,6 +21,56 @@ bool isIdChar(char c) {
   return isIdStartChar(c) || isNumChar(c);
 }
 
+unique_ptr<Token> Tokenizer::tokenizeRet() {
+  char c = input.peek();
+  if (c != 'e') {
+    vector<char> buffer;
+    buffer.reserve(ID_BUFFER_RESERVE_SIZE);
+    buffer.push_back('r');
+    return tokenizeId(buffer);
+  }
+  input.get();
+  c = input.peek();
+  if (c != 't') {
+    vector<char> buffer;
+    buffer.reserve(ID_BUFFER_RESERVE_SIZE);
+    buffer.push_back('r');
+    buffer.push_back('e');
+    return tokenizeId(buffer);
+  }
+  input.get();
+  if (isIdChar(input.peek())) {
+    vector<char> buffer;
+    buffer.reserve(ID_BUFFER_RESERVE_SIZE);
+    buffer.push_back('r');
+    buffer.push_back('e');
+    buffer.push_back('t');
+    return tokenizeId(buffer);
+  }
+
+  return unique_ptr<Token>(new Token(TOKEN_TYPE_RET));
+}
+
+unique_ptr<Token> Tokenizer::tokenizeDo() {
+  char c = input.peek();
+  if (c != 'o') {
+    vector<char> buffer;
+    buffer.reserve(ID_BUFFER_RESERVE_SIZE);
+    buffer.push_back('d');
+    return tokenizeId(buffer);
+  }
+  input.get();
+  if (isIdChar(input.peek())) {
+    vector<char> buffer;
+    buffer.reserve(ID_BUFFER_RESERVE_SIZE);
+    buffer.push_back('d');
+    buffer.push_back('o');
+    return tokenizeId(buffer);
+  }
+
+  return unique_ptr<Token>(new Token(TOKEN_TYPE_DO));
+}
+
 unique_ptr<Token> Tokenizer::tokenizeVar() {
   char c = input.peek();
   if (c != 'a') {
@@ -51,34 +101,67 @@ unique_ptr<Token> Tokenizer::tokenizeVar() {
   return unique_ptr<Token>(new Token(TOKEN_TYPE_VAR));
 }
 
-unique_ptr<Token> Tokenizer::tokenizeEnd() {
+unique_ptr<Token> Tokenizer::tokenizeEndOrElse() {
   char c = input.peek();
-  if (c != 'n') {
-    vector<char> buffer;
-    buffer.reserve(ID_BUFFER_RESERVE_SIZE);
-    buffer.push_back('e');
-    return tokenizeId(buffer);
-  }
-  input.get();
-  c = input.peek();
-  if (c != 'd') {
-    vector<char> buffer;
-    buffer.reserve(ID_BUFFER_RESERVE_SIZE);
-    buffer.push_back('e');
-    buffer.push_back('n');
-    return tokenizeId(buffer);
-  }
-  input.get();
-  if (isIdChar(input.peek())) {
-    vector<char> buffer;
-    buffer.reserve(ID_BUFFER_RESERVE_SIZE);
-    buffer.push_back('e');
-    buffer.push_back('n');
-    buffer.push_back('d');
-    return tokenizeId(buffer);
-  }
+  if (c == 'n') {
+    input.get();
+    c = input.peek();
+    if (c != 'd') {
+      vector<char> buffer;
+      buffer.reserve(ID_BUFFER_RESERVE_SIZE);
+      buffer.push_back('e');
+      buffer.push_back('n');
+      return tokenizeId(buffer);
+    }
+    input.get();
+    if (isIdChar(input.peek())) {
+      vector<char> buffer;
+      buffer.reserve(ID_BUFFER_RESERVE_SIZE);
+      buffer.push_back('e');
+      buffer.push_back('n');
+      buffer.push_back('d');
+      return tokenizeId(buffer);
+    }
 
-  return unique_ptr<Token>(new Token(TOKEN_TYPE_END));
+    return unique_ptr<Token>(new Token(TOKEN_TYPE_END));
+  } else if (c == 'l') {
+    input.get();
+    c = input.peek();
+    if (c != 's') {
+      vector<char> buffer;
+      buffer.reserve(ID_BUFFER_RESERVE_SIZE);
+      buffer.push_back('e');
+      buffer.push_back('l');
+      return tokenizeId(buffer);
+    }
+    input.get();
+    c = input.peek();
+    if (c != 'e') {
+      vector<char> buffer;
+      buffer.reserve(ID_BUFFER_RESERVE_SIZE);
+      buffer.push_back('e');
+      buffer.push_back('l');
+      buffer.push_back('s');
+      return tokenizeId(buffer);
+    }
+    input.get();
+    if (isIdChar(input.peek())) {
+      vector<char> buffer;
+      buffer.reserve(ID_BUFFER_RESERVE_SIZE);
+      buffer.push_back('e');
+      buffer.push_back('l');
+      buffer.push_back('s');
+      buffer.push_back('e');
+      return tokenizeId(buffer);
+    }
+
+    return unique_ptr<Token>(new Token(TOKEN_TYPE_ELSE));
+  } else {
+    vector<char> buffer;
+    buffer.reserve(ID_BUFFER_RESERVE_SIZE);
+    buffer.push_back('e');
+    return tokenizeId(buffer);
+  }
 }
 
 unique_ptr<Token> Tokenizer::tokenizeOf() {
@@ -121,24 +204,36 @@ unique_ptr<Token> Tokenizer::tokenizeFn() {
   return unique_ptr<Token>(new Token(TOKEN_TYPE_FN));
 }
 
-unique_ptr<Token> Tokenizer::tokenizeIs() {
+unique_ptr<Token> Tokenizer::tokenizeIsOrIf() {
   char c = input.peek();
-  if (c != 's') {
-    vector<char> buffer;
-    buffer.reserve(ID_BUFFER_RESERVE_SIZE);
-    buffer.push_back('i');
-    return tokenizeId(buffer);
-  }
-  input.get();
-  if (isIdChar(input.peek())) {
-    vector<char> buffer;
-    buffer.reserve(ID_BUFFER_RESERVE_SIZE);
-    buffer.push_back('i');
-    buffer.push_back('s');
-    return tokenizeId(buffer);
+  if (c == 's') {
+    input.get();
+    if (isIdChar(input.peek())) {
+      vector<char> buffer;
+      buffer.reserve(ID_BUFFER_RESERVE_SIZE);
+      buffer.push_back('i');
+      buffer.push_back('s');
+      return tokenizeId(buffer);
+    }
+
+    return unique_ptr<Token>(new Token(TOKEN_TYPE_IS));
+  } else if (c == 'f') {
+    input.get();
+    if (isIdChar(input.peek())) {
+      vector<char> buffer;
+      buffer.reserve(ID_BUFFER_RESERVE_SIZE);
+      buffer.push_back('i');
+      buffer.push_back('f');
+      return tokenizeId(buffer);
+    }
+
+    return unique_ptr<Token>(new Token(TOKEN_TYPE_IF));
   }
 
-  return unique_ptr<Token>(new Token(TOKEN_TYPE_IS));
+  vector<char> buffer;
+  buffer.reserve(ID_BUFFER_RESERVE_SIZE);
+  buffer.push_back('i');
+  return tokenizeId(buffer);
 }
 
 unique_ptr<Token> Tokenizer::tokenizeId(vector<char>& buffer) {
@@ -180,15 +275,19 @@ unique_ptr<Token> Tokenizer::next() {
     case EOF:
       return unique_ptr<Token>(new Token(TOKEN_TYPE_EOF));
     case 'i':
-      return tokenizeIs();
+      return tokenizeIsOrIf();
     case 'e':
-      return tokenizeEnd();
+      return tokenizeEndOrElse();
     case 'f':
       return tokenizeFn();
     case 'o':
       return tokenizeOf();
     case 'v':
       return tokenizeVar();
+    case 'r':
+      return tokenizeRet();
+    case 'd':
+      return tokenizeDo();
     case ' ':
     case '\n':
       return next();

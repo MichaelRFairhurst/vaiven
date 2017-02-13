@@ -35,7 +35,9 @@ class AutoCompiler : public Visitor<Location> {
   virtual void visitIntegerExpression(IntegerExpression<Location>& expr);
   virtual void visitVariableExpression(VariableExpression<Location>& expr);
   virtual void visitFuncCallExpression(FuncCallExpression<Location>& expr);
-  virtual void visitExpressionStatement(ExpressionStatement<Location>& expr);
+  virtual void visitExpressionStatement(ExpressionStatement<Location>& stmt);
+  virtual void visitIfStatement(IfStatement<Location>& stmt);
+  virtual void visitReturnStatement(ReturnStatement<Location>& stmt);
   virtual void visitBlock(Block<Location>& expr);
   virtual void visitFuncDecl(FuncDecl<Location>& funcDecl);
   virtual void visitVarDecl(VarDecl<Location>& varDecl);

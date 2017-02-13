@@ -4,8 +4,7 @@
 #include <memory>
 
 #include "tokenizer.h"
-#include "ast/expression.h"
-#include "ast/statement.h"
+#include "ast/all.h"
 
 using std::unique_ptr;
 
@@ -19,6 +18,11 @@ class Parser {
 
   unique_ptr<ast::FuncDecl<> > parseFuncDecl();
   unique_ptr<ast::Statement<> > parseStatement();
+  unique_ptr<ast::Block<> > parseBlock();
+  unique_ptr<ast::VarDecl<> > parseVarDecl();
+  unique_ptr<ast::IfStatement<> > parseIfStatement();
+  unique_ptr<ast::ReturnStatement<> > parseReturnStatement();
+  unique_ptr<ast::ExpressionStatement<> > parseExpressionStatement();
   unique_ptr<ast::Expression<> > parseExpression();
   unique_ptr<ast::Expression<> > parseAddSubExpression();
   unique_ptr<ast::Expression<> > parseDivMulExpression();

@@ -56,7 +56,7 @@ unique_ptr<ast::FuncDecl<> > Parser::parseFuncDecl() {
   while (current->type != TOKEN_TYPE_EOF
       && current->type != TOKEN_TYPE_END) {
     stmts.push_back(parseStatement());
-    next(); // eat semicolon
+    next(); // statements don't consume their final token
   }
 
   if (current->type != TOKEN_TYPE_END) {
@@ -68,46 +68,98 @@ unique_ptr<ast::FuncDecl<> > Parser::parseFuncDecl() {
 
 unique_ptr<ast::Statement<> > Parser::parseStatement() {
   if (current->type == TOKEN_TYPE_OPEN_BRACE) {
-    next();
-    vector<unique_ptr<ast::Statement<> > > stmts;
-    while (current->type != TOKEN_TYPE_EOF
-        && current->type != TOKEN_TYPE_CLOSE_BRACE) {
-      stmts.push_back(parseStatement());
-
-      if (current->type != TOKEN_TYPE_SEMICOLON) {
-        throw "expected ;";
-      }
-    }
-
-    if (current->type != TOKEN_TYPE_CLOSE_BRACE) {
-      throw string("missing close brace");
-    }
-
-
-    return unique_ptr<ast::Statement<> >(new ast::Block<>(std::move(stmts)));
+    return unique_ptr<ast::Statement<> > (parseBlock().release());
   } else if (current->type == TOKEN_TYPE_VAR) {
-    next();
-    if(current->type != TOKEN_TYPE_ID) {
-      throw string("expected var name");
-    }
-    unique_ptr<StringToken> nametok(static_cast<StringToken*>(current.release()));
-    string name = nametok->lexeme;
-    next();
-    if(current->type != TOKEN_TYPE_EQ) {
-      throw string("expected =");
-    }
-    next();
-    unique_ptr<ast::Expression<> > initializer = parseExpression();
-    if (current->type != TOKEN_TYPE_SEMICOLON) {
-      throw string("missing end semicolon");
-    }
-
-    return unique_ptr<ast::Statement<> >(new ast::VarDecl<>(name, std::move(initializer)));
+    return unique_ptr<ast::Statement<> > (parseVarDecl().release());
+  } else if (current->type == TOKEN_TYPE_IF) {
+    return unique_ptr<ast::Statement<> > (parseIfStatement().release());
+  } else if (current->type == TOKEN_TYPE_RET) {
+    return unique_ptr<ast::Statement<> > (parseReturnStatement().release());
+  } else {
+    return unique_ptr<ast::Statement<> > (parseExpressionStatement().release());
   }
-    
-    
+}
 
-  unique_ptr<ast::Statement<> > stmt(new ast::ExpressionStatement<>(parseExpression()));
+unique_ptr<ast::VarDecl<> > Parser::parseVarDecl() {
+  next();
+  if(current->type != TOKEN_TYPE_ID) {
+    throw string("expected var name");
+  }
+  unique_ptr<StringToken> nametok(static_cast<StringToken*>(current.release()));
+  string name = nametok->lexeme;
+  next();
+  if(current->type != TOKEN_TYPE_EQ) {
+    throw string("expected =");
+  }
+  next();
+  unique_ptr<ast::Expression<> > initializer = parseExpression();
+  if (current->type != TOKEN_TYPE_SEMICOLON) {
+    throw string("missing end semicolon");
+  }
+
+  return unique_ptr<ast::VarDecl<> >(new ast::VarDecl<>(name, std::move(initializer)));
+}
+
+unique_ptr<ast::Block<> > Parser::parseBlock() {
+  next();
+  vector<unique_ptr<ast::Statement<> > > stmts;
+  while (current->type != TOKEN_TYPE_EOF
+      && current->type != TOKEN_TYPE_CLOSE_BRACE) {
+    stmts.push_back(parseStatement());
+
+    next(); // statements don't consume their final token
+  }
+
+  if (current->type != TOKEN_TYPE_CLOSE_BRACE) {
+    throw string("missing close brace");
+  }
+
+
+  return unique_ptr<ast::Block<> >(new ast::Block<>(std::move(stmts)));
+}
+
+unique_ptr<ast::IfStatement<> > Parser::parseIfStatement() {
+  next();
+  unique_ptr<ast::Expression<> > condition(parseExpression());
+
+  if (current->type != TOKEN_TYPE_DO) {
+    throw string("missing end");
+  }
+  next();
+
+  vector<unique_ptr<ast::Statement<> > > trueStmts;
+  vector<unique_ptr<ast::Statement<> > > falseStmts;
+  while (current->type != TOKEN_TYPE_EOF
+      && current->type != TOKEN_TYPE_ELSE
+      && current->type != TOKEN_TYPE_END) {
+    trueStmts.push_back(parseStatement());
+
+    next(); // statements don't consume their final token
+  }
+
+  if (current->type == TOKEN_TYPE_ELSE) {
+    next();
+    while (current->type != TOKEN_TYPE_EOF
+        && current->type != TOKEN_TYPE_END) {
+      falseStmts.push_back(parseStatement());
+
+      next(); // statements don't consume their final token
+    }
+  }
+
+  if (current->type != TOKEN_TYPE_END) {
+    throw string("missing end");
+  }
+
+  return unique_ptr<ast::IfStatement<> >(new ast::IfStatement<>(
+      std::move(condition),
+      std::move(trueStmts),
+      std::move(falseStmts)));
+}
+
+unique_ptr<ast::ReturnStatement<> > Parser::parseReturnStatement() {
+  next();
+  unique_ptr<ast::ReturnStatement<> > stmt(new ast::ReturnStatement<>(parseExpression()));
 
   if (current->type != TOKEN_TYPE_SEMICOLON) {
     throw string("missing end semicolon");
@@ -115,6 +167,17 @@ unique_ptr<ast::Statement<> > Parser::parseStatement() {
   
   return std::move(stmt);
 }
+
+unique_ptr<ast::ExpressionStatement<> > Parser::parseExpressionStatement() {
+  unique_ptr<ast::ExpressionStatement<> > stmt(new ast::ExpressionStatement<>(parseExpression()));
+
+  if (current->type != TOKEN_TYPE_SEMICOLON) {
+    throw string("missing end semicolon");
+  }
+  
+  return std::move(stmt);
+}
+
 
 unique_ptr<ast::Expression<> > Parser::parseExpression() {
   unique_ptr<ast::Expression<> > lhs(parseAddSubExpression());
@@ -127,6 +190,7 @@ unique_ptr<ast::Expression<> > Parser::parseAddSubExpression() {
   while (current->type != TOKEN_TYPE_SEMICOLON
       && current->type != TOKEN_TYPE_CLOSE_PAREN
       && current->type != TOKEN_TYPE_COMMA
+      && current->type != TOKEN_TYPE_DO
       && current->type != TOKEN_TYPE_EOF) {
 
     if (current->type == TOKEN_TYPE_PLUS) {
@@ -155,6 +219,7 @@ unique_ptr<ast::Expression<> > Parser::parseDivMulExpression() {
       && current->type != TOKEN_TYPE_MINUS
       && current->type != TOKEN_TYPE_COMMA
       && current->type != TOKEN_TYPE_CLOSE_PAREN
+      && current->type != TOKEN_TYPE_DO
       && current->type != TOKEN_TYPE_EOF) {
 
     if (current->type == TOKEN_TYPE_DIVIDE) {

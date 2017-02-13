@@ -11,6 +11,32 @@ void AutoCompiler::compile(Node<Location>& root, int numVars) {
   root.accept(*this);
 }
 
+void AutoCompiler::visitIfStatement(IfStatement<Location>& stmt) {
+  stmt.condition->accept(*this);
+  Label lfalse = cc.newLabel();
+  Label lafter = cc.newLabel();
+  cc.cmp(vRegs.top(), 0);
+  cc.je(lfalse);
+  for(vector<unique_ptr<Statement<Location> > >::iterator it = stmt.trueStatements.begin();
+      it != stmt.trueStatements.end();
+      ++it) {
+    (*it)->accept(*this);
+  }
+  cc.jmp(lafter);
+  cc.bind(lfalse);
+  for(vector<unique_ptr<Statement<Location> > >::iterator it = stmt.falseStatements.begin();
+      it != stmt.falseStatements.end();
+      ++it) {
+    (*it)->accept(*this);
+  }
+  cc.bind(lafter);
+}
+
+void AutoCompiler::visitReturnStatement(ReturnStatement<Location>& stmt) {
+  stmt.expr->accept(*this);
+  cc.ret(vRegs.top());
+}
+
 void AutoCompiler::visitVarDecl(VarDecl<Location>& varDecl) {
   X86Gp varReg = cc.newInt64();
 
