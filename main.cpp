@@ -1,6 +1,7 @@
 #include "stdio.h"
 #include "parser.h"
 #include "functions.h"
+#include "type_info.h"
 #include "visitor/print_visitor.h"
 #include "visitor/interpreter.h"
 #include "visitor/compiler.h"
@@ -42,7 +43,7 @@ void printExpressionStream(Parser& parser) {
     if (!parser.lastLogicalGroupWasEvaluatable) {
       visitor::LocationResolver locResolver;
       cur->accept(locResolver);
-      unique_ptr<ast::Node<Location> > resolved(locResolver.nodeCopyStack.top());
+      unique_ptr<ast::Node<TypedLocationInfo> > resolved(locResolver.nodeCopyStack.top());
 
       CodeHolder codeHolder;
       codeHolder.init(funcs.runtime.getCodeInfo());
@@ -64,13 +65,25 @@ void printExpressionStream(Parser& parser) {
     //args.push_back(1); args.push_back(2); args.push_back(3);
     //args.push_back(4); args.push_back(5); args.push_back(6);
     //int result = interpreter.interpret(*cur /*, args, &locResolver.argIndexes*/);
-    int result = interpreter.interpret(*cur);
-    cout << result << endl << endl;
+    Value result = interpreter.interpret(*cur);
+    if (result.isInt()) {
+      cout << "Int: " << result.getInt() << endl << endl;
+    } else if (result.isVoid()) {
+      cout << "void" << endl << endl;
+    } else if (result.isTrue()) {
+      cout << "true" << endl << endl;
+    } else if (result.isFalse()) {
+      cout << "false" << endl << endl;
+    } else if (result.isPtr()) {
+      cout << "Ptr: " << result.getPtr() << endl << endl;
+    } else if (result.isDouble()) {
+      cout << "Dbl: " << result.getDouble() << endl << endl;
+    }
 
     for (size_t i = 0; i < /*5*/000000/*000*/; ++i) {
       //func(i, i + 1, i + 2, i + 3, i + 4, i + 5, i + 6, i + 7);
       //interpreter.interpret(*cur, args, &locResolver.argIndexes);
-      interpreter.interpret(*cur);
+      //interpreter.interpret(*cur);
     }
     
     cur = parser.parseLogicalGroup();

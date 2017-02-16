@@ -4,18 +4,18 @@ using namespace vaiven::visitor;
 
 void LocationResolver::visitIfStatement(IfStatement<>& stmt) {
   stmt.condition->accept(*this);
-  unique_ptr<Expression<Location> > condition(move(exprCopyStack.top()));
+  unique_ptr<Expression<TypedLocationInfo> > condition(move(exprCopyStack.top()));
   exprCopyStack.pop();
 
-  vector<unique_ptr<Statement<Location> > > newTrueStmts;
-  vector<unique_ptr<Statement<Location> > > newFalseStmts;
+  vector<unique_ptr<Statement<TypedLocationInfo> > > newTrueStmts;
+  vector<unique_ptr<Statement<TypedLocationInfo> > > newFalseStmts;
   {
     ScopeFrame<bool> scopeFrame(scope);
     for(vector<unique_ptr<Statement<> > >::iterator it = stmt.trueStatements.begin();
         it != stmt.trueStatements.end();
         ++it) {
       (*it)->accept(*this);
-      unique_ptr<Statement<Location> > newStmt(move(stmtCopyStack.top()));
+      unique_ptr<Statement<TypedLocationInfo> > newStmt(move(stmtCopyStack.top()));
       stmtCopyStack.pop();
       newTrueStmts.push_back(move(newStmt));
     }
@@ -27,14 +27,14 @@ void LocationResolver::visitIfStatement(IfStatement<>& stmt) {
         it != stmt.falseStatements.end();
         ++it) {
       (*it)->accept(*this);
-      unique_ptr<Statement<Location> > newStmt(move(stmtCopyStack.top()));
+      unique_ptr<Statement<TypedLocationInfo> > newStmt(move(stmtCopyStack.top()));
       stmtCopyStack.pop();
       newFalseStmts.push_back(move(newStmt));
     }
   }
 
-  Location void_ = Location::void_();
-  unique_ptr<Statement<Location> > copy(new IfStatement<Location>(
+  TypedLocationInfo void_(Location::void_(), VAIVEN_STATIC_TYPE_VOID, false);
+  unique_ptr<Statement<TypedLocationInfo> > copy(new IfStatement<TypedLocationInfo>(
     move(condition),
     move(newTrueStmts),
     move(newFalseStmts)));
@@ -44,10 +44,10 @@ void LocationResolver::visitIfStatement(IfStatement<>& stmt) {
 
 void LocationResolver::visitReturnStatement(ReturnStatement<>& stmt) {
   stmt.expr->accept(*this);
-  unique_ptr<Expression<Location> > expr(move(exprCopyStack.top()));
+  unique_ptr<Expression<TypedLocationInfo> > expr(move(exprCopyStack.top()));
   exprCopyStack.pop();
-  Location void_ = Location::void_();
-  unique_ptr<Statement<Location> > copy(new ReturnStatement<Location>(move(expr)));
+  TypedLocationInfo void_(Location::void_(), VAIVEN_STATIC_TYPE_VOID, false);
+  unique_ptr<Statement<TypedLocationInfo> > copy(new ReturnStatement<TypedLocationInfo>(move(expr)));
   copy->resolvedData = void_;
   stmtCopyStack.push(copy.release());
 }
@@ -55,27 +55,27 @@ void LocationResolver::visitReturnStatement(ReturnStatement<>& stmt) {
 void LocationResolver::visitVarDecl(VarDecl<>& varDecl) {
   varDecl.expr->accept(*this);
   scope.put(varDecl.varname, true);
-  unique_ptr<Expression<Location> > expr(move(exprCopyStack.top()));
+  unique_ptr<Expression<TypedLocationInfo> > expr(move(exprCopyStack.top()));
   exprCopyStack.pop();
-  Location void_ = Location::void_();
-  unique_ptr<Statement<Location> > copy(new VarDecl<Location>(varDecl.varname, move(expr)));
+  TypedLocationInfo void_(Location::spilled(), VAIVEN_STATIC_TYPE_VOID, false);
+  unique_ptr<Statement<TypedLocationInfo> > copy(new VarDecl<TypedLocationInfo>(varDecl.varname, move(expr)));
   copy->resolvedData = void_;
   stmtCopyStack.push(copy.release());
 }
 
 void LocationResolver::visitFuncCallExpression(FuncCallExpression<>& expr) {
-  vector<unique_ptr<Expression<Location> > > newParams;
+  vector<unique_ptr<Expression<TypedLocationInfo> > > newParams;
   for(vector<unique_ptr<Expression<> > >::iterator it = expr.parameters.begin();
       it != expr.parameters.end();
       ++it) {
     (*it)->accept(*this);
-    unique_ptr<Expression<Location> > newParam(move(exprCopyStack.top()));
+    unique_ptr<Expression<TypedLocationInfo> > newParam(move(exprCopyStack.top()));
     exprCopyStack.pop();
     newParams.push_back(move(newParam));
   }
 
-  Location void_ = Location::void_();
-  unique_ptr<Expression<Location> > copy(new FuncCallExpression<Location>(expr.name, move(newParams)));
+  TypedLocationInfo void_(Location::void_(), VAIVEN_STATIC_TYPE_UNKNOWN, true);
+  unique_ptr<Expression<TypedLocationInfo> > copy(new FuncCallExpression<TypedLocationInfo>(expr.name, move(newParams)));
   copy->resolvedData = void_;
   exprCopyStack.push(copy.release());
 }
@@ -88,46 +88,46 @@ void LocationResolver::visitFuncDecl(FuncDecl<>& decl) {
     argIndexes[*it] = i++;
   }
 
-  vector<unique_ptr<Statement<Location> > > newStmts;
+  vector<unique_ptr<Statement<TypedLocationInfo> > > newStmts;
   for(vector<unique_ptr<Statement<> > >::iterator it = decl.statements.begin();
       it != decl.statements.end();
       ++it) {
     (*it)->accept(*this);
-    unique_ptr<Statement<Location> > newStmt(move(stmtCopyStack.top()));
+    unique_ptr<Statement<TypedLocationInfo> > newStmt(move(stmtCopyStack.top()));
     stmtCopyStack.pop();
     newStmts.push_back(move(newStmt));
   }
 
-  Location void_ = Location::void_();
-  unique_ptr<FuncDecl<Location> > copy(new FuncDecl<Location>(decl.name, decl.args, move(newStmts)));
+  TypedLocationInfo void_(Location::void_(), VAIVEN_STATIC_TYPE_VOID, false);
+  unique_ptr<FuncDecl<TypedLocationInfo> > copy(new FuncDecl<TypedLocationInfo>(decl.name, decl.args, move(newStmts)));
   copy->resolvedData = void_;
   nodeCopyStack.push(copy.release());
 }
 
 void LocationResolver::visitExpressionStatement(ExpressionStatement<>& stmt) {
   stmt.expr->accept(*this);
-  unique_ptr<Expression<Location> > expr(move(exprCopyStack.top()));
+  unique_ptr<Expression<TypedLocationInfo> > expr(move(exprCopyStack.top()));
   exprCopyStack.pop();
-  Location void_ = Location::void_();
-  unique_ptr<Statement<Location> > copy(new ExpressionStatement<Location>(move(expr)));
-  copy->resolvedData = void_;
+  TypedLocationInfo typeinfo = expr->resolvedData;
+  unique_ptr<Statement<TypedLocationInfo> > copy(new ExpressionStatement<TypedLocationInfo>(move(expr)));
+  copy->resolvedData = typeinfo;
   stmtCopyStack.push(copy.release());
 }
 
 void LocationResolver::visitBlock(Block<>& block) {
   ScopeFrame<bool> scopeFrame(scope);
-  vector<unique_ptr<Statement<Location> > > newStmts;
+  vector<unique_ptr<Statement<TypedLocationInfo> > > newStmts;
   for(vector<unique_ptr<Statement<> > >::iterator it = block.statements.begin();
       it != block.statements.end();
       ++it) {
     (*it)->accept(*this);
-    unique_ptr<Statement<Location> > newStmt(move(stmtCopyStack.top()));
+    unique_ptr<Statement<TypedLocationInfo> > newStmt(move(stmtCopyStack.top()));
     stmtCopyStack.pop();
     newStmts.push_back(move(newStmt));
   }
 
-  Location void_ = Location::void_();
-  unique_ptr<Statement<Location> > copy(new Block<Location>(move(newStmts)));
+  TypedLocationInfo void_(Location::void_(), VAIVEN_STATIC_TYPE_VOID, false);
+  unique_ptr<Statement<TypedLocationInfo> > copy(new Block<TypedLocationInfo>(move(newStmts)));
   copy->resolvedData = void_;
   stmtCopyStack.push(copy.release());
 }
@@ -135,62 +135,62 @@ void LocationResolver::visitBlock(Block<>& block) {
 void LocationResolver::visitAdditionExpression(AdditionExpression<>& expr) {
   expr.left->accept(*this);
   expr.right->accept(*this);
-  unique_ptr<Expression<Location> > rhs(move(exprCopyStack.top()));
+  unique_ptr<Expression<TypedLocationInfo> > rhs(move(exprCopyStack.top()));
   exprCopyStack.pop();
-  unique_ptr<Expression<Location> > lhs(move(exprCopyStack.top()));
+  unique_ptr<Expression<TypedLocationInfo> > lhs(move(exprCopyStack.top()));
   exprCopyStack.pop();
-  Location loc = Location::spilled();
-  unique_ptr<Expression<Location> > copy(new AdditionExpression<Location>(move(lhs), move(rhs)));
+  TypedLocationInfo loc(Location::spilled(), VAIVEN_STATIC_TYPE_INT, false);
+  unique_ptr<Expression<TypedLocationInfo> > copy(new AdditionExpression<TypedLocationInfo>(move(lhs), move(rhs)));
   copy->resolvedData = loc;
   exprCopyStack.push(copy.release());
 }
 void LocationResolver::visitSubtractionExpression(SubtractionExpression<>& expr) {
   expr.left->accept(*this);
   expr.right->accept(*this);
-  unique_ptr<Expression<Location> > rhs(move(exprCopyStack.top()));
+  unique_ptr<Expression<TypedLocationInfo> > rhs(move(exprCopyStack.top()));
   exprCopyStack.pop();
-  unique_ptr<Expression<Location> > lhs(move(exprCopyStack.top()));
+  unique_ptr<Expression<TypedLocationInfo> > lhs(move(exprCopyStack.top()));
   exprCopyStack.pop();
-  Location loc = Location::spilled();
-  unique_ptr<Expression<Location> > copy(new SubtractionExpression<Location>(move(lhs), move(rhs)));
+  TypedLocationInfo loc(Location::spilled(), VAIVEN_STATIC_TYPE_INT, false);
+  unique_ptr<Expression<TypedLocationInfo> > copy(new SubtractionExpression<TypedLocationInfo>(move(lhs), move(rhs)));
   copy->resolvedData = loc;
   exprCopyStack.push(copy.release());
 }
 void LocationResolver::visitMultiplicationExpression(MultiplicationExpression<>& expr) {
   expr.left->accept(*this);
   expr.right->accept(*this);
-  unique_ptr<Expression<Location> > rhs(move(exprCopyStack.top()));
+  unique_ptr<Expression<TypedLocationInfo> > rhs(move(exprCopyStack.top()));
   exprCopyStack.pop();
-  unique_ptr<Expression<Location> > lhs(move(exprCopyStack.top()));
+  unique_ptr<Expression<TypedLocationInfo> > lhs(move(exprCopyStack.top()));
   exprCopyStack.pop();
-  Location loc = Location::spilled();
-  unique_ptr<Expression<Location> > copy(new MultiplicationExpression<Location>(move(lhs), move(rhs)));
+  TypedLocationInfo loc(Location::spilled(), VAIVEN_STATIC_TYPE_INT, false);
+  unique_ptr<Expression<TypedLocationInfo> > copy(new MultiplicationExpression<TypedLocationInfo>(move(lhs), move(rhs)));
   copy->resolvedData = loc;
   exprCopyStack.push(copy.release());
 }
 void LocationResolver::visitDivisionExpression(DivisionExpression<>& expr) {
   expr.left->accept(*this);
   expr.right->accept(*this);
-  unique_ptr<Expression<Location> > rhs(move(exprCopyStack.top()));
+  unique_ptr<Expression<TypedLocationInfo> > rhs(move(exprCopyStack.top()));
   exprCopyStack.pop();
-  unique_ptr<Expression<Location> > lhs(move(exprCopyStack.top()));
+  unique_ptr<Expression<TypedLocationInfo> > lhs(move(exprCopyStack.top()));
   exprCopyStack.pop();
-  unique_ptr<Expression<Location> > copy(new DivisionExpression<Location>(move(lhs), move(rhs)));
-  Location loc = Location::spilled();
+  unique_ptr<Expression<TypedLocationInfo> > copy(new DivisionExpression<TypedLocationInfo>(move(lhs), move(rhs)));
+  TypedLocationInfo loc(Location::spilled(), VAIVEN_STATIC_TYPE_INT, false);
   copy->resolvedData = loc;
   exprCopyStack.push(copy.release());
 }
 void LocationResolver::visitIntegerExpression(IntegerExpression<>& expr) {
-  Location immediate = Location::imm(expr.value);
-  unique_ptr<Expression<Location> > copy(new IntegerExpression<Location>(expr.value));
+  TypedLocationInfo immediate(Location::imm(expr.value), VAIVEN_STATIC_TYPE_INT, true);
+  unique_ptr<Expression<TypedLocationInfo> > copy(new IntegerExpression<TypedLocationInfo>(expr.value));
   copy->resolvedData = immediate;
   exprCopyStack.push(copy.release());
 }
 void LocationResolver::visitVariableExpression(VariableExpression<>& expr) {
   if (argIndexes.find(expr.id) == argIndexes.end()) {
     if (scope.contains(expr.id)) {
-      unique_ptr<Expression<Location> > copy(new VariableExpression<Location>(expr.id));
-      copy->resolvedData = Location::local();
+      unique_ptr<Expression<TypedLocationInfo> > copy(new VariableExpression<TypedLocationInfo>(expr.id));
+      copy->resolvedData = TypedLocationInfo(Location::local(), VAIVEN_STATIC_TYPE_UNKNOWN, true);
       exprCopyStack.push(copy.release());
       return;
     }
@@ -198,9 +198,9 @@ void LocationResolver::visitVariableExpression(VariableExpression<>& expr) {
   }
 
   int argNum = argIndexes[expr.id];
-  Location var_loc = Location::arg(argNum);
+  TypedLocationInfo var_loc(Location::arg(argNum), VAIVEN_STATIC_TYPE_UNKNOWN, true);
 
-  unique_ptr<Expression<Location> > copy(new VariableExpression<Location>(expr.id));
+  unique_ptr<Expression<TypedLocationInfo> > copy(new VariableExpression<TypedLocationInfo>(expr.id));
   copy->resolvedData = var_loc;
   exprCopyStack.push(copy.release());
 }

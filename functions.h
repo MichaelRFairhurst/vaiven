@@ -7,13 +7,15 @@
 
 #include "asmjit/src/asmjit/asmjit.h"
 
+#include "value.h"
+
 using std::map;
 using std::string;
 using std::unique_ptr;
 
 namespace vaiven {
 
-typedef int64_t (*OverkillFunc)(int64_t rdi, int64_t rsi, int64_t rdx, int64_t rcx, int64_t r8, int64_t r9, int64_t stack1, int64_t stack2);
+typedef Value (*OverkillFunc)(Value rdi, Value rsi, Value rdx, Value rcx, Value r8, Value r9, Value stack1, Value stack2);
 
 class Function {
   public: 
