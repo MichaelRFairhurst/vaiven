@@ -71,6 +71,47 @@ unique_ptr<Token> Tokenizer::tokenizeDo() {
   return unique_ptr<Token>(new Token(TOKEN_TYPE_DO));
 }
 
+unique_ptr<Token> Tokenizer::tokenizeTrue() {
+  char c = input.peek();
+  if (c != 'r') {
+    vector<char> buffer;
+    buffer.reserve(ID_BUFFER_RESERVE_SIZE);
+    buffer.push_back('t');
+    return tokenizeId(buffer);
+  }
+  input.get();
+  c = input.peek();
+  if (c != 'u') {
+    vector<char> buffer;
+    buffer.reserve(ID_BUFFER_RESERVE_SIZE);
+    buffer.push_back('t');
+    buffer.push_back('r');
+    return tokenizeId(buffer);
+  }
+  input.get();
+  c = input.peek();
+  if (c != 'e') {
+    vector<char> buffer;
+    buffer.reserve(ID_BUFFER_RESERVE_SIZE);
+    buffer.push_back('t');
+    buffer.push_back('r');
+    buffer.push_back('u');
+    return tokenizeId(buffer);
+  }
+  input.get();
+  if (isIdChar(input.peek())) {
+    vector<char> buffer;
+    buffer.reserve(ID_BUFFER_RESERVE_SIZE);
+    buffer.push_back('t');
+    buffer.push_back('r');
+    buffer.push_back('u');
+    buffer.push_back('e');
+    return tokenizeId(buffer);
+  }
+
+  return unique_ptr<Token>(new Token(TOKEN_TYPE_TRUE));
+}
+
 unique_ptr<Token> Tokenizer::tokenizeVar() {
   char c = input.peek();
   if (c != 'a') {
@@ -184,24 +225,69 @@ unique_ptr<Token> Tokenizer::tokenizeOf() {
   return unique_ptr<Token>(new Token(TOKEN_TYPE_OF));
 }
 
-unique_ptr<Token> Tokenizer::tokenizeFn() {
+unique_ptr<Token> Tokenizer::tokenizeFnOrFalse() {
   char c = input.peek();
-  if (c != 'n') {
-    vector<char> buffer;
-    buffer.reserve(ID_BUFFER_RESERVE_SIZE);
-    buffer.push_back('f');
-    return tokenizeId(buffer);
-  }
-  input.get();
-  if (isIdChar(input.peek())) {
-    vector<char> buffer;
-    buffer.reserve(ID_BUFFER_RESERVE_SIZE);
-    buffer.push_back('f');
-    buffer.push_back('n');
-    return tokenizeId(buffer);
+  if (c == 'n') {
+    input.get();
+    if (isIdChar(input.peek())) {
+      vector<char> buffer;
+      buffer.reserve(ID_BUFFER_RESERVE_SIZE);
+      buffer.push_back('f');
+      buffer.push_back('n');
+      return tokenizeId(buffer);
+    }
+
+    return unique_ptr<Token>(new Token(TOKEN_TYPE_FN));
+  } else if (c == 'a') {
+    input.get();
+    c = input.peek();
+    if (c != 'l') {
+      vector<char> buffer;
+      buffer.reserve(ID_BUFFER_RESERVE_SIZE);
+      buffer.push_back('f');
+      buffer.push_back('a');
+      return tokenizeId(buffer);
+    }
+    input.get();
+    c = input.peek();
+    if (c != 's') {
+      vector<char> buffer;
+      buffer.reserve(ID_BUFFER_RESERVE_SIZE);
+      buffer.push_back('f');
+      buffer.push_back('a');
+      buffer.push_back('l');
+      return tokenizeId(buffer);
+    }
+    input.get();
+    c = input.peek();
+    if (c != 'e') {
+      vector<char> buffer;
+      buffer.reserve(ID_BUFFER_RESERVE_SIZE);
+      buffer.push_back('f');
+      buffer.push_back('a');
+      buffer.push_back('l');
+      buffer.push_back('s');
+      return tokenizeId(buffer);
+    }
+    input.get();
+    if (isIdChar(input.peek())) {
+      vector<char> buffer;
+      buffer.reserve(ID_BUFFER_RESERVE_SIZE);
+      buffer.push_back('f');
+      buffer.push_back('a');
+      buffer.push_back('l');
+      buffer.push_back('s');
+      buffer.push_back('e');
+      return tokenizeId(buffer);
+    }
+
+    return unique_ptr<Token>(new Token(TOKEN_TYPE_FALSE));
   }
 
-  return unique_ptr<Token>(new Token(TOKEN_TYPE_FN));
+  vector<char> buffer;
+  buffer.reserve(ID_BUFFER_RESERVE_SIZE);
+  buffer.push_back('f');
+  return tokenizeId(buffer);
 }
 
 unique_ptr<Token> Tokenizer::tokenizeIsOrIf() {
@@ -266,7 +352,23 @@ unique_ptr<Token> Tokenizer::next() {
       return unique_ptr<Token>(new Token(TOKEN_TYPE_MULTIPLY));
     case '/':
       return unique_ptr<Token>(new Token(TOKEN_TYPE_DIVIDE));
+    case '>':
+      if (input.peek() == '=') {
+        input.get();
+        return unique_ptr<Token>(new Token(TOKEN_TYPE_GTE));
+      }
+      return unique_ptr<Token>(new Token(TOKEN_TYPE_GT));
+    case '<':
+      if (input.peek() == '=') {
+        input.get();
+        return unique_ptr<Token>(new Token(TOKEN_TYPE_LTE));
+      }
+      return unique_ptr<Token>(new Token(TOKEN_TYPE_LT));
     case '=':
+      if (input.peek() == '=') {
+        input.get();
+        return unique_ptr<Token>(new Token(TOKEN_TYPE_EQEQ));
+      }
       return unique_ptr<Token>(new Token(TOKEN_TYPE_EQ));
     case ';':
       return unique_ptr<Token>(new Token(TOKEN_TYPE_SEMICOLON));
@@ -279,7 +381,7 @@ unique_ptr<Token> Tokenizer::next() {
     case 'e':
       return tokenizeEndOrElse();
     case 'f':
-      return tokenizeFn();
+      return tokenizeFnOrFalse();
     case 'o':
       return tokenizeOf();
     case 'v':
@@ -288,6 +390,8 @@ unique_ptr<Token> Tokenizer::next() {
       return tokenizeRet();
     case 'd':
       return tokenizeDo();
+    case 't':
+      return tokenizeTrue();
     case ' ':
     case '\n':
       return next();

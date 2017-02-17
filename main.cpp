@@ -30,9 +30,21 @@ int main() {
   printExpressionStream(parser);
 }
 
+
+// Error handler that just prints the error and lets AsmJit ignore it.
+class PrintErrorHandler : public asmjit::ErrorHandler {
+public:
+  // Return `true` to set last error to `err`, return `false` to do nothing.
+  bool handleError(asmjit::Error err, const char* message, asmjit::CodeEmitter* origin) override {
+    fprintf(stderr, "ERROR: %s\n", message);
+    return false;
+  }
+};
+
 void printExpressionStream(Parser& parser) {
   Functions funcs;
   FileLogger logger(stdout);
+  PrintErrorHandler eh;
   unique_ptr<ast::Node<> > cur = parser.parseLogicalGroup();
 
   while (cur.get() != NULL) {
@@ -47,12 +59,14 @@ void printExpressionStream(Parser& parser) {
 
       CodeHolder codeHolder;
       codeHolder.init(funcs.runtime.getCodeInfo());
+      codeHolder.setErrorHandler(&eh);
       codeHolder.setLogger(&logger);
       X86Assembler assembler(&codeHolder);
       X86Compiler cc(&codeHolder);
       //visitor::Compiler compiler(assembler);
       visitor::AutoCompiler compiler(cc, codeHolder, funcs);
-      compiler.compile(*resolved, locResolver.argIndexes.size());
+      compiler.compile(*resolved);
+      resolved.release(); // compiler owns pointer now
       //int64_t result = func(1, 2, 3, 4, 5, 6, 7, 8);
       //cout << result << endl << endl;
       cur = parser.parseLogicalGroup();
@@ -113,6 +127,10 @@ void printTokenStream(Tokenizer& tokenizer) {
         cout << "/" << endl; break;
       case TOKEN_TYPE_EQ:
         cout << "=" << endl; break;
+      case TOKEN_TYPE_EQEQ:
+        cout << "==" << endl; break;
+      case TOKEN_TYPE_GT:
+        cout << ">" << endl; break;
       case TOKEN_TYPE_COMMA:
         cout << "," << endl; break;
       case TOKEN_TYPE_SEMICOLON:
@@ -135,6 +153,10 @@ void printTokenStream(Tokenizer& tokenizer) {
         cout << "do" << endl; break;
       case TOKEN_TYPE_RET:
         cout << "ret" << endl; break;
+      case TOKEN_TYPE_TRUE:
+        cout << "true" << endl; break;
+      case TOKEN_TYPE_FALSE:
+        cout << "false" << endl; break;
       case TOKEN_TYPE_INTEGER:
 	{
 	  IntegerToken* inttok = static_cast<IntegerToken*>(cur.get());

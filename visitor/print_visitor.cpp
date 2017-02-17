@@ -118,3 +118,47 @@ void PrintVisitor::visitIntegerExpression(IntegerExpression<>& expr) {
 void PrintVisitor::visitVariableExpression(VariableExpression<>& expr) {
   cout << expr.id;
 }
+
+void PrintVisitor::visitBoolLiteral(BoolLiteral<>& expr) {
+  cout << expr.value;
+}
+
+void PrintVisitor::visitEqualityExpression(EqualityExpression<>& expr) {
+  cout << "(";
+  expr.left->accept(*this);
+  cout << "==";
+  expr.right->accept(*this);
+  cout << ")";
+}
+
+void PrintVisitor::visitGtExpression(GtExpression<>& expr) {
+  cout << "(";
+  expr.left->accept(*this);
+  cout << ">";
+  expr.right->accept(*this);
+  cout << ")";
+}
+
+void PrintVisitor::visitGteExpression(GteExpression<>& expr) {
+  cout << "(";
+  expr.left->accept(*this);
+  cout << ">=";
+  expr.right->accept(*this);
+  cout << ")";
+}
+
+void PrintVisitor::visitLtExpression(LtExpression<>& expr) {
+  cout << "(";
+  expr.left->accept(*this);
+  cout << "<";
+  expr.right->accept(*this);
+  cout << ")";
+}
+
+void PrintVisitor::visitLteExpression(LteExpression<>& expr) {
+  cout << "(";
+  expr.left->accept(*this);
+  cout << "<=";
+  expr.right->accept(*this);
+  cout << ")";
+}

@@ -180,8 +180,65 @@ unique_ptr<ast::ExpressionStatement<> > Parser::parseExpressionStatement() {
 
 
 unique_ptr<ast::Expression<> > Parser::parseExpression() {
-  unique_ptr<ast::Expression<> > lhs(parseAddSubExpression());
+  unique_ptr<ast::Expression<> > lhs(parseEqualityExpression());
   return std::move(lhs);
+}
+
+unique_ptr<ast::Expression<> > Parser::parseEqualityExpression() {
+  unique_ptr<ast::Expression<> > acc(parseComparisonExpression());
+
+  while (current->type != TOKEN_TYPE_SEMICOLON
+      && current->type != TOKEN_TYPE_CLOSE_PAREN
+      && current->type != TOKEN_TYPE_COMMA
+      && current->type != TOKEN_TYPE_DO
+      && current->type != TOKEN_TYPE_EOF) {
+
+    if (current->type == TOKEN_TYPE_EQEQ) {
+      next();
+      acc = unique_ptr<ast::Expression<> >(new ast::EqualityExpression<> (
+          std::move(acc), parseComparisonExpression()));
+    } else {
+      // error
+      throw string("blah");
+    }
+  }
+
+  return std::move(acc);
+}
+
+unique_ptr<ast::Expression<> > Parser::parseComparisonExpression() {
+  unique_ptr<ast::Expression<> > acc(parseAddSubExpression());
+
+  while (current->type != TOKEN_TYPE_SEMICOLON
+      && current->type != TOKEN_TYPE_CLOSE_PAREN
+      && current->type != TOKEN_TYPE_COMMA
+      && current->type != TOKEN_TYPE_DO
+      && current->type != TOKEN_TYPE_EQEQ
+      && current->type != TOKEN_TYPE_EOF) {
+
+    if (current->type == TOKEN_TYPE_GT) {
+      next();
+      acc = unique_ptr<ast::Expression<> >(new ast::GtExpression<> (
+          std::move(acc), parseAddSubExpression()));
+    } else if (current->type == TOKEN_TYPE_GTE) {
+      next();
+      acc = unique_ptr<ast::Expression<> >(new ast::GteExpression<> (
+          std::move(acc), parseAddSubExpression()));
+    } else if (current->type == TOKEN_TYPE_LT) {
+      next();
+      acc = unique_ptr<ast::Expression<> >(new ast::LtExpression<> (
+          std::move(acc), parseAddSubExpression()));
+    } else if (current->type == TOKEN_TYPE_LTE) {
+      next();
+      acc = unique_ptr<ast::Expression<> >(new ast::LteExpression<> (
+          std::move(acc), parseAddSubExpression()));
+    } else {
+      // error
+      throw string("blah");
+    }
+  }
+
+  return std::move(acc);
 }
 
 unique_ptr<ast::Expression<> > Parser::parseAddSubExpression() {
@@ -191,6 +248,11 @@ unique_ptr<ast::Expression<> > Parser::parseAddSubExpression() {
       && current->type != TOKEN_TYPE_CLOSE_PAREN
       && current->type != TOKEN_TYPE_COMMA
       && current->type != TOKEN_TYPE_DO
+      && current->type != TOKEN_TYPE_EQEQ
+      && current->type != TOKEN_TYPE_GT
+      && current->type != TOKEN_TYPE_GTE
+      && current->type != TOKEN_TYPE_LT
+      && current->type != TOKEN_TYPE_LTE
       && current->type != TOKEN_TYPE_EOF) {
 
     if (current->type == TOKEN_TYPE_PLUS) {
@@ -217,9 +279,15 @@ unique_ptr<ast::Expression<> > Parser::parseDivMulExpression() {
   while (current->type != TOKEN_TYPE_SEMICOLON
       && current->type != TOKEN_TYPE_PLUS
       && current->type != TOKEN_TYPE_MINUS
+      && current->type != TOKEN_TYPE_MINUS
       && current->type != TOKEN_TYPE_COMMA
       && current->type != TOKEN_TYPE_CLOSE_PAREN
       && current->type != TOKEN_TYPE_DO
+      && current->type != TOKEN_TYPE_EQEQ
+      && current->type != TOKEN_TYPE_GT
+      && current->type != TOKEN_TYPE_GTE
+      && current->type != TOKEN_TYPE_LT
+      && current->type != TOKEN_TYPE_LTE
       && current->type != TOKEN_TYPE_EOF) {
 
     if (current->type == TOKEN_TYPE_DIVIDE) {
@@ -280,6 +348,16 @@ unique_ptr<ast::Expression<> > Parser::parseValue() {
     } else {
       return unique_ptr<ast::Expression<> >(new ast::VariableExpression<> (idtok->lexeme));
     }
+  }
+
+  if (current->type == TOKEN_TYPE_TRUE) {
+    next();
+    return unique_ptr<ast::Expression<> >(new ast::BoolLiteral<> (true));
+  }
+
+  if (current->type == TOKEN_TYPE_FALSE) {
+    next();
+    return unique_ptr<ast::Expression<> >(new ast::BoolLiteral<> (false));
   }
   
   throw string("blah");

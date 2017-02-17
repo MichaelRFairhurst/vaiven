@@ -178,3 +178,59 @@ void Interpreter::visitVariableExpression(VariableExpression<>& expr) {
   Value val = stack.c[(*variablesMap)[expr.id]];
   stack.push(val);
 }
+
+void Interpreter::visitBoolLiteral(BoolLiteral<>& expr) {
+  stack.push(Value(expr.value));
+}
+
+void Interpreter::visitEqualityExpression(EqualityExpression<>& expr) {
+  expr.left->accept(*this);
+  expr.right->accept(*this);
+  Value right = stack.top(); stack.pop();
+  Value left = stack.top(); stack.pop();
+  stack.push(Value(left.getRaw() == right.getRaw()));
+}
+
+void Interpreter::visitGtExpression(GtExpression<>& expr) {
+  expr.left->accept(*this);
+  expr.right->accept(*this);
+  Value right = stack.top(); stack.pop();
+  Value left = stack.top(); stack.pop();
+  if (!right.isInt() || !left.isInt()) {
+    typeError();
+  }
+  stack.push(Value(left.getInt() > right.getInt()));
+}
+
+void Interpreter::visitGteExpression(GteExpression<>& expr) {
+  expr.left->accept(*this);
+  expr.right->accept(*this);
+  Value right = stack.top(); stack.pop();
+  Value left = stack.top(); stack.pop();
+  if (!right.isInt() || !left.isInt()) {
+    typeError();
+  }
+  stack.push(Value(left.getInt() >= right.getInt()));
+}
+
+void Interpreter::visitLtExpression(LtExpression<>& expr) {
+  expr.left->accept(*this);
+  expr.right->accept(*this);
+  Value right = stack.top(); stack.pop();
+  Value left = stack.top(); stack.pop();
+  if (!right.isInt() || !left.isInt()) {
+    typeError();
+  }
+  stack.push(Value(left.getInt() < right.getInt()));
+}
+
+void Interpreter::visitLteExpression(LteExpression<>& expr) {
+  expr.left->accept(*this);
+  expr.right->accept(*this);
+  Value right = stack.top(); stack.pop();
+  Value left = stack.top(); stack.pop();
+  if (!right.isInt() || !left.isInt()) {
+    typeError();
+  }
+  stack.push(Value(left.getInt() <= right.getInt()));
+}

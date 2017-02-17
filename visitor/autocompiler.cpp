@@ -3,13 +3,15 @@
 #include "../ast/all.h"
 #include "../value.h"
 #include "../runtime_error.h"
+#include "../optimize.h"
 
+#include <iostream>
 #include <stdint.h>
 
 using namespace asmjit;
 using namespace vaiven::visitor;
 
-void AutoCompiler::compile(Node<TypedLocationInfo>& root, int numVars) {
+void AutoCompiler::compile(Node<TypedLocationInfo>& root) {
   root.accept(*this);
 }
 
@@ -88,6 +90,7 @@ void AutoCompiler::visitFuncCallExpression(FuncCallExpression<TypedLocationInfo>
     call->setArg(i, paramRegs[i]);
   }
 
+  call->setRet(0, retReg);
   vRegs.push(retReg);
 }
 
@@ -103,11 +106,19 @@ void AutoCompiler::visitFuncDecl(FuncDecl<TypedLocationInfo>& decl) {
   curFunc = cc.addFunc(sig);
   curFuncName = decl.name;
 
+  // allocate a variably sized FunctionUsage with room for shapes
+  void* usageMem = malloc(sizeof(FunctionUsage) + sizeof(ArgumentShape) * decl.args.size());
+  unique_ptr<FunctionUsage> usage(new (usageMem) FunctionUsage());
+
+  X86Gp checkReg = cc.newUInt64();
+  X86Gp orReg = cc.newUInt64();
   for (int i = 0; i < decl.args.size(); ++i) {
     X86Gp arg = cc.newInt64();
     cc.setArg(i, arg);
     argRegs.push_back(arg);
   }
+
+  generateTypeShapePrelog(decl, &*usage);
 
   typeErrorLabel = cc.newLabel();
 
@@ -128,13 +139,92 @@ void AutoCompiler::visitFuncDecl(FuncDecl<TypedLocationInfo>& decl) {
     cc.ret(voidReg);
   }
 
-  cc.bind(typeErrorLabel);
-  cc.call((size_t) &typeError, FuncSignature0<void>());
+  generateOptimizeProlog(decl, sig);
+  generateTypeErrorProlog();
+
   cc.endFunc();
   cc.finalize();
 
-  funcs.addFunc(decl.name, &codeHolder, decl.args.size());
+  funcs.addFunc(decl.name, &codeHolder, decl.args.size(), std::move(usage), &decl);
 }
+
+void AutoCompiler::generateTypeShapePrelog(FuncDecl<TypedLocationInfo>& decl, FunctionUsage* usage) {
+  if (!decl.args.size()) {
+    return;
+  }
+
+  optimizeLabel = cc.newLabel();
+  X86Gp count = cc.newInt32();
+  cc.mov(count, asmjit::x86::dword_ptr((uint64_t) &usage->count));
+  cc.cmp(count, 4);
+  cc.je(optimizeLabel);
+  cc.add(count, 1);
+  cc.mov(asmjit::x86::dword_ptr((uint64_t) &usage->count), count);
+
+  X86Gp checkReg = cc.newUInt64();
+  X86Gp orReg = cc.newUInt64();
+  for (int i = 0; i < decl.args.size(); ++i) {
+    usage->argShapes[i].raw = 0; // initialize
+    X86Gp arg = argRegs[i];
+
+    Label afterCheck = cc.newLabel();
+
+    cc.mov(checkReg, MAX_PTR);
+    cc.mov(orReg, OBJECT_SHAPE);
+    cc.cmp(arg, checkReg);
+    cc.jl(afterCheck);
+
+    cc.mov(checkReg, MIN_DBL);
+    cc.mov(orReg, DOUBLE_SHAPE);
+    cc.cmp(arg, checkReg);
+    cc.jg(afterCheck);
+
+    cc.mov(orReg, arg);
+    cc.shr(orReg, 48);
+    // creates a tag for ints, bools, and void
+
+    cc.bind(afterCheck);
+    cc.mov(checkReg.r16(), x86::word_ptr((uint64_t) &usage->argShapes[i]));
+    cc.or_(checkReg.r16(), orReg.r16());
+    cc.mov(x86::word_ptr((uint64_t) &usage->argShapes[i]), checkReg.r16());
+  }
+}
+
+void AutoCompiler::generateOptimizeProlog(FuncDecl<TypedLocationInfo>& decl, FuncSignature& sig) {
+  if (!decl.args.size()) {
+    return;
+  }
+
+  cc.bind(optimizeLabel);
+  X86Gp funcsReg = cc.newUInt64();
+  X86Gp declReg = cc.newUInt64();
+  X86Gp optimizedAddr = cc.newUInt64();
+  cc.mov(funcsReg, (uint64_t) &funcs);
+  cc.mov(declReg, (uint64_t) &decl);
+  CCFuncCall* recompileCall = cc.call((size_t) &vaiven::optimize, FuncSignature2<uint64_t, uint64_t, uint64_t>());
+  recompileCall->setArg(0, funcsReg);
+  recompileCall->setArg(1, declReg);
+  recompileCall->setRet(0, optimizedAddr);
+
+  CCFuncCall* optimizedCall = cc.call(optimizedAddr, sig);
+  for (int i = 0; i < decl.args.size(); ++i) {
+    optimizedCall->setArg(i, argRegs[i]);
+  }
+  X86Gp optimizedRet = cc.newUInt64();
+  optimizedCall->setRet(0, optimizedRet);
+  
+  cc.ret(optimizedRet);
+}
+
+void AutoCompiler::generateTypeErrorProlog() {
+  if (!canThrow) {
+    return;
+  }
+
+  cc.bind(typeErrorLabel);
+  cc.call((size_t) &typeError, FuncSignature0<void>());
+}
+
 
 void AutoCompiler::visitExpressionStatement(ExpressionStatement<TypedLocationInfo>& stmt) {
   stmt.expr->accept(*this);
@@ -363,6 +453,8 @@ void AutoCompiler::typecheckInt(asmjit::X86Gp vreg, TypedLocationInfo& typeInfo)
     cc.shr(testReg, INT_TAG_SHIFT);
     cc.cmp(testReg, INT_TAG_SHIFTED);
     cc.jne(typeErrorLabel);
+
+    canThrow = true;
   } else if (typeInfo.type != VAIVEN_STATIC_TYPE_INT) {
     typeError();
   }
@@ -406,4 +498,17 @@ void AutoCompiler::visitVariableExpression(VariableExpression<TypedLocationInfo>
   } else {
     vRegs.push(argRegs[expr.resolvedData.location.data.argIndex]);
   }
+}
+
+void AutoCompiler::visitBoolLiteral(BoolLiteral<TypedLocationInfo>& expr) {
+}
+void AutoCompiler::visitEqualityExpression(EqualityExpression<TypedLocationInfo>& expr) {
+}
+void AutoCompiler::visitGtExpression(GtExpression<TypedLocationInfo>& expr) {
+}
+void AutoCompiler::visitGteExpression(GteExpression<TypedLocationInfo>& expr) {
+}
+void AutoCompiler::visitLtExpression(LtExpression<TypedLocationInfo>& expr) {
+}
+void AutoCompiler::visitLteExpression(LteExpression<TypedLocationInfo>& expr) {
 }

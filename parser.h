@@ -24,6 +24,8 @@ class Parser {
   unique_ptr<ast::ReturnStatement<> > parseReturnStatement();
   unique_ptr<ast::ExpressionStatement<> > parseExpressionStatement();
   unique_ptr<ast::Expression<> > parseExpression();
+  unique_ptr<ast::Expression<> > parseEqualityExpression();
+  unique_ptr<ast::Expression<> > parseComparisonExpression();
   unique_ptr<ast::Expression<> > parseAddSubExpression();
   unique_ptr<ast::Expression<> > parseDivMulExpression();
   unique_ptr<ast::Expression<> > parseValue();

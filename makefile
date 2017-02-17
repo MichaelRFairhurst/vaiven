@@ -12,6 +12,8 @@ VISITOR_OBJECTS = \
 	visitor/compiler.o \
 	visitor/autocompiler.o \
 	visitor/location_resolver.o \
+	visitor/usage_applier.o \
+	visitor/recompiler.o \
 
 NANOJIT_OBJECTS = \
 	nanojit-central/Containers.o \
@@ -63,6 +65,7 @@ MAIN_OBJECTS = \
 	parser.o \
 	location.o \
 	runtime_error.o \
+	optimize.o \
 	#nanojitsupport.o \
 
 CXXFLAGS := -DASMJIT_EMBED -std=c++11 -g -O0

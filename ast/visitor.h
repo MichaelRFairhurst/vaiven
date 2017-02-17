@@ -18,6 +18,18 @@ class IntegerExpression;
 template<typename RD=void>
 class VariableExpression;
 template<typename RD=void>
+class BoolLiteral;
+template<typename RD=void>
+class EqualityExpression;
+template<typename RD=void>
+class GtExpression;
+template<typename RD=void>
+class GteExpression;
+template<typename RD=void>
+class LtExpression;
+template<typename RD=void>
+class LteExpression;
+template<typename RD=void>
 class ExpressionStatement;
 template<typename RD=void>
 class Block;
@@ -42,6 +54,12 @@ class Visitor {
   virtual void visitDivisionExpression(DivisionExpression<RD>& expr)=0;
   virtual void visitIntegerExpression(IntegerExpression<RD>& expr)=0;
   virtual void visitVariableExpression(VariableExpression<RD>& expr)=0;
+  virtual void visitBoolLiteral(BoolLiteral<RD>& expr)=0;
+  virtual void visitEqualityExpression(EqualityExpression<RD>& expr)=0;
+  virtual void visitGtExpression(GtExpression<RD>& expr)=0;
+  virtual void visitGteExpression(GteExpression<RD>& expr)=0;
+  virtual void visitLtExpression(LtExpression<RD>& expr)=0;
+  virtual void visitLteExpression(LteExpression<RD>& expr)=0;
   virtual void visitFuncCallExpression(FuncCallExpression<RD>& expr)=0;
   virtual void visitExpressionStatement(ExpressionStatement<RD>& stmt)=0;
   virtual void visitIfStatement(IfStatement<RD>& stmt)=0;

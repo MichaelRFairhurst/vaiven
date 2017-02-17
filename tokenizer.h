@@ -25,7 +25,8 @@ class Tokenizer {
     unique_ptr<Token> tokenizeEndOrElse();
     unique_ptr<Token> tokenizeRet();
     unique_ptr<Token> tokenizeDo();
-    unique_ptr<Token> tokenizeFn();
+    unique_ptr<Token> tokenizeFnOrFalse();
+    unique_ptr<Token> tokenizeTrue();
     unique_ptr<Token> tokenizeOf();
     unique_ptr<Token> tokenizeVar();
     unique_ptr<Token> tokenizeId(vector<char>& buffer);
@@ -44,12 +45,19 @@ enum TokenType {
   TOKEN_TYPE_RET,
   TOKEN_TYPE_ELSE,
   TOKEN_TYPE_DO,
+  TOKEN_TYPE_TRUE,
+  TOKEN_TYPE_FALSE,
   TOKEN_TYPE_INTEGER,
   TOKEN_TYPE_PLUS,
   TOKEN_TYPE_MINUS,
   TOKEN_TYPE_DIVIDE,
   TOKEN_TYPE_MULTIPLY,
   TOKEN_TYPE_EQ,
+  TOKEN_TYPE_EQEQ,
+  TOKEN_TYPE_GT,
+  TOKEN_TYPE_GTE,
+  TOKEN_TYPE_LT,
+  TOKEN_TYPE_LTE,
   TOKEN_TYPE_OPEN_PAREN,
   TOKEN_TYPE_CLOSE_PAREN,
   TOKEN_TYPE_OPEN_BRACE,

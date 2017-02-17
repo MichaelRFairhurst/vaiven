@@ -240,3 +240,16 @@ void Compiler::visitVariableExpression(VariableExpression<Location>& expr) {
     asm.mov(x86::rax, expr.resolvedData.getArgPtr());
   }
 }
+
+void Compiler::visitBoolLiteral(BoolLiteral<Location>& expr) {
+}
+void Compiler::visitEqualityExpression(EqualityExpression<Location>& expr) {
+}
+void Compiler::visitGtExpression(GtExpression<Location>& expr) {
+}
+void Compiler::visitGteExpression(GteExpression<Location>& expr) {
+}
+void Compiler::visitLtExpression(LtExpression<Location>& expr) {
+}
+void Compiler::visitLteExpression(LteExpression<Location>& expr) {
+}

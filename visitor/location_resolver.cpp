@@ -204,3 +204,16 @@ void LocationResolver::visitVariableExpression(VariableExpression<>& expr) {
   copy->resolvedData = var_loc;
   exprCopyStack.push(copy.release());
 }
+
+void LocationResolver::visitBoolLiteral(BoolLiteral<>& expr) {
+}
+void LocationResolver::visitEqualityExpression(EqualityExpression<>& expr) {
+}
+void LocationResolver::visitGtExpression(GtExpression<>& expr) {
+}
+void LocationResolver::visitGteExpression(GteExpression<>& expr) {
+}
+void LocationResolver::visitLtExpression(LtExpression<>& expr) {
+}
+void LocationResolver::visitLteExpression(LteExpression<>& expr) {
+}
