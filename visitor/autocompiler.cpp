@@ -57,8 +57,8 @@ void AutoCompiler::visitVarDecl(VarDecl<TypedLocationInfo>& varDecl) {
 
   varDecl.expr->accept(*this);
 
-  box(varReg, varDecl.expr->resolvedData);
   cc.mov(varReg, vRegs.top());
+  box(varReg, varDecl.expr->resolvedData);
   vRegs.pop();
 }
 
@@ -261,7 +261,7 @@ void AutoCompiler::visitAdditionExpression(AdditionExpression<TypedLocationInfo>
     expr.right->accept(*this);
     X86Gp rhsReg = vRegs.top(); vRegs.pop();
     typecheckInt(rhsReg, expr.right->resolvedData);
-    if (right_loc.type != LOCATION_TYPE_ARG) {
+    if (right_loc.type != LOCATION_TYPE_ARG && right_loc.type != LOCATION_TYPE_LOCAL) {
       result = rhsReg;
     } else {
       cc.mov(result, rhsReg);
@@ -271,7 +271,7 @@ void AutoCompiler::visitAdditionExpression(AdditionExpression<TypedLocationInfo>
     expr.left->accept(*this);
     X86Gp lhsReg = vRegs.top(); vRegs.pop();
     typecheckInt(lhsReg, expr.left->resolvedData);
-    if (left_loc.type != LOCATION_TYPE_ARG) {
+    if (left_loc.type != LOCATION_TYPE_ARG && left_loc.type != LOCATION_TYPE_LOCAL) {
       result = lhsReg;
     } else {
       cc.mov(result, lhsReg);
@@ -284,9 +284,9 @@ void AutoCompiler::visitAdditionExpression(AdditionExpression<TypedLocationInfo>
     X86Gp rhsReg = vRegs.top(); vRegs.pop();
     typecheckInt(lhsReg, expr.left->resolvedData);
     typecheckInt(rhsReg, expr.right->resolvedData);
-    if (left_loc.type != LOCATION_TYPE_ARG) {
+    if (left_loc.type != LOCATION_TYPE_ARG && left_loc.type != LOCATION_TYPE_LOCAL) {
       result = lhsReg;
-    } else if (right_loc.type != LOCATION_TYPE_ARG) {
+    } else if (right_loc.type != LOCATION_TYPE_ARG && right_loc.type != LOCATION_TYPE_LOCAL) {
       result = rhsReg;
       lhsReg = rhsReg;
     } else {
@@ -313,7 +313,7 @@ void AutoCompiler::visitSubtractionExpression(SubtractionExpression<TypedLocatio
     expr.right->accept(*this);
     X86Gp rhsReg = vRegs.top(); vRegs.pop();
     typecheckInt(rhsReg, expr.right->resolvedData);
-    if (right_loc.type != LOCATION_TYPE_ARG) {
+    if (right_loc.type != LOCATION_TYPE_ARG && right_loc.type != LOCATION_TYPE_LOCAL) {
       result = rhsReg;
     } else {
       cc.mov(result, rhsReg);
@@ -324,7 +324,7 @@ void AutoCompiler::visitSubtractionExpression(SubtractionExpression<TypedLocatio
     expr.left->accept(*this);
     X86Gp lhsReg = vRegs.top(); vRegs.pop();
     typecheckInt(lhsReg, expr.left->resolvedData);
-    if (left_loc.type != LOCATION_TYPE_ARG) {
+    if (left_loc.type != LOCATION_TYPE_ARG && left_loc.type != LOCATION_TYPE_LOCAL) {
       result = lhsReg;
     } else {
       cc.mov(result, lhsReg);
@@ -337,10 +337,10 @@ void AutoCompiler::visitSubtractionExpression(SubtractionExpression<TypedLocatio
     X86Gp rhsReg = vRegs.top(); vRegs.pop();
     typecheckInt(lhsReg, expr.left->resolvedData);
     typecheckInt(rhsReg, expr.right->resolvedData);
-    if (left_loc.type != LOCATION_TYPE_ARG) {
+    if (left_loc.type != LOCATION_TYPE_ARG && left_loc.type != LOCATION_TYPE_LOCAL) {
       result = lhsReg;
       cc.sub(result.r32(), rhsReg.r32());
-    } else if (right_loc.type != LOCATION_TYPE_ARG) {
+    } else if (right_loc.type != LOCATION_TYPE_ARG && right_loc.type != LOCATION_TYPE_LOCAL) {
       result = rhsReg;
       cc.neg(result.r32());
       cc.add(result.r32(), lhsReg.r32());
@@ -367,7 +367,7 @@ void AutoCompiler::visitMultiplicationExpression(MultiplicationExpression<TypedL
     expr.right->accept(*this);
     X86Gp rhsReg = vRegs.top(); vRegs.pop();
     typecheckInt(rhsReg, expr.right->resolvedData);
-    if (right_loc.type != LOCATION_TYPE_ARG) {
+    if (right_loc.type != LOCATION_TYPE_ARG && right_loc.type != LOCATION_TYPE_LOCAL) {
       result = rhsReg;
     } else {
       cc.mov(result, rhsReg);
@@ -377,7 +377,7 @@ void AutoCompiler::visitMultiplicationExpression(MultiplicationExpression<TypedL
     expr.left->accept(*this);
     X86Gp lhsReg = vRegs.top(); vRegs.pop();
     typecheckInt(lhsReg, expr.left->resolvedData);
-    if (left_loc.type != LOCATION_TYPE_ARG) {
+    if (left_loc.type != LOCATION_TYPE_ARG && left_loc.type != LOCATION_TYPE_LOCAL) {
       result = lhsReg;
     } else {
       cc.mov(result, lhsReg);
@@ -390,9 +390,9 @@ void AutoCompiler::visitMultiplicationExpression(MultiplicationExpression<TypedL
     X86Gp rhsReg = vRegs.top(); vRegs.pop();
     typecheckInt(lhsReg, expr.left->resolvedData);
     typecheckInt(rhsReg, expr.right->resolvedData);
-    if (left_loc.type != LOCATION_TYPE_ARG) {
+    if (left_loc.type != LOCATION_TYPE_ARG && left_loc.type != LOCATION_TYPE_LOCAL) {
       result = lhsReg;
-    } else if (right_loc.type != LOCATION_TYPE_ARG) {
+    } else if (right_loc.type != LOCATION_TYPE_ARG && right_loc.type != LOCATION_TYPE_LOCAL) {
       result = rhsReg;
       lhsReg = rhsReg;
     } else {
@@ -427,7 +427,7 @@ void AutoCompiler::visitDivisionExpression(DivisionExpression<TypedLocationInfo>
     expr.left->accept(*this);
     X86Gp lhsReg = vRegs.top(); vRegs.pop();
     typecheckInt(lhsReg, expr.left->resolvedData);
-    if (left_loc.type != LOCATION_TYPE_ARG) {
+    if (left_loc.type != LOCATION_TYPE_ARG && left_loc.type != LOCATION_TYPE_LOCAL) {
       result = lhsReg;
     } else {
       cc.mov(result, lhsReg);
@@ -440,7 +440,7 @@ void AutoCompiler::visitDivisionExpression(DivisionExpression<TypedLocationInfo>
     divisor = vRegs.top(); vRegs.pop();
     typecheckInt(lhsReg, expr.left->resolvedData);
     typecheckInt(divisor, expr.right->resolvedData);
-    if (left_loc.type != LOCATION_TYPE_ARG) {
+    if (left_loc.type != LOCATION_TYPE_ARG && left_loc.type != LOCATION_TYPE_LOCAL) {
       result = lhsReg;
     } else {
       cc.mov(result, lhsReg);

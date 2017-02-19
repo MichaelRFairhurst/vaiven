@@ -78,6 +78,17 @@ void Interpreter::visitFuncCallExpression(FuncCallExpression<>& expr) {
     (*it)->accept(*this);
   }
 
+  // make uninitialized pointers to trick the optimizer out of
+  // supply all args except when necessary!
+  //void* uninitialized;
+  //Value eight(uninitialized);
+  //Value seven(uninitialized);
+  //Value six(uninitialized);
+  //Value five(uninitialized);
+  //Value four(uninitialized);
+  //Value three(uninitialized);
+  //Value two(uninitialized);
+  //Value one(uninitialized);
   Value eight;
   Value seven;
   Value six;
@@ -109,7 +120,6 @@ void Interpreter::visitFuncCallExpression(FuncCallExpression<>& expr) {
   }
   
   stack.push(fptr(one, two, three, four, five, six, seven, eight));
-
 }
 
 void Interpreter::visitFuncDecl(FuncDecl<>& decl) {
