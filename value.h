@@ -17,15 +17,16 @@ namespace vaiven {
 // 00000000 00000001 00000000 00000000 00000000 00000000 00000000 00000010 void
 // 00000000 00000010 00000000 00000000 ........ ........ ........ ........ 32 bit int
 
-const uint64_t MAX_PTR = 0x00007FFFFFFFFFFF;
-const uint64_t MIN_DBL = 0x0007FFFFFFFFFFFF;
-const uint64_t FALSE   = 0x0000800000000000;
-const uint64_t TRUE    = 0x0000800000000001;
-const uint64_t VOID    = 0x0002000000000000;
-const uint64_t INT_TAG = 0x0001000000000000;
-const uint64_t INT_TAG_SHIFTED = 0x00010000;
-const uint64_t INT_TAG_SHIFT = 32;
+const uint64_t MAX_PTR  = 0x00007FFFFFFFFFFF;
+const uint64_t MIN_DBL  = 0x0007FFFFFFFFFFFF;
+const uint64_t FALSE    = 0x0000800000000000;
+const uint64_t TRUE     = 0x0000800000000001;
+const uint64_t VOID     = 0x0002000000000000;
+const uint64_t INT_TAG  = 0x0001000000000000;
 const uint64_t BOOL_TAG = 0x0000800000000000;
+const uint64_t VALUE_TAG_SHIFT  = 32;
+const uint64_t INT_TAG_SHIFTED  = 0x00010000;
+const uint64_t BOOL_TAG_SHIFTED = 0x00008000;
 
 struct ValueAfterHeader {
   int32_t asInt;
@@ -67,7 +68,7 @@ class Value {
   }
 
   inline bool isInt() {
-    return internals.raw >> INT_TAG_SHIFT == INT_TAG_SHIFTED;
+    return internals.raw >> VALUE_TAG_SHIFT == INT_TAG_SHIFTED;
   }
 
   inline bool isPtr() {
@@ -76,6 +77,10 @@ class Value {
 
   inline bool isDouble() {
     return internals.raw >= MIN_DBL;
+  }
+
+  inline bool isBool() {
+    return internals.raw >> VALUE_TAG_SHIFT == BOOL_TAG_SHIFTED;
   }
 
   inline bool isTrue() {

@@ -22,6 +22,8 @@ void ReCompiler::visitFuncDecl(FuncDecl<TypedLocationInfo>& decl) {
   curFunc = cc.addFunc(sig);
   curFuncName = decl.name;
 
+  typeErrorLabel = cc.newLabel();
+
   Label deoptimizeLabel = cc.newLabel();
   X86Gp checkArg = cc.newInt64();
   for (int i = 0; i < decl.args.size(); ++i) {
@@ -31,13 +33,11 @@ void ReCompiler::visitFuncDecl(FuncDecl<TypedLocationInfo>& decl) {
 
     if (usageInfo.argShapes[i].isPureInt()) {
       cc.mov(checkArg, arg);
-      cc.shr(checkArg, INT_TAG_SHIFT);
+      cc.shr(checkArg, VALUE_TAG_SHIFT);
       cc.cmp(checkArg, INT_TAG_SHIFTED);
       cc.jne(deoptimizeLabel);
     }
   }
-
-  typeErrorLabel = cc.newLabel();
 
   TypedLocationInfo endType;
   for(vector<unique_ptr<Statement<TypedLocationInfo> > >::iterator it = decl.statements.begin();

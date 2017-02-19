@@ -35,7 +35,9 @@ class AutoCompiler : public Visitor<TypedLocationInfo> {
   virtual void visitIntegerExpression(IntegerExpression<TypedLocationInfo>& expr);
   virtual void visitVariableExpression(VariableExpression<TypedLocationInfo>& expr);
   virtual void visitBoolLiteral(BoolLiteral<TypedLocationInfo>& expr);
+  virtual void visitNotExpression(NotExpression<TypedLocationInfo>& expr);
   virtual void visitEqualityExpression(EqualityExpression<TypedLocationInfo>& expr);
+  virtual void visitInequalityExpression(InequalityExpression<TypedLocationInfo>& expr);
   virtual void visitGtExpression(GtExpression<TypedLocationInfo>& expr);
   virtual void visitGteExpression(GteExpression<TypedLocationInfo>& expr);
   virtual void visitLtExpression(LtExpression<TypedLocationInfo>& expr);
@@ -54,6 +56,7 @@ class AutoCompiler : public Visitor<TypedLocationInfo> {
   void generateOptimizeProlog(FuncDecl<TypedLocationInfo>& funcDecl, asmjit::FuncSignature& sig);
   void generateTypeErrorProlog();
   void typecheckInt(asmjit::X86Gp vreg, TypedLocationInfo& info);
+  void typecheckBool(asmjit::X86Gp vreg, TypedLocationInfo& info);
   void box(asmjit::X86Gp vreg, TypedLocationInfo& info);
 
   bool canThrow;

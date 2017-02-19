@@ -97,6 +97,15 @@ void UsageApplier::visitVariableExpression(VariableExpression<TypedLocationInfo>
 void UsageApplier::visitBoolLiteral(BoolLiteral<TypedLocationInfo>& expr) {
 }
 
+void UsageApplier::visitNotExpression(NotExpression<TypedLocationInfo>& expr) {
+  expr.expr->accept(*this);
+}
+
+void UsageApplier::visitInequalityExpression(InequalityExpression<TypedLocationInfo>& expr) {
+  expr.left->accept(*this);
+  expr.right->accept(*this);
+}
+
 void UsageApplier::visitEqualityExpression(EqualityExpression<TypedLocationInfo>& expr) {
   expr.left->accept(*this);
   expr.right->accept(*this);

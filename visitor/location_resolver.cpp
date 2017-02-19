@@ -206,14 +206,96 @@ void LocationResolver::visitVariableExpression(VariableExpression<>& expr) {
 }
 
 void LocationResolver::visitBoolLiteral(BoolLiteral<>& expr) {
+  TypedLocationInfo immediate(Location::imm(expr.value), VAIVEN_STATIC_TYPE_BOOL, true);
+  unique_ptr<Expression<TypedLocationInfo> > copy(new BoolLiteral<TypedLocationInfo>(expr.value));
+  copy->resolvedData = immediate;
+  exprCopyStack.push(copy.release());
 }
+
+void LocationResolver::visitNotExpression(NotExpression<>& expr) {
+  expr.expr->accept(*this);
+  unique_ptr<Expression<TypedLocationInfo> > innerCopy(move(exprCopyStack.top()));
+  exprCopyStack.pop();
+  unique_ptr<Expression<TypedLocationInfo> > copy(new NotExpression<TypedLocationInfo>(move(innerCopy)));
+  TypedLocationInfo loc(Location::spilled(), VAIVEN_STATIC_TYPE_BOOL, false);
+  copy->resolvedData = loc;
+  exprCopyStack.push(copy.release());
+}
+
+void LocationResolver::visitInequalityExpression(InequalityExpression<>& expr) {
+  expr.left->accept(*this);
+  expr.right->accept(*this);
+  unique_ptr<Expression<TypedLocationInfo> > rhs(move(exprCopyStack.top()));
+  exprCopyStack.pop();
+  unique_ptr<Expression<TypedLocationInfo> > lhs(move(exprCopyStack.top()));
+  exprCopyStack.pop();
+  unique_ptr<Expression<TypedLocationInfo> > copy(new InequalityExpression<TypedLocationInfo>(move(lhs), move(rhs)));
+  TypedLocationInfo loc(Location::spilled(), VAIVEN_STATIC_TYPE_BOOL, false);
+  copy->resolvedData = loc;
+  exprCopyStack.push(copy.release());
+}
+
 void LocationResolver::visitEqualityExpression(EqualityExpression<>& expr) {
+  expr.left->accept(*this);
+  expr.right->accept(*this);
+  unique_ptr<Expression<TypedLocationInfo> > rhs(move(exprCopyStack.top()));
+  exprCopyStack.pop();
+  unique_ptr<Expression<TypedLocationInfo> > lhs(move(exprCopyStack.top()));
+  exprCopyStack.pop();
+  unique_ptr<Expression<TypedLocationInfo> > copy(new EqualityExpression<TypedLocationInfo>(move(lhs), move(rhs)));
+  TypedLocationInfo loc(Location::spilled(), VAIVEN_STATIC_TYPE_BOOL, false);
+  copy->resolvedData = loc;
+  exprCopyStack.push(copy.release());
 }
+
 void LocationResolver::visitGtExpression(GtExpression<>& expr) {
+  expr.left->accept(*this);
+  expr.right->accept(*this);
+  unique_ptr<Expression<TypedLocationInfo> > rhs(move(exprCopyStack.top()));
+  exprCopyStack.pop();
+  unique_ptr<Expression<TypedLocationInfo> > lhs(move(exprCopyStack.top()));
+  exprCopyStack.pop();
+  unique_ptr<Expression<TypedLocationInfo> > copy(new GtExpression<TypedLocationInfo>(move(lhs), move(rhs)));
+  TypedLocationInfo loc(Location::spilled(), VAIVEN_STATIC_TYPE_BOOL, false);
+  copy->resolvedData = loc;
+  exprCopyStack.push(copy.release());
 }
+
 void LocationResolver::visitGteExpression(GteExpression<>& expr) {
+  expr.left->accept(*this);
+  expr.right->accept(*this);
+  unique_ptr<Expression<TypedLocationInfo> > rhs(move(exprCopyStack.top()));
+  exprCopyStack.pop();
+  unique_ptr<Expression<TypedLocationInfo> > lhs(move(exprCopyStack.top()));
+  exprCopyStack.pop();
+  unique_ptr<Expression<TypedLocationInfo> > copy(new GteExpression<TypedLocationInfo>(move(lhs), move(rhs)));
+  TypedLocationInfo loc(Location::spilled(), VAIVEN_STATIC_TYPE_BOOL, false);
+  copy->resolvedData = loc;
+  exprCopyStack.push(copy.release());
 }
+
 void LocationResolver::visitLtExpression(LtExpression<>& expr) {
+  expr.left->accept(*this);
+  expr.right->accept(*this);
+  unique_ptr<Expression<TypedLocationInfo> > rhs(move(exprCopyStack.top()));
+  exprCopyStack.pop();
+  unique_ptr<Expression<TypedLocationInfo> > lhs(move(exprCopyStack.top()));
+  exprCopyStack.pop();
+  unique_ptr<Expression<TypedLocationInfo> > copy(new LtExpression<TypedLocationInfo>(move(lhs), move(rhs)));
+  TypedLocationInfo loc(Location::spilled(), VAIVEN_STATIC_TYPE_BOOL, false);
+  copy->resolvedData = loc;
+  exprCopyStack.push(copy.release());
 }
+
 void LocationResolver::visitLteExpression(LteExpression<>& expr) {
+  expr.left->accept(*this);
+  expr.right->accept(*this);
+  unique_ptr<Expression<TypedLocationInfo> > rhs(move(exprCopyStack.top()));
+  exprCopyStack.pop();
+  unique_ptr<Expression<TypedLocationInfo> > lhs(move(exprCopyStack.top()));
+  exprCopyStack.pop();
+  unique_ptr<Expression<TypedLocationInfo> > copy(new LteExpression<TypedLocationInfo>(move(lhs), move(rhs)));
+  TypedLocationInfo loc(Location::spilled(), VAIVEN_STATIC_TYPE_BOOL, false);
+  copy->resolvedData = loc;
+  exprCopyStack.push(copy.release());
 }

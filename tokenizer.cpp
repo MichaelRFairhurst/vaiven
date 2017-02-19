@@ -364,6 +364,12 @@ unique_ptr<Token> Tokenizer::next() {
         return unique_ptr<Token>(new Token(TOKEN_TYPE_LTE));
       }
       return unique_ptr<Token>(new Token(TOKEN_TYPE_LT));
+    case '!':
+      if (input.peek() == '=') {
+        input.get();
+        return unique_ptr<Token>(new Token(TOKEN_TYPE_BANGEQ));
+      }
+      return unique_ptr<Token>(new Token(TOKEN_TYPE_BANG));
     case '=':
       if (input.peek() == '=') {
         input.get();

@@ -243,6 +243,14 @@ void Compiler::visitVariableExpression(VariableExpression<Location>& expr) {
 
 void Compiler::visitBoolLiteral(BoolLiteral<Location>& expr) {
 }
+
+void Compiler::visitNotExpression(NotExpression<Location>& expr) {
+
+}
+
+void Compiler::visitInequalityExpression(InequalityExpression<Location>& expr) {
+
+}
 void Compiler::visitEqualityExpression(EqualityExpression<Location>& expr) {
 }
 void Compiler::visitGtExpression(GtExpression<Location>& expr) {

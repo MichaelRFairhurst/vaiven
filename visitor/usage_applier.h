@@ -30,7 +30,9 @@ class UsageApplier : public Visitor<TypedLocationInfo> {
   virtual void visitIntegerExpression(IntegerExpression<TypedLocationInfo>& expr);
   virtual void visitVariableExpression(VariableExpression<TypedLocationInfo>& expr);
   virtual void visitBoolLiteral(BoolLiteral<TypedLocationInfo>& expr);
+  virtual void visitNotExpression(NotExpression<TypedLocationInfo>& expr);
   virtual void visitEqualityExpression(EqualityExpression<TypedLocationInfo>& expr);
+  virtual void visitInequalityExpression(InequalityExpression<TypedLocationInfo>& expr);
   virtual void visitGtExpression(GtExpression<TypedLocationInfo>& expr);
   virtual void visitGteExpression(GteExpression<TypedLocationInfo>& expr);
   virtual void visitLtExpression(LtExpression<TypedLocationInfo>& expr);

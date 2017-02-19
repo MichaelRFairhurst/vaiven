@@ -183,6 +183,24 @@ void Interpreter::visitBoolLiteral(BoolLiteral<>& expr) {
   stack.push(Value(expr.value));
 }
 
+void Interpreter::visitNotExpression(NotExpression<>& expr) {
+  expr.expr->accept(*this);
+  Value val = stack.top(); stack.pop();
+  if (!val.isBool()) {
+    typeError();
+  }
+
+  stack.push(Value(!val.getBool()));
+}
+
+void Interpreter::visitInequalityExpression(InequalityExpression<>& expr) {
+  expr.left->accept(*this);
+  expr.right->accept(*this);
+  Value right = stack.top(); stack.pop();
+  Value left = stack.top(); stack.pop();
+  stack.push(Value(left.getRaw() != right.getRaw()));
+}
+
 void Interpreter::visitEqualityExpression(EqualityExpression<>& expr) {
   expr.left->accept(*this);
   expr.right->accept(*this);

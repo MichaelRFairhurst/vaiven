@@ -27,7 +27,9 @@ class LocationResolver : public Visitor<> {
   virtual void visitIntegerExpression(IntegerExpression<>& expr);
   virtual void visitVariableExpression(VariableExpression<>& expr);
   virtual void visitBoolLiteral(BoolLiteral<>& expr);
+  virtual void visitNotExpression(NotExpression<>& expr);
   virtual void visitEqualityExpression(EqualityExpression<>& expr);
+  virtual void visitInequalityExpression(InequalityExpression<>& expr);
   virtual void visitGtExpression(GtExpression<>& expr);
   virtual void visitGteExpression(GteExpression<>& expr);
   virtual void visitLtExpression(LtExpression<>& expr);

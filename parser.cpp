@@ -8,9 +8,18 @@ using std::vector;
 using namespace vaiven;
 
 unique_ptr<ast::Node<> > Parser::parseLogicalGroup() {
+  if (current->type == TOKEN_TYPE_EOF) {
+    return unique_ptr<ast::Node<> >((ast::Node<>*) NULL);
+  }
+
   if (current->type == TOKEN_TYPE_CLOSE_BRACE) next(); // for next block after {}
   if (current->type == TOKEN_TYPE_END) next(); // for next block after fn..end
   while (current->type == TOKEN_TYPE_SEMICOLON) next(); // consume semicolon
+
+  // after next();
+  if (current->type == TOKEN_TYPE_EOF) {
+    return unique_ptr<ast::Node<> >((ast::Node<>*) NULL);
+  }
 
   if (current->type == TOKEN_TYPE_FN) {
     lastLogicalGroupWasEvaluatable = false;
@@ -197,6 +206,10 @@ unique_ptr<ast::Expression<> > Parser::parseEqualityExpression() {
       next();
       acc = unique_ptr<ast::Expression<> >(new ast::EqualityExpression<> (
           std::move(acc), parseComparisonExpression()));
+    } else if (current->type == TOKEN_TYPE_BANGEQ) {
+      next();
+      acc = unique_ptr<ast::Expression<> >(new ast::InequalityExpression<> (
+          std::move(acc), parseComparisonExpression()));
     } else {
       // error
       throw string("blah");
@@ -214,6 +227,7 @@ unique_ptr<ast::Expression<> > Parser::parseComparisonExpression() {
       && current->type != TOKEN_TYPE_COMMA
       && current->type != TOKEN_TYPE_DO
       && current->type != TOKEN_TYPE_EQEQ
+      && current->type != TOKEN_TYPE_BANGEQ
       && current->type != TOKEN_TYPE_EOF) {
 
     if (current->type == TOKEN_TYPE_GT) {
@@ -249,6 +263,7 @@ unique_ptr<ast::Expression<> > Parser::parseAddSubExpression() {
       && current->type != TOKEN_TYPE_COMMA
       && current->type != TOKEN_TYPE_DO
       && current->type != TOKEN_TYPE_EQEQ
+      && current->type != TOKEN_TYPE_BANGEQ
       && current->type != TOKEN_TYPE_GT
       && current->type != TOKEN_TYPE_GTE
       && current->type != TOKEN_TYPE_LT
@@ -284,6 +299,7 @@ unique_ptr<ast::Expression<> > Parser::parseDivMulExpression() {
       && current->type != TOKEN_TYPE_CLOSE_PAREN
       && current->type != TOKEN_TYPE_DO
       && current->type != TOKEN_TYPE_EQEQ
+      && current->type != TOKEN_TYPE_BANGEQ
       && current->type != TOKEN_TYPE_GT
       && current->type != TOKEN_TYPE_GTE
       && current->type != TOKEN_TYPE_LT
@@ -358,6 +374,11 @@ unique_ptr<ast::Expression<> > Parser::parseValue() {
   if (current->type == TOKEN_TYPE_FALSE) {
     next();
     return unique_ptr<ast::Expression<> >(new ast::BoolLiteral<> (false));
+  }
+
+  if (current->type == TOKEN_TYPE_BANG) {
+    next();
+    return unique_ptr<ast::Expression<> >(new ast::NotExpression<> (parseExpression()));
   }
   
   throw string("blah");

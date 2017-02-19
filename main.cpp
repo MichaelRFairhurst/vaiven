@@ -48,9 +48,9 @@ void printExpressionStream(Parser& parser) {
   unique_ptr<ast::Node<> > cur = parser.parseLogicalGroup();
 
   while (cur.get() != NULL) {
-    visitor::PrintVisitor printer;
-    cur->accept(printer);
-    cout << endl;
+    //visitor::PrintVisitor printer;
+    //cur->accept(printer);
+    //cout << endl;
 
     if (!parser.lastLogicalGroupWasEvaluatable) {
       visitor::LocationResolver locResolver;
@@ -92,6 +92,8 @@ void printExpressionStream(Parser& parser) {
       cout << "Ptr: " << result.getPtr() << endl << endl;
     } else if (result.isDouble()) {
       cout << "Dbl: " << result.getDouble() << endl << endl;
+    } else {
+      cout << "error" << result.getRaw();
     }
 
     for (size_t i = 0; i < /*5*/000000/*000*/; ++i) {

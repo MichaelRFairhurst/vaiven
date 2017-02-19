@@ -31,7 +31,9 @@ class Compiler : public Visitor<Location> {
   virtual void visitIntegerExpression(IntegerExpression<Location>& expr);
   virtual void visitVariableExpression(VariableExpression<Location>& expr);
   virtual void visitBoolLiteral(BoolLiteral<Location>& expr);
+  virtual void visitNotExpression(NotExpression<Location>& expr);
   virtual void visitEqualityExpression(EqualityExpression<Location>& expr);
+  virtual void visitInequalityExpression(InequalityExpression<Location>& expr);
   virtual void visitGtExpression(GtExpression<Location>& expr);
   virtual void visitGteExpression(GteExpression<Location>& expr);
   virtual void visitLtExpression(LtExpression<Location>& expr);

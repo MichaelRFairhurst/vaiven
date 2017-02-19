@@ -123,6 +123,19 @@ void PrintVisitor::visitBoolLiteral(BoolLiteral<>& expr) {
   cout << expr.value;
 }
 
+void PrintVisitor::visitNotExpression(NotExpression<>& expr) {
+  cout << "!";
+  expr.expr->accept(*this);
+}
+
+void PrintVisitor::visitInequalityExpression(InequalityExpression<>& expr) {
+  cout << "(";
+  expr.left->accept(*this);
+  cout << "!=";
+  expr.right->accept(*this);
+  cout << ")";
+}
+
 void PrintVisitor::visitEqualityExpression(EqualityExpression<>& expr) {
   cout << "(";
   expr.left->accept(*this);

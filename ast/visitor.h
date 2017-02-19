@@ -20,7 +20,11 @@ class VariableExpression;
 template<typename RD=void>
 class BoolLiteral;
 template<typename RD=void>
+class NotExpression;
+template<typename RD=void>
 class EqualityExpression;
+template<typename RD=void>
+class InequalityExpression;
 template<typename RD=void>
 class GtExpression;
 template<typename RD=void>
@@ -55,7 +59,9 @@ class Visitor {
   virtual void visitIntegerExpression(IntegerExpression<RD>& expr)=0;
   virtual void visitVariableExpression(VariableExpression<RD>& expr)=0;
   virtual void visitBoolLiteral(BoolLiteral<RD>& expr)=0;
+  virtual void visitNotExpression(NotExpression<RD>& expr)=0;
   virtual void visitEqualityExpression(EqualityExpression<RD>& expr)=0;
+  virtual void visitInequalityExpression(InequalityExpression<RD>& expr)=0;
   virtual void visitGtExpression(GtExpression<RD>& expr)=0;
   virtual void visitGteExpression(GteExpression<RD>& expr)=0;
   virtual void visitLtExpression(LtExpression<RD>& expr)=0;
