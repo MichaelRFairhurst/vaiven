@@ -14,6 +14,7 @@ VISITOR_OBJECTS = \
 	visitor/location_resolver.o \
 	visitor/usage_applier.o \
 	visitor/recompiler.o \
+	visitor/jumping_compiler.o \
 
 NANOJIT_OBJECTS = \
 	nanojit-central/Containers.o \
@@ -68,12 +69,14 @@ MAIN_OBJECTS = \
 	optimize.o \
 	#nanojitsupport.o \
 
-CXXFLAGS := -DASMJIT_EMBED -std=c++11 -O3
+CXXFLAGS := -DASMJIT_EMBED -std=c++11 -O3 -g
 #DEFS := -DHAVE_CONFIG_H -DNANOJIT_CENTRAL
 
 main : ${MAIN_OBJECTS} ${AST_OBJECTS} ${VISITOR_OBJECTS} ${ASMJIT_OBJECTS}
 	g++ $^ -o main
 
 clean:
-	find . -name '*.o' -delete
+	rm visitor/*.o
+	rm ast/*.o
+	rm *.o
 	rm main
