@@ -9,12 +9,8 @@ COMPARISON=0
 
 run_single_bench() {
   echo "[$1]"
-  echo "[$1]" >> bench_log
-  echo >> bench_log
-  echo >> bench_log
-  echo >> bench_log
   TIME=$( time (
-    ./$1.vvn.sh | (../main 2>&1 >> bench_log)
+    ./$1.vvn.sh | (../main 2>&1 >> bench_log_$1)
     ./$1.vvn.sh | (../main 2>&1 > /dev/null)
     ./$1.vvn.sh | (../main 2>&1 > /dev/null)
     ./$1.vvn.sh | (../main 2>&1 > /dev/null)
@@ -94,8 +90,11 @@ run_single_bench repeat_ops_functions50
 
 BASELINE=0
 COMPARISON=0
-
 run_single_bench repeat_ops_recurse_parse
 BASELINE="$TIME"
 COMPARISON="$RECURSE_COMPARISON"
 run_single_bench repeat_ops_recurse
+
+BASELINE=0
+COMPARISON="$RECURSE_COMPARISON"
+run_single_bench repeat_functions
