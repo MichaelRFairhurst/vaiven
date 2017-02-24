@@ -1,32 +1,28 @@
-#ifndef VAIVEN_VISITOR_HEADER_AUTO_COMPILER
-#define VAIVEN_VISITOR_HEADER_AUTO_COMPILER
+#ifndef VAIVEN_VISITOR_HEADER_SSA_BUILDER
+#define VAIVEN_VISITOR_HEADER_SSA_BUILDER
 
 #include <stack>
-#include <vector>
-#include <memory>
+#include <map>
+#include <string>
 
 #include "../ast/visitor.h"
 #include "../ast/all.h"
 #include "../type_info.h"
-#include "../functions.h"
 #include "../scope.h"
-
-#include "../asmjit/src/asmjit/asmjit.h"
+#include "../ssa/ssa.h"
+#include "../function_usage.h"
 
 namespace vaiven { namespace visitor {
 
-using std::stack;
-using std::vector;
-using std::unique_ptr;
 using namespace vaiven::ast;
-using asmjit::X86Compiler;
+using std::stack;
+using std::map;
+using std::string;
 
-class AutoCompiler : public Visitor<TypedLocationInfo> {
+class SsaBuilder : public Visitor<TypedLocationInfo> {
 
   public:
-  AutoCompiler(X86Compiler& cc, asmjit::CodeHolder& codeHolder, Functions& funcs) : cc(cc), codeHolder(codeHolder), funcs(funcs), canThrow(false) {};
-
-  void compile(Node<TypedLocationInfo>& expr);
+  SsaBuilder(FunctionUsage& usageInfo) : usageInfo(usageInfo), cur(NULL), first(NULL) {};
 
   virtual void visitAdditionExpression(AdditionExpression<TypedLocationInfo>& expr);
   virtual void visitSubtractionExpression(SubtractionExpression<TypedLocationInfo>& expr);
@@ -50,29 +46,15 @@ class AutoCompiler : public Visitor<TypedLocationInfo> {
   virtual void visitFuncDecl(FuncDecl<TypedLocationInfo>& funcDecl);
   virtual void visitVarDecl(VarDecl<TypedLocationInfo>& varDecl);
 
-  void doCmpIntExpression(Expression<TypedLocationInfo>& left, Expression<TypedLocationInfo>& right);
-  void doCmpNotExpression(NotExpression<TypedLocationInfo>& expr);
-  void doCmpEqualityExpression(Expression<TypedLocationInfo>& left, Expression<TypedLocationInfo>& right);
+  ssa::Instruction* first;
+  ssa::Instruction* cur;
+  ssa::Instruction* writePoint;
 
-  protected:
-  void generateTypeShapePrelog(FuncDecl<TypedLocationInfo>& funcDecl, FunctionUsage* usage);
-  void generateOptimizeProlog(FuncDecl<TypedLocationInfo>& funcDecl, asmjit::FuncSignature& sig);
-  void generateTypeErrorProlog();
-  void typecheckInt(asmjit::X86Gp vreg, TypedLocationInfo& info);
-  void typecheckBool(asmjit::X86Gp vreg, TypedLocationInfo& info);
-  void box(asmjit::X86Gp vreg, TypedLocationInfo& info);
+  private:
+  void emit(ssa::Instruction* next);
 
-  bool canThrow;
-  X86Compiler& cc;
-  asmjit::CodeHolder& codeHolder;
-  Functions& funcs;
-  stack<asmjit::X86Gp> vRegs;
-  vector<asmjit::X86Gp> argRegs;
-  string curFuncName;
-  asmjit::CCFunc* curFunc;
-  asmjit::Label typeErrorLabel;
-  asmjit::Label optimizeLabel;
-  Scope<asmjit::X86Gp> scope;
+  Scope<ssa::Instruction*> scope;
+  FunctionUsage& usageInfo;
 
 };
 

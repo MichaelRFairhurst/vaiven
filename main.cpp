@@ -96,10 +96,8 @@ void printExpressionStream(Parser& parser) {
       cout << "error" << result.getRaw();
     }
 
-    for (size_t i = 0; i < /*5*/000000/*000*/; ++i) {
-      //func(i, i + 1, i + 2, i + 3, i + 4, i + 5, i + 6, i + 7);
-      //interpreter.interpret(*cur, args, &locResolver.argIndexes);
-      //interpreter.interpret(*cur);
+    for (size_t i = 0; i < 500/*500000*/; ++i) {
+      interpreter.interpret(*cur);
     }
     
     cur = parser.parseLogicalGroup();

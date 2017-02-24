@@ -4,6 +4,7 @@
 #include "inttypes.h"
 
 #include "value.h"
+#include "type_info.h"
 
 namespace vaiven {
 
@@ -17,29 +18,45 @@ class ArgumentShape {
   public:
   short raw;
 
-  bool isPure() {
+  inline bool isPure() {
     // is power of two trick
     return raw && !(raw & (raw - 1));
   }
 
-  bool isPureInt() {
+  inline bool isPureInt() {
     return (raw & ~INT_SHAPE) == 0;
   }
 
-  bool isPureBool() {
+  inline bool isPureBool() {
     return (raw & ~BOOL_SHAPE) == 0;
   }
 
-  bool isPureVoid() {
+  inline bool isPureVoid() {
     return (raw & ~VOID_SHAPE) == 0;
   }
 
-  bool isPureDouble() {
+  inline bool isPureDouble() {
     return (raw & ~DOUBLE_SHAPE) == 0;
   }
 
-  bool isPureObject() {
+  inline bool isPureObject() {
     return (raw & ~OBJECT_SHAPE) == 0;
+  }
+
+  inline VaivenStaticType getStaticType() {
+    if (!isPure()) {
+      return VAIVEN_STATIC_TYPE_UNKNOWN;
+    } else if (isPureInt()) {
+      return VAIVEN_STATIC_TYPE_INT;
+    } else if (isPureVoid()) {
+      return VAIVEN_STATIC_TYPE_VOID;
+    } else if (isPureDouble()) {
+      return VAIVEN_STATIC_TYPE_DOUBLE;
+    } else if (isPureObject()) {
+      return VAIVEN_STATIC_TYPE_POINTER;
+    }
+
+    return VAIVEN_STATIC_TYPE_UNKNOWN;
   }
   
 };

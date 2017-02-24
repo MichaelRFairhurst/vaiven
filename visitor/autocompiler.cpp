@@ -160,7 +160,7 @@ void AutoCompiler::generateTypeShapePrelog(FuncDecl<TypedLocationInfo>& decl, Fu
   optimizeLabel = cc.newLabel();
   X86Gp count = cc.newInt32();
   cc.mov(count, asmjit::x86::dword_ptr((uint64_t) &usage->count));
-  cc.cmp(count, 4);
+  cc.cmp(count, 10);
   cc.je(optimizeLabel);
   cc.add(count, 1);
   cc.mov(asmjit::x86::dword_ptr((uint64_t) &usage->count), count);

@@ -15,6 +15,18 @@ VISITOR_OBJECTS = \
 	visitor/usage_applier.o \
 	visitor/recompiler.o \
 	visitor/jumping_compiler.o \
+	visitor/ssa_builder.o \
+
+SSA_OBJECTS = \
+	ssa/ssa.o \
+	ssa/print_visitor.o \
+	ssa/emitter.o \
+	ssa/reg_alloc.o \
+	ssa/constant_propagation.o \
+	ssa/instruction_combiner.o \
+	ssa/unused_code.o \
+	ssa/type_analysis.o \
+	ssa/constant_inliner.o \
 
 NANOJIT_OBJECTS = \
 	nanojit-central/Containers.o \
@@ -72,11 +84,12 @@ MAIN_OBJECTS = \
 CXXFLAGS := -DASMJIT_EMBED -std=c++11 -O3 -g
 #DEFS := -DHAVE_CONFIG_H -DNANOJIT_CENTRAL
 
-main : ${MAIN_OBJECTS} ${AST_OBJECTS} ${VISITOR_OBJECTS} ${ASMJIT_OBJECTS}
+main : ${MAIN_OBJECTS} ${AST_OBJECTS} ${VISITOR_OBJECTS} ${ASMJIT_OBJECTS} ${SSA_OBJECTS}
 	g++ $^ -o main
 
 clean:
 	rm visitor/*.o
 	rm ast/*.o
+	rm ssa/*.o
 	rm *.o
 	rm main
