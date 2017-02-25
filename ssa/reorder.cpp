@@ -8,19 +8,15 @@ void UnusedCodeEliminator::reorderBinary(Instruction& instr) {
 }
 
 void UnusedCodeEliminator::visitPhiInstr(PhiInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void UnusedCodeEliminator::visitArgInstr(ArgInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void UnusedCodeEliminator::visitConstantInstr(ConstantInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void UnusedCodeEliminator::visitCallInstr(CallInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void UnusedCodeEliminator::visitAddInstr(AddInstr& instr) {
@@ -30,7 +26,6 @@ void UnusedCodeEliminator::visitAddInstr(AddInstr& instr) {
       std::swap(instr.inputs[0], instr.inputs[1]);
     }
   }
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void UnusedCodeEliminator::visitSubInstr(SubInstr& instr) {

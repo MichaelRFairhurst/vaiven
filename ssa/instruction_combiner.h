@@ -1,10 +1,10 @@
 #ifndef VAIVEN_VISITOR_HEADER_SSA_INSTRUCTION_COMBINER
 #define VAIVEN_VISITOR_HEADER_SSA_INSTRUCTION_COMBINER
-#include "ssa.h"
+#include "forward_visitor.h"
 
 namespace vaiven { namespace ssa {
 
-class InstructionCombiner : public SsaVisitor {
+class InstructionCombiner : public ForwardVisitor {
 
   public:
   InstructionCombiner() : performedWork(false) {};

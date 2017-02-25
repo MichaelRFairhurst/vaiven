@@ -86,7 +86,10 @@ void AutoCompiler::visitFuncCallExpression(FuncCallExpression<TypedLocationInfo>
   if (expr.name == curFuncName) {
     call = cc.call(curFunc->getLabel(), sig);
   } else {
-    call = cc.call((unsigned long long) funcs.funcs[expr.name]->fptr, sig);
+    X86Gp lookup = cc.newUInt64();
+    cc.mov(lookup, (unsigned long long) &funcs.funcs[expr.name]->fptr);
+    cc.mov(lookup, x86::ptr(lookup));
+    call = cc.call(lookup, sig);
   }
 
   for (int i = 0; i < expr.parameters.size(); ++i) {
@@ -160,7 +163,7 @@ void AutoCompiler::generateTypeShapePrelog(FuncDecl<TypedLocationInfo>& decl, Fu
   optimizeLabel = cc.newLabel();
   X86Gp count = cc.newInt32();
   cc.mov(count, asmjit::x86::dword_ptr((uint64_t) &usage->count));
-  cc.cmp(count, 10);
+  cc.cmp(count, 1);
   cc.je(optimizeLabel);
   cc.add(count, 1);
   cc.mov(asmjit::x86::dword_ptr((uint64_t) &usage->count), count);

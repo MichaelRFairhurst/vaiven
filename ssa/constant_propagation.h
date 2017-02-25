@@ -1,10 +1,10 @@
 #ifndef VAIVEN_VISITOR_HEADER_SSA_CONSTANT_PROPAGATION
 #define VAIVEN_VISITOR_HEADER_SSA_CONSTANT_PROPAGATION
-#include "ssa.h"
+#include "forward_visitor.h"
 
 namespace vaiven { namespace ssa {
 
-class ConstantPropagator : public SsaVisitor {
+class ConstantPropagator : public ForwardVisitor {
 
   public:
   ConstantPropagator() : performedWork(false) {};

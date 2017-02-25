@@ -3,48 +3,41 @@
 using namespace vaiven::ssa;
 
 void TypeAnalysis::emit(Instruction* instr) {
-  if (last == NULL) {
-    instr->next = start;
-    start = instr;
+  if (lastInstr == NULL) {
+    instr->next = curBlock->head;
+    curBlock->head = instr;
   } else {
-    last->append(instr);
+    lastInstr->append(instr);
   }
 }
 
 void TypeAnalysis::visitPhiInstr(PhiInstr& instr) {
-  if (start == NULL) start = &instr;
-  last = &instr;
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void TypeAnalysis::visitArgInstr(ArgInstr& instr) {
-  if (start == NULL) start = &instr;
-  last = &instr;
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void TypeAnalysis::visitConstantInstr(ConstantInstr& instr) {
-  if (start == NULL) start = &instr;
-  last = &instr;
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void TypeAnalysis::visitCallInstr(CallInstr& instr) {
-  if (start == NULL) start = &instr;
-  last = &instr;
-  if (instr.next != NULL) instr.next->accept(*this);
+  for (vector<Instruction*>::iterator it = instr.inputs.begin();
+      it != instr.inputs.end();
+      ++it) {
+    if (!(*it)->isBoxed) {
+      BoxInstr* boxInstr = new BoxInstr((*it));
+      emit(boxInstr);
+      (*it)->usages.erase(&instr);
+      (*it) = boxInstr;
+      boxInstr->usages.insert(&instr);
+    }
+  }
 }
 
 void TypeAnalysis::visitTypecheckInstr(TypecheckInstr& instr) {
-  if (start == NULL) start = &instr;
-  last = &instr;
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void TypeAnalysis::visitBoxInstr(BoxInstr& instr) {
-  if (start == NULL) start = &instr;
-  last = &instr;
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void TypeAnalysis::visitBinIntInstruction(Instruction& instr) {
@@ -72,87 +65,46 @@ void TypeAnalysis::visitBinIntInstruction(Instruction& instr) {
 }
 
 void TypeAnalysis::visitAddInstr(AddInstr& instr) {
-  if (start == NULL) start = &instr;
   visitBinIntInstruction(instr);
-
-  last = &instr;
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void TypeAnalysis::visitSubInstr(SubInstr& instr) {
-  if (start == NULL) start = &instr;
   visitBinIntInstruction(instr);
-
-  last = &instr;
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void TypeAnalysis::visitMulInstr(MulInstr& instr) {
-  if (start == NULL) start = &instr;
   visitBinIntInstruction(instr);
-
-  last = &instr;
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void TypeAnalysis::visitDivInstr(DivInstr& instr) {
-  if (start == NULL) start = &instr;
   visitBinIntInstruction(instr);
-
-  last = &instr;
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void TypeAnalysis::visitNotInstr(NotInstr& instr) {
-  if (start == NULL) start = &instr;
-  last = &instr;
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void TypeAnalysis::visitCmpEqInstr(CmpEqInstr& instr) {
-  if (start == NULL) start = &instr;
-  last = &instr;
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void TypeAnalysis::visitCmpIneqInstr(CmpIneqInstr& instr) {
-  if (start == NULL) start = &instr;
-  last = &instr;
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void TypeAnalysis::visitCmpGtInstr(CmpGtInstr& instr) {
-  if (start == NULL) start = &instr;
-  last = &instr;
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void TypeAnalysis::visitCmpGteInstr(CmpGteInstr& instr) {
-  if (start == NULL) start = &instr;
-  last = &instr;
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void TypeAnalysis::visitCmpLtInstr(CmpLtInstr& instr) {
-  if (start == NULL) start = &instr;
-  last = &instr;
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void TypeAnalysis::visitCmpLteInstr(CmpLteInstr& instr) {
-  if (start == NULL) start = &instr;
-  last = &instr;
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void TypeAnalysis::visitErrInstr(ErrInstr& instr) {
-  if (start == NULL) start = &instr;
-  last = &instr;
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void TypeAnalysis::visitRetInstr(RetInstr& instr) {
-  if (start == NULL) start = &instr;
   if (!instr.inputs[0]->isBoxed) {
     BoxInstr* boxInstr = new BoxInstr(instr.inputs[0]);
     emit(boxInstr);
@@ -160,7 +112,4 @@ void TypeAnalysis::visitRetInstr(RetInstr& instr) {
     instr.inputs[0] = boxInstr;
     boxInstr->usages.insert(&instr);
   }
-
-  last = &instr;
-  if (instr.next != NULL) instr.next->accept(*this);
 }

@@ -27,6 +27,7 @@ SSA_OBJECTS = \
 	ssa/unused_code.o \
 	ssa/type_analysis.o \
 	ssa/constant_inliner.o \
+	ssa/forward_visitor.o \
 
 NANOJIT_OBJECTS = \
 	nanojit-central/Containers.o \
@@ -79,6 +80,7 @@ MAIN_OBJECTS = \
 	location.o \
 	runtime_error.o \
 	optimize.o \
+	functions.o \
 	#nanojitsupport.o \
 
 CXXFLAGS := -DASMJIT_EMBED -std=c++11 -O3 -g

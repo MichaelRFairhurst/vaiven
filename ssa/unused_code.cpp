@@ -5,9 +5,12 @@ using namespace std;
 using namespace asmjit;
 
 void UnusedCodeEliminator::remove(Instruction* instr) {
-  if (last != NULL) {
-    last->next = instr->next;
+  if (lastInstr != NULL) {
+    lastInstr->next = instr->next;
+  } else {
+    curBlock->head = instr->next;
   }
+  instr->next = NULL;
   delete instr;
   performedWork = true;
 }
@@ -17,17 +20,7 @@ void UnusedCodeEliminator::visitPureInstr(Instruction& instr) {
   Instruction* next = instr.next;
   if (instr.usages.size() == 0) {
      remove(&instr);
-  } else {
-    last = &instr;
-    if (start == NULL) start = &instr;
   }
-  if (next != NULL) next->accept(*this);
-}
-
-void UnusedCodeEliminator::visitImpureInstr(Instruction& instr) {
-  last = &instr;
-  if (start == NULL) start = &instr;
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void UnusedCodeEliminator::visitPhiInstr(PhiInstr& instr) {
@@ -43,11 +36,9 @@ void UnusedCodeEliminator::visitConstantInstr(ConstantInstr& instr) {
 }
 
 void UnusedCodeEliminator::visitCallInstr(CallInstr& instr) {
-  visitImpureInstr(instr);
 }
 
 void UnusedCodeEliminator::visitTypecheckInstr(TypecheckInstr& instr) {
-  visitImpureInstr(instr);
 }
 
 void UnusedCodeEliminator::visitBoxInstr(BoxInstr& instr) {

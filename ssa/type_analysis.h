@@ -1,14 +1,12 @@
 #ifndef VAIVEN_VISITOR_HEADER_SSA_TYPE_ANALYSIS
 #define VAIVEN_VISITOR_HEADER_SSA_TYPE_ANALYSIS
-#include "ssa.h"
+#include "forward_visitor.h"
 
 namespace vaiven { namespace ssa {
 
-class TypeAnalysis : public SsaVisitor {
+class TypeAnalysis : public ForwardVisitor {
 
   public:
-  TypeAnalysis() : start(NULL), last(NULL) {};
-
   void visitPhiInstr(PhiInstr& instr);
   void visitArgInstr(ArgInstr& instr);
   void visitConstantInstr(ConstantInstr& instr);
@@ -29,8 +27,6 @@ class TypeAnalysis : public SsaVisitor {
   void visitErrInstr(ErrInstr& instr);
   void visitRetInstr(RetInstr& instr);
 
-  Instruction* start;
-  Instruction* last;
   void visitBinIntInstruction(Instruction& instr);
   void emit(Instruction* instr);
 

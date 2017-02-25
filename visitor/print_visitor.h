@@ -32,6 +32,7 @@ class PrintVisitor : public Visitor<> {
   virtual void visitFuncDecl(FuncDecl<>& funcDecl);
   virtual void visitVarDecl(VarDecl<>& varDecl);
 
+
 };
 
 }}

@@ -5,27 +5,21 @@ using namespace std;
 using namespace asmjit;
 
 void ConstantPropagator::visitPhiInstr(PhiInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void ConstantPropagator::visitArgInstr(ArgInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void ConstantPropagator::visitConstantInstr(ConstantInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void ConstantPropagator::visitCallInstr(CallInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void ConstantPropagator::visitTypecheckInstr(TypecheckInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void ConstantPropagator::visitBoxInstr(BoxInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void ConstantPropagator::replaceWithConstant(Instruction& instr, Value newVal) {
@@ -66,8 +60,6 @@ void ConstantPropagator::visitAddInstr(AddInstr& instr) {
 
     replaceWithConstant(instr, Value(newval));
   }
-
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void ConstantPropagator::visitSubInstr(SubInstr& instr) {
@@ -77,8 +69,6 @@ void ConstantPropagator::visitSubInstr(SubInstr& instr) {
 
     replaceWithConstant(instr, Value(newval));
   }
-
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void ConstantPropagator::visitMulInstr(MulInstr& instr) {
@@ -88,8 +78,6 @@ void ConstantPropagator::visitMulInstr(MulInstr& instr) {
 
     replaceWithConstant(instr, Value(newval));
   }
-
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void ConstantPropagator::visitDivInstr(DivInstr& instr) {
@@ -99,8 +87,6 @@ void ConstantPropagator::visitDivInstr(DivInstr& instr) {
 
     replaceWithConstant(instr, Value(newval));
   }
-
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void ConstantPropagator::visitNotInstr(NotInstr& instr) {
@@ -109,8 +95,6 @@ void ConstantPropagator::visitNotInstr(NotInstr& instr) {
 
     replaceWithConstant(instr, Value(newval));
   }
-
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void ConstantPropagator::visitCmpEqInstr(CmpEqInstr& instr) {
@@ -120,8 +104,6 @@ void ConstantPropagator::visitCmpEqInstr(CmpEqInstr& instr) {
 
     replaceWithConstant(instr, Value(newval));
   }
-
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void ConstantPropagator::visitCmpIneqInstr(CmpIneqInstr& instr) {
@@ -131,8 +113,6 @@ void ConstantPropagator::visitCmpIneqInstr(CmpIneqInstr& instr) {
 
     replaceWithConstant(instr, Value(newval));
   }
-
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void ConstantPropagator::visitCmpGtInstr(CmpGtInstr& instr) {
@@ -142,8 +122,6 @@ void ConstantPropagator::visitCmpGtInstr(CmpGtInstr& instr) {
 
     replaceWithConstant(instr, Value(newval));
   }
-
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void ConstantPropagator::visitCmpGteInstr(CmpGteInstr& instr) {
@@ -153,8 +131,6 @@ void ConstantPropagator::visitCmpGteInstr(CmpGteInstr& instr) {
 
     replaceWithConstant(instr, Value(newval));
   }
-
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void ConstantPropagator::visitCmpLtInstr(CmpLtInstr& instr) {
@@ -164,8 +140,6 @@ void ConstantPropagator::visitCmpLtInstr(CmpLtInstr& instr) {
 
     replaceWithConstant(instr, Value(newval));
   }
-
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void ConstantPropagator::visitCmpLteInstr(CmpLteInstr& instr) {
@@ -175,14 +149,10 @@ void ConstantPropagator::visitCmpLteInstr(CmpLteInstr& instr) {
 
     replaceWithConstant(instr, Value(newval));
   }
-
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void ConstantPropagator::visitErrInstr(ErrInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void ConstantPropagator::visitRetInstr(RetInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }

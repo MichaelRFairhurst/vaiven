@@ -8,7 +8,6 @@ void Emitter::visitPhiInstr(PhiInstr& instr) {
 }
 
 void Emitter::visitArgInstr(ArgInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void Emitter::visitConstantInstr(ConstantInstr& instr) {
@@ -19,12 +18,38 @@ void Emitter::visitConstantInstr(ConstantInstr& instr) {
   } else {
     cc.mov(instr.out.r32(), instr.val.getDouble());
   }
-
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void Emitter::visitCallInstr(CallInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
+  // TODO recursion
+  if (funcs.funcs.find(instr.funcName) == funcs.funcs.end()) {
+    throw "func not known";
+  }
+  // TODO check arg counts
+
+  uint8_t sigArgs[instr.inputs.size()];
+  for (int i = 0; i < instr.inputs.size(); ++i) {
+    sigArgs[i] = TypeIdOf<int64_t>::kTypeId;
+  }
+
+  FuncSignature sig;
+  sig.init(CallConv::kIdHost, TypeIdOf<int64_t>::kTypeId, sigArgs, instr.inputs.size());
+
+  CCFuncCall* call;
+  //if (instr.funcName == curFuncName) {
+  //  call = cc.call(curFunc->getLabel(), sig);
+  //} else {
+    X86Gp lookup = cc.newUInt64();
+    cc.mov(lookup, (unsigned long long) &funcs.funcs[instr.funcName]->fptr);
+    cc.mov(lookup, x86::ptr(lookup));
+    call = cc.call(lookup, sig);
+  //}
+
+  for (int i = 0; i < instr.inputs.size(); ++i) {
+    call->setArg(i, instr.inputs[i]->out);
+  }
+
+  call->setRet(0, instr.out);
 }
 
 void Emitter::visitTypecheckInstr(TypecheckInstr& instr) {
@@ -35,8 +60,6 @@ void Emitter::visitTypecheckInstr(TypecheckInstr& instr) {
     cc.cmp(checkReg, INT_TAG_SHIFTED);
     cc.jne((unsigned long long) 0); // TODO jmp to throw error
   }
-
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void Emitter::visitBoxInstr(BoxInstr& instr) {
@@ -49,8 +72,6 @@ void Emitter::visitBoxInstr(BoxInstr& instr) {
     cc.mov(toOrReg, INT_TAG);
     cc.or_(instr.out, toOrReg);
   }
-
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void Emitter::visitAddInstr(AddInstr& instr) {
@@ -63,8 +84,6 @@ void Emitter::visitAddInstr(AddInstr& instr) {
   } else {
     cc.add(instr.out.r32(), instr.inputs[1]->out.r32());
   }
-
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void Emitter::visitSubInstr(SubInstr& instr) {
@@ -75,11 +94,12 @@ void Emitter::visitSubInstr(SubInstr& instr) {
   if (instr.hasConstLhs) {
     cc.neg(instr.out.r32());
     cc.add(instr.out.r32(), instr.constLhs);
+  } else if (instr.isInverse) {
+    cc.neg(instr.out.r32());
+    cc.add(instr.out.r32(), instr.inputs[1]->out.r32());
   } else {
     cc.sub(instr.out.r32(), instr.inputs[1]->out.r32());
   }
-
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void Emitter::visitMulInstr(MulInstr& instr) {
@@ -93,8 +113,6 @@ void Emitter::visitMulInstr(MulInstr& instr) {
   } else {
     cc.imul(instr.out.r32(), instr.inputs[1]->out.r32());
   }
-
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void Emitter::visitDivInstr(DivInstr& instr) {
@@ -105,42 +123,32 @@ void Emitter::visitDivInstr(DivInstr& instr) {
   X86Gp dummy = cc.newUInt64();
   cc.xor_(dummy, dummy);
   cc.idiv(dummy.r32(), instr.out.r32(), instr.inputs[1]->out.r32());
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void Emitter::visitNotInstr(NotInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void Emitter::visitCmpEqInstr(CmpEqInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void Emitter::visitCmpIneqInstr(CmpIneqInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void Emitter::visitCmpGtInstr(CmpGtInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void Emitter::visitCmpGteInstr(CmpGteInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void Emitter::visitCmpLtInstr(CmpLtInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void Emitter::visitCmpLteInstr(CmpLteInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void Emitter::visitErrInstr(ErrInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void Emitter::visitRetInstr(RetInstr& instr) {
   cc.ret(instr.inputs[0]->out);
-  if (instr.next != NULL) instr.next->accept(*this);
 }

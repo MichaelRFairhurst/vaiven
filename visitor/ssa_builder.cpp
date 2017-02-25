@@ -6,15 +6,13 @@ using namespace vaiven::visitor;
 using namespace vaiven::ssa;
 
 void SsaBuilder::emit(Instruction* next) {
-  if (cur == NULL) {
-    writePoint = next;
-    first = next;
-    cur = next;
+  if (curBlock->head == NULL) {
+    curBlock->head = next;
   } else {
     writePoint->next = next;
-    writePoint = next;
-    cur = next;
   }
+  cur = next;
+  writePoint = cur;
 }
 
 void SsaBuilder::visitIfStatement(IfStatement<TypedLocationInfo>& stmt) {
@@ -33,7 +31,15 @@ void SsaBuilder::visitVarDecl(VarDecl<TypedLocationInfo>& varDecl) {
 }
 
 void SsaBuilder::visitFuncCallExpression(FuncCallExpression<TypedLocationInfo>& expr) {
-  throw "not yet supported";
+  CallInstr* call = new CallInstr(expr.name);
+
+  for (int i = 0; i < expr.parameters.size(); ++i) {
+    expr.parameters[i]->accept(*this);
+    call->inputs.push_back(cur);
+    cur->usages.insert(call);
+  }
+
+  emit(call);
 }
 
 void SsaBuilder::visitFuncDecl(FuncDecl<TypedLocationInfo>& decl) {

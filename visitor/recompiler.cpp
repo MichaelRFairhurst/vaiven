@@ -58,61 +58,56 @@ void ReCompiler::visitFuncDecl(FuncDecl<TypedLocationInfo>& decl) {
     endType = (*it)->resolvedData;
   }
   decl.accept(builder);
-  ssa::Instruction* instr = builder.first;
   ssa::PrintVisitor printer;
-  instr->accept(printer);
-  //std::cout << "type analysis" << std::endl;
+  builder.head.accept(printer); printer.varIds.clear();
+  std::cout << "type analysis" << std::endl;
   ssa::TypeAnalysis typeAnalysis;
-  instr->accept(typeAnalysis);
-  instr = typeAnalysis.start;
-  //instr->accept(printer);
+  builder.head.accept(typeAnalysis);
+  builder.head.accept(printer); printer.varIds.clear();
   while(true) {
-    //std::cout << "constant prop" << std::endl;
+    std::cout << "constant prop" << std::endl;
     ssa::ConstantPropagator constant_prop;
-    instr->accept(constant_prop);
-    //instr->accept(printer);
+    builder.head.accept(constant_prop);
+    builder.head.accept(printer); printer.varIds.clear();
 
-    //std::cout << "instr comb" << std::endl;
+    std::cout << "instr comb" << std::endl;
     ssa::InstructionCombiner instr_comb;
-    instr->accept(instr_comb);
-    //instr->accept(printer);
+    builder.head.accept(instr_comb);
+    builder.head.accept(printer); printer.varIds.clear();
 
-    //std::cout << "unused val elim" << std::endl;
+    std::cout << "unused val elim" << std::endl;
     ssa::UnusedCodeEliminator unused_code_elim;
-    instr->accept(unused_code_elim);
-    //unused_code_elim.start->accept(printer);
+    builder.head.accept(unused_code_elim);
+    builder.head.accept(printer); printer.varIds.clear();
 
     if (!unused_code_elim.performedWork && !instr_comb.performedWork && !constant_prop.performedWork) {
       break;
     }
 
-    instr = unused_code_elim.start;
   }
 
-  //std::cout << "const inliner" << std::endl;
+  std::cout << "const inliner" << std::endl;
   ssa::ConstantInliner constInliner;
-  instr->accept(constInliner);
-  //instr->accept(printer);
+  builder.head.accept(constInliner);
+  builder.head.accept(printer); printer.varIds.clear();
 
   while(true) {
-    //std::cout << "unused val elim" << std::endl;
+    std::cout << "unused val elim" << std::endl;
     ssa::UnusedCodeEliminator unused_code_elim;
-    instr->accept(unused_code_elim);
-    //unused_code_elim.start->accept(printer);
+    builder.head.accept(unused_code_elim);
+    builder.head.accept(printer); printer.varIds.clear();
 
     if (!unused_code_elim.performedWork) {
       break;
     }
-
-    instr = unused_code_elim.start;
   }
 
   std::cout << "final code" << std::endl;
   ssa::RegAlloc allocator(cc);
-  instr->accept(allocator);
-  ssa::Emitter emitter(cc);
-  instr->accept(emitter);
-  instr->accept(printer);
+  builder.head.accept(allocator);
+  ssa::Emitter emitter(cc, funcs);
+  builder.head.accept(emitter);
+  builder.head.accept(printer); printer.varIds.clear();
 
   //if (vRegs.size()) {
   //  box(vRegs.top(), endType);

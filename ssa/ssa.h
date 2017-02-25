@@ -81,6 +81,11 @@ class CmpLteInstr;
 class ErrInstr;
 class RetInstr;
 
+// from cfg.h
+class Block;
+class UnconditionalBlockExit;
+class ConditionalBlockExit;
+
 class SsaVisitor {
   public:
   virtual void visitPhiInstr(PhiInstr& instr)=0;
@@ -102,6 +107,10 @@ class SsaVisitor {
   virtual void visitCmpLteInstr(CmpLteInstr& instr)=0;
   virtual void visitErrInstr(ErrInstr& instr)=0;
   virtual void visitRetInstr(RetInstr& instr)=0;
+
+  virtual void visitBlock(Block& block)=0;
+  virtual void visitUnconditionalBlockExit(UnconditionalBlockExit& exit)=0;
+  virtual void visitConditionalBlockExit(ConditionalBlockExit& exit)=0;
 };
 
 class PhiInstr : public Instruction {
@@ -194,13 +203,14 @@ class AddInstr : public Instruction {
 class SubInstr : public Instruction {
   public:
   SubInstr(Instruction* lhs, Instruction* rhs)
-      : Instruction(INSTR_SUB, VAIVEN_STATIC_TYPE_INT, false), hasConstLhs(false) {
+      : Instruction(INSTR_SUB, VAIVEN_STATIC_TYPE_INT, false), hasConstLhs(false), isInverse(false) {
     inputs.push_back(lhs);
     inputs.push_back(rhs);
     lhs->usages.insert(this);
     rhs->usages.insert(this);
   };
 
+  bool isInverse;
   bool hasConstLhs;
   int constLhs;
 

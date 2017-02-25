@@ -5,27 +5,21 @@ using namespace std;
 using namespace asmjit;
 
 void InstructionCombiner::visitPhiInstr(PhiInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void InstructionCombiner::visitArgInstr(ArgInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void InstructionCombiner::visitConstantInstr(ConstantInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void InstructionCombiner::visitCallInstr(CallInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void InstructionCombiner::visitTypecheckInstr(TypecheckInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void InstructionCombiner::visitBoxInstr(BoxInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 bool InstructionCombiner::isBinIntInstruction(Instruction& instr) {
@@ -57,7 +51,6 @@ void InstructionCombiner::visitAddInstr(AddInstr& instr) {
   }
 
   //if (isBinIntInstruction(instr)) {
-  //  if (instr.next != NULL) instr.next->accept(*this);
   //  return;
   //}
 
@@ -98,8 +91,6 @@ void InstructionCombiner::visitAddInstr(AddInstr& instr) {
     replaceReferencingNewConstant(instr,
         new SubInstr(newConstant, instr.inputs[0]->inputs[1]));
   }
-
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void InstructionCombiner::visitSubInstr(SubInstr& instr) {
@@ -117,7 +108,6 @@ void InstructionCombiner::visitSubInstr(SubInstr& instr) {
   }
 
   //if (!isBinIntInstruction(instr)) {
-  //  if (instr.next != NULL) instr.next->accept(*this);
   //  return;
   //}
 
@@ -168,8 +158,6 @@ void InstructionCombiner::visitSubInstr(SubInstr& instr) {
     replaceReferencingNewConstant(instr,
         new AddInstr(instr.inputs[1]->inputs[0], newConstant));
   }
-
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void InstructionCombiner::visitMulInstr(MulInstr& instr) {
@@ -178,7 +166,6 @@ void InstructionCombiner::visitMulInstr(MulInstr& instr) {
   }
 
   //if (!isBinIntInstruction(instr)) {
-  //  if (instr.next != NULL) instr.next->accept(*this);
   //  return;
   //}
 
@@ -206,13 +193,10 @@ void InstructionCombiner::visitMulInstr(MulInstr& instr) {
         new MulInstr(instr.inputs[0]->inputs[0], newConstant));
   }
   // can't naively optimize x / 4 * 4 because of integer math & rounding
-
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void InstructionCombiner::visitDivInstr(DivInstr& instr) {
   //if (!isBinIntInstruction(instr)) {
-  //  if (instr.next != NULL) instr.next->accept(*this);
   //  return;
   //}
 
@@ -304,42 +288,31 @@ void InstructionCombiner::visitDivInstr(DivInstr& instr) {
     replaceReferencingNewConstant(instr,
         new DivInstr(newConstant, instr.inputs[0]->inputs[0]));
   }
-
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void InstructionCombiner::visitNotInstr(NotInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void InstructionCombiner::visitCmpEqInstr(CmpEqInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void InstructionCombiner::visitCmpIneqInstr(CmpIneqInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void InstructionCombiner::visitCmpGtInstr(CmpGtInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void InstructionCombiner::visitCmpGteInstr(CmpGteInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void InstructionCombiner::visitCmpLtInstr(CmpLtInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void InstructionCombiner::visitCmpLteInstr(CmpLteInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void InstructionCombiner::visitErrInstr(ErrInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void InstructionCombiner::visitRetInstr(RetInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }

@@ -10,6 +10,7 @@
 #include "../type_info.h"
 #include "../scope.h"
 #include "../ssa/ssa.h"
+#include "../ssa/cfg.h"
 #include "../function_usage.h"
 
 namespace vaiven { namespace visitor {
@@ -22,7 +23,8 @@ using std::string;
 class SsaBuilder : public Visitor<TypedLocationInfo> {
 
   public:
-  SsaBuilder(FunctionUsage& usageInfo) : usageInfo(usageInfo), cur(NULL), first(NULL) {};
+  SsaBuilder(FunctionUsage& usageInfo)
+      : usageInfo(usageInfo), curBlock(&head), cur(NULL), writePoint(NULL) {};
 
   virtual void visitAdditionExpression(AdditionExpression<TypedLocationInfo>& expr);
   virtual void visitSubtractionExpression(SubtractionExpression<TypedLocationInfo>& expr);
@@ -46,7 +48,8 @@ class SsaBuilder : public Visitor<TypedLocationInfo> {
   virtual void visitFuncDecl(FuncDecl<TypedLocationInfo>& funcDecl);
   virtual void visitVarDecl(VarDecl<TypedLocationInfo>& varDecl);
 
-  ssa::Instruction* first;
+  ssa::Block head;
+  ssa::Block* curBlock;
   ssa::Instruction* cur;
   ssa::Instruction* writePoint;
 

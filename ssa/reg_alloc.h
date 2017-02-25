@@ -1,6 +1,7 @@
 #ifndef VAIVEN_VISITOR_HEADER_SSA_REG_ALLOC
 #define VAIVEN_VISITOR_HEADER_SSA_REG_ALLOC
 #include "ssa.h"
+#include "cfg.h"
 
 #include "../asmjit/src/asmjit/asmjit.h"
 
@@ -30,6 +31,10 @@ class RegAlloc : public SsaVisitor {
   void visitCmpLteInstr(CmpLteInstr& instr);
   void visitErrInstr(ErrInstr& instr);
   void visitRetInstr(RetInstr& instr);
+
+  void visitBlock(Block& block);
+  void visitUnconditionalBlockExit(UnconditionalBlockExit& exit);
+  void visitConditionalBlockExit(ConditionalBlockExit& exit);
 
   private:
   asmjit::X86Compiler& cc;

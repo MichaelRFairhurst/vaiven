@@ -1,13 +1,14 @@
 #ifndef VAIVEN_VISITOR_HEADER_SSA_UNUSED_CODE
 #define VAIVEN_VISITOR_HEADER_SSA_UNUSED_CODE
-#include "ssa.h"
+#include "forward_visitor.h"
 
 namespace vaiven { namespace ssa {
 
-class UnusedCodeEliminator : public SsaVisitor {
+// TODO should be a backwards visitor...
+class UnusedCodeEliminator : public ForwardVisitor {
 
   public:
-  UnusedCodeEliminator() : performedWork(false), start(NULL), last(NULL) {};
+  UnusedCodeEliminator() : performedWork(false) {};
 
   void visitPhiInstr(PhiInstr& instr);
   void visitArgInstr(ArgInstr& instr);
@@ -30,11 +31,8 @@ class UnusedCodeEliminator : public SsaVisitor {
   void visitRetInstr(RetInstr& instr);
 
   bool performedWork;
-  Instruction* start;
-  Instruction* last;
 
   void visitPureInstr(Instruction& instr);
-  void visitImpureInstr(Instruction& instr);
   void remove(Instruction* instr);
 };
 

@@ -3,23 +3,18 @@
 using namespace vaiven::ssa;
 
 void ConstantInliner::visitPhiInstr(PhiInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void ConstantInliner::visitArgInstr(ArgInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void ConstantInliner::visitConstantInstr(ConstantInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void ConstantInliner::visitCallInstr(CallInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void ConstantInliner::visitTypecheckInstr(TypecheckInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void ConstantInliner::visitBoxInstr(BoxInstr& instr) {
@@ -31,7 +26,6 @@ void ConstantInliner::visitBoxInstr(BoxInstr& instr) {
     instr.append(boxed);
     instr.replaceUsagesWith(boxed);
   }
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void ConstantInliner::visitAddInstr(AddInstr& instr) {
@@ -42,7 +36,6 @@ void ConstantInliner::visitAddInstr(AddInstr& instr) {
     instr.inputs[1]->usages.erase(&instr);
     instr.inputs.pop_back();
   }
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void ConstantInliner::visitSubInstr(SubInstr& instr) {
@@ -54,7 +47,6 @@ void ConstantInliner::visitSubInstr(SubInstr& instr) {
     instr.inputs[0] = instr.inputs[1];
     instr.inputs.pop_back();
   }
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void ConstantInliner::visitMulInstr(MulInstr& instr) {
@@ -65,45 +57,34 @@ void ConstantInliner::visitMulInstr(MulInstr& instr) {
     instr.inputs[1]->usages.erase(&instr);
     instr.inputs.pop_back();
   }
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void ConstantInliner::visitDivInstr(DivInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void ConstantInliner::visitNotInstr(NotInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void ConstantInliner::visitCmpEqInstr(CmpEqInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void ConstantInliner::visitCmpIneqInstr(CmpIneqInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void ConstantInliner::visitCmpGtInstr(CmpGtInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void ConstantInliner::visitCmpGteInstr(CmpGteInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void ConstantInliner::visitCmpLtInstr(CmpLtInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void ConstantInliner::visitCmpLteInstr(CmpLteInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void ConstantInliner::visitErrInstr(ErrInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void ConstantInliner::visitRetInstr(RetInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }

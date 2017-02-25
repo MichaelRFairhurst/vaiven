@@ -1,10 +1,10 @@
 #ifndef VAIVEN_VISITOR_HEADER_SSA_CONSTANT_INLINER
 #define VAIVEN_VISITOR_HEADER_SSA_CONSTANT_INLINER
-#include "ssa.h"
+#include "forward_visitor.h"
 
 namespace vaiven { namespace ssa {
 
-class ConstantInliner : public SsaVisitor {
+class ConstantInliner : public ForwardVisitor {
   void visitPhiInstr(PhiInstr& instr);
   void visitArgInstr(ArgInstr& instr);
   void visitConstantInstr(ConstantInstr& instr);

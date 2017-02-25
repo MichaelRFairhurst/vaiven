@@ -5,97 +5,102 @@
 using namespace vaiven::ssa;
 using namespace std;
 
+void PrintVisitor::printInstruction(string prefix, Instruction* instr) {
+  int id = varIds.size();
+  varIds[instr] = id;
+
+  cout << id << ": " << prefix;
+
+  for (vector<Instruction*>::iterator it = instr->inputs.begin();
+      it != instr->inputs.end();
+      ++it) {
+    if(it != instr->inputs.begin()) {
+      cout << ",";
+    }
+    cout << " " << varIds[*it];
+  }
+
+  cout << endl;
+}
+
 void PrintVisitor::visitPhiInstr(PhiInstr& instr) {
-  cout << "phi" << endl;
-  if (instr.next != NULL) instr.next->accept(*this);
+  printInstruction("phi", &instr);
 }
 
 void PrintVisitor::visitArgInstr(ArgInstr& instr) {
-  cout << "arg" << instr.argi << endl;
-  if (instr.next != NULL) instr.next->accept(*this);
+  int id = varIds.size();
+  varIds[&instr] = id;
+
+  cout << id << ": arg" << instr.argi << endl;
 }
 
 void PrintVisitor::visitConstantInstr(ConstantInstr& instr) {
-  cout << "val" << instr.val.getRaw() << endl;
-  if (instr.next != NULL) instr.next->accept(*this);
+  int id = varIds.size();
+  varIds[&instr] = id;
+
+  cout << id << ": val" << instr.val.getRaw() << endl;
 }
 
 void PrintVisitor::visitCallInstr(CallInstr& instr) {
-  cout << "call " << instr.funcName << endl;
-  if (instr.next != NULL) instr.next->accept(*this);
+  printInstruction(instr.funcName, &instr);
 }
 
 void PrintVisitor::visitTypecheckInstr(TypecheckInstr& instr) {
-  cout << "typecheck" << endl;
-  if (instr.next != NULL) instr.next->accept(*this);
+  printInstruction("typecheck", &instr);
 }
 
 void PrintVisitor::visitBoxInstr(BoxInstr& instr) {
-  cout << "box" << endl;
-  if (instr.next != NULL) instr.next->accept(*this);
+  printInstruction("box", &instr);
 }
 
 void PrintVisitor::visitAddInstr(AddInstr& instr) {
-  cout << "add" << endl;
-  if (instr.next != NULL) instr.next->accept(*this);
+  printInstruction("add", &instr);
 }
 
 void PrintVisitor::visitSubInstr(SubInstr& instr) {
-  cout << "sub" << endl;
-  if (instr.next != NULL) instr.next->accept(*this);
+  printInstruction("sub", &instr);
 }
 
 void PrintVisitor::visitMulInstr(MulInstr& instr) {
-  cout << "mul" << endl;
-  if (instr.next != NULL) instr.next->accept(*this);
+  printInstruction("mul", &instr);
 }
 
 void PrintVisitor::visitDivInstr(DivInstr& instr) {
-  cout << "div" << endl;
-  if (instr.next != NULL) instr.next->accept(*this);
+  printInstruction("div", &instr);
 }
 
 void PrintVisitor::visitNotInstr(NotInstr& instr) {
-  cout << "not" << endl;
-  if (instr.next != NULL) instr.next->accept(*this);
+  printInstruction("not", &instr);
 }
 
 void PrintVisitor::visitCmpEqInstr(CmpEqInstr& instr) {
-  cout << "==" << endl;
-  if (instr.next != NULL) instr.next->accept(*this);
+  printInstruction("==", &instr);
 }
 
 void PrintVisitor::visitCmpIneqInstr(CmpIneqInstr& instr) {
-  cout << "!=" << endl;
-  if (instr.next != NULL) instr.next->accept(*this);
+  printInstruction("!=", &instr);
 }
 
 void PrintVisitor::visitCmpGtInstr(CmpGtInstr& instr) {
-  cout << "gt" << endl;
-  if (instr.next != NULL) instr.next->accept(*this);
+  printInstruction("gt", &instr);
 }
 
 void PrintVisitor::visitCmpGteInstr(CmpGteInstr& instr) {
-  cout << "gte" << endl;
-  if (instr.next != NULL) instr.next->accept(*this);
+  printInstruction("gte", &instr);
 }
 
 void PrintVisitor::visitCmpLtInstr(CmpLtInstr& instr) {
-  cout << "lt" << endl;
-  if (instr.next != NULL) instr.next->accept(*this);
+  printInstruction("lt", &instr);
 }
 
 void PrintVisitor::visitCmpLteInstr(CmpLteInstr& instr) {
-  cout << "lte" << endl;
-  if (instr.next != NULL) instr.next->accept(*this);
+  printInstruction("lte", &instr);
 }
 
 void PrintVisitor::visitErrInstr(ErrInstr& instr) {
-  cout << "err" << endl;
-  if (instr.next != NULL) instr.next->accept(*this);
+  printInstruction("err", &instr);
 }
 
 void PrintVisitor::visitRetInstr(RetInstr& instr) {
-  cout << "ret" << endl;
-  if (instr.next != NULL) instr.next->accept(*this);
+  printInstruction("ret", &instr);
 }

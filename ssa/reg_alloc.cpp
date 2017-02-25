@@ -15,94 +15,121 @@ void RegAlloc::reuseInputRegIfPossible(Instruction& instr) {
 
 void RegAlloc::visitPhiInstr(PhiInstr& instr) {
   reuseInputRegIfPossible(instr);
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void RegAlloc::visitArgInstr(ArgInstr& instr) {
   instr.out = cc.newUInt64();
   cc.setArg(instr.argi, instr.out);
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void RegAlloc::visitConstantInstr(ConstantInstr& instr) {
   instr.out = cc.newUInt64();
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void RegAlloc::visitCallInstr(CallInstr& instr) {
   instr.out = cc.newUInt64();
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void RegAlloc::visitTypecheckInstr(TypecheckInstr& instr) {
-  reuseInputRegIfPossible(instr);
-  if (instr.next != NULL) instr.next->accept(*this);
+  // we don't actually transform anything
+  instr.out = instr.inputs[0]->out;
 }
 
 void RegAlloc::visitBoxInstr(BoxInstr& instr) {
   reuseInputRegIfPossible(instr);
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void RegAlloc::visitAddInstr(AddInstr& instr) {
+  // swap reg inputs if the lhs isn't reusable. Better chance of
+  // avoiding a mov between virtual registers
+  if (!instr.hasConstRhs && instr.inputs[0]->usages.size() > 1) {
+    std::swap(instr.inputs[0], instr.inputs[1]);
+  }
+
   reuseInputRegIfPossible(instr);
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void RegAlloc::visitSubInstr(SubInstr& instr) {
+  // swap reg inputs if the lhs isn't reusable. Better chance of
+  // avoiding a mov between virtual registers
+  if (!instr.hasConstLhs && instr.inputs[0]->usages.size() > 1) {
+    std::swap(instr.inputs[0], instr.inputs[1]);
+    // inverse subtraction has its own assembly
+    instr.isInverse = true;
+  }
+
   reuseInputRegIfPossible(instr);
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void RegAlloc::visitMulInstr(MulInstr& instr) {
+  // swap reg inputs if the lhs isn't reusable. Better chance of
+  // avoiding a mov between virtual registers
+  if (!instr.hasConstRhs && instr.inputs[0]->usages.size() > 1) {
+    std::swap(instr.inputs[0], instr.inputs[1]);
+  }
+
   reuseInputRegIfPossible(instr);
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void RegAlloc::visitDivInstr(DivInstr& instr) {
   reuseInputRegIfPossible(instr);
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void RegAlloc::visitNotInstr(NotInstr& instr) {
   instr.out = cc.newUInt64();
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void RegAlloc::visitCmpEqInstr(CmpEqInstr& instr) {
   instr.out = cc.newUInt64();
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void RegAlloc::visitCmpIneqInstr(CmpIneqInstr& instr) {
   instr.out = cc.newUInt64();
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void RegAlloc::visitCmpGtInstr(CmpGtInstr& instr) {
   instr.out = cc.newUInt64();
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void RegAlloc::visitCmpGteInstr(CmpGteInstr& instr) {
   instr.out = cc.newUInt64();
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void RegAlloc::visitCmpLtInstr(CmpLtInstr& instr) {
   instr.out = cc.newUInt64();
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void RegAlloc::visitCmpLteInstr(CmpLteInstr& instr) {
   instr.out = cc.newUInt64();
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void RegAlloc::visitErrInstr(ErrInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
 }
 
 void RegAlloc::visitRetInstr(RetInstr& instr) {
-  if (instr.next != NULL) instr.next->accept(*this);
+}
+
+void RegAlloc::visitBlock(Block& block) {
+  block.label = cc.newLabel();
+  Instruction* next = block.head;
+  while (next != NULL) {
+    next->accept(*this);
+    next = next->next;
+  }
+
+  for (vector<unique_ptr<BlockExit>>::iterator it = block.exits.begin();
+      it != block.exits.end();
+      ++it) {
+    (*it)->accept(*this);
+  }
+
+  if (next != NULL) {
+    block.next->accept(*this);
+  }
+}
+
+void RegAlloc::visitUnconditionalBlockExit(UnconditionalBlockExit& exit) {
+}
+
+void RegAlloc::visitConditionalBlockExit(ConditionalBlockExit& exit) {
 }

@@ -64,6 +64,7 @@ void printExpressionStream(Parser& parser) {
       X86Assembler assembler(&codeHolder);
       X86Compiler cc(&codeHolder);
       //visitor::Compiler compiler(assembler);
+      //compiler.compile(*resolved, locResolver.argIndexes.size());
       visitor::AutoCompiler compiler(cc, codeHolder, funcs);
       compiler.compile(*resolved);
       resolved.release(); // compiler owns pointer now
@@ -96,7 +97,7 @@ void printExpressionStream(Parser& parser) {
       cout << "error" << result.getRaw();
     }
 
-    for (size_t i = 0; i < 500/*500000*/; ++i) {
+    for (size_t i = 0; i < /*5*/00/*500000*/; ++i) {
       interpreter.interpret(*cur);
     }
     

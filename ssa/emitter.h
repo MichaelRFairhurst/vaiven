@@ -1,13 +1,14 @@
 #ifndef VAIVEN_VISITOR_HEADER_SSA_EMITTER
 #define VAIVEN_VISITOR_HEADER_SSA_EMITTER
-#include "ssa.h"
+#include "forward_visitor.h"
+#include "../functions.h"
 
 namespace vaiven { namespace ssa {
 
-class Emitter : public SsaVisitor {
+class Emitter : public ForwardVisitor {
 
   public:
-  Emitter(asmjit::X86Compiler& cc) : cc(cc) {};
+  Emitter(asmjit::X86Compiler& cc, Functions& funcs) : cc(cc), funcs(funcs) {};
 
   void visitPhiInstr(PhiInstr& instr);
   void visitArgInstr(ArgInstr& instr);
@@ -30,6 +31,7 @@ class Emitter : public SsaVisitor {
   void visitRetInstr(RetInstr& instr);
 
   asmjit::X86Compiler& cc;
+  Functions& funcs;
 };
 
 }}

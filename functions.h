@@ -54,6 +54,9 @@ class Functions {
   map<string, unique_ptr<Function> > funcs;
 };
 
+// expose function for asm calls
+//OverkillFunc* lookupFunction(Functions& funcs, String& name);
+
 }
 
 #endif
