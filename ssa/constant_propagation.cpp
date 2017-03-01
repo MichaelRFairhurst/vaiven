@@ -49,8 +49,8 @@ void ConstantPropagator::replace(Instruction& oldInstr, Instruction* newInstr) {
 bool ConstantPropagator::isConstantBinIntInstruction(Instruction& instr) {
   return instr.inputs[0]->tag == INSTR_CONSTANT
       && instr.inputs[1]->tag == INSTR_CONSTANT
-      && instr.inputs[0]->type == VAIVEN_STATIC_TYPE_BOOL
-      && instr.inputs[1]->type == VAIVEN_STATIC_TYPE_BOOL;
+      && instr.inputs[0]->type == VAIVEN_STATIC_TYPE_INT
+      && instr.inputs[1]->type == VAIVEN_STATIC_TYPE_INT;
 }
 
 void ConstantPropagator::visitAddInstr(AddInstr& instr) {
@@ -91,7 +91,7 @@ void ConstantPropagator::visitDivInstr(DivInstr& instr) {
 
 void ConstantPropagator::visitNotInstr(NotInstr& instr) {
   if (instr.inputs[0]->tag == INSTR_CONSTANT) {
-    int newval = static_cast<ConstantInstr*>(instr.inputs[0])->val.getBool();
+    bool newval = static_cast<ConstantInstr*>(instr.inputs[0])->val.getBool();
 
     replaceWithConstant(instr, Value(newval));
   }
@@ -99,7 +99,7 @@ void ConstantPropagator::visitNotInstr(NotInstr& instr) {
 
 void ConstantPropagator::visitCmpEqInstr(CmpEqInstr& instr) {
   if (isConstantBinIntInstruction(instr)) {
-    int newval = static_cast<ConstantInstr*>(instr.inputs[0])->val.getRaw()
+    bool newval = static_cast<ConstantInstr*>(instr.inputs[0])->val.getRaw()
         == static_cast<ConstantInstr*>(instr.inputs[1])->val.getRaw();
 
     replaceWithConstant(instr, Value(newval));
@@ -108,7 +108,7 @@ void ConstantPropagator::visitCmpEqInstr(CmpEqInstr& instr) {
 
 void ConstantPropagator::visitCmpIneqInstr(CmpIneqInstr& instr) {
   if (isConstantBinIntInstruction(instr)) {
-    int newval = static_cast<ConstantInstr*>(instr.inputs[0])->val.getRaw()
+    bool newval = static_cast<ConstantInstr*>(instr.inputs[0])->val.getRaw()
         != static_cast<ConstantInstr*>(instr.inputs[1])->val.getRaw();
 
     replaceWithConstant(instr, Value(newval));
@@ -117,7 +117,7 @@ void ConstantPropagator::visitCmpIneqInstr(CmpIneqInstr& instr) {
 
 void ConstantPropagator::visitCmpGtInstr(CmpGtInstr& instr) {
   if (isConstantBinIntInstruction(instr)) {
-    int newval = static_cast<ConstantInstr*>(instr.inputs[0])->val.getInt()
+    bool newval = static_cast<ConstantInstr*>(instr.inputs[0])->val.getInt()
         > static_cast<ConstantInstr*>(instr.inputs[1])->val.getInt();
 
     replaceWithConstant(instr, Value(newval));
@@ -126,7 +126,7 @@ void ConstantPropagator::visitCmpGtInstr(CmpGtInstr& instr) {
 
 void ConstantPropagator::visitCmpGteInstr(CmpGteInstr& instr) {
   if (isConstantBinIntInstruction(instr)) {
-    int newval = static_cast<ConstantInstr*>(instr.inputs[0])->val.getInt()
+    bool newval = static_cast<ConstantInstr*>(instr.inputs[0])->val.getInt()
         >= static_cast<ConstantInstr*>(instr.inputs[1])->val.getInt();
 
     replaceWithConstant(instr, Value(newval));
@@ -135,7 +135,7 @@ void ConstantPropagator::visitCmpGteInstr(CmpGteInstr& instr) {
 
 void ConstantPropagator::visitCmpLtInstr(CmpLtInstr& instr) {
   if (isConstantBinIntInstruction(instr)) {
-    int newval = static_cast<ConstantInstr*>(instr.inputs[0])->val.getInt()
+    bool newval = static_cast<ConstantInstr*>(instr.inputs[0])->val.getInt()
         < static_cast<ConstantInstr*>(instr.inputs[1])->val.getInt();
 
     replaceWithConstant(instr, Value(newval));
@@ -144,7 +144,7 @@ void ConstantPropagator::visitCmpLtInstr(CmpLtInstr& instr) {
 
 void ConstantPropagator::visitCmpLteInstr(CmpLteInstr& instr) {
   if (isConstantBinIntInstruction(instr)) {
-    int newval = static_cast<ConstantInstr*>(instr.inputs[0])->val.getInt()
+    bool newval = static_cast<ConstantInstr*>(instr.inputs[0])->val.getInt()
         <= static_cast<ConstantInstr*>(instr.inputs[1])->val.getInt();
 
     replaceWithConstant(instr, Value(newval));
@@ -155,4 +155,7 @@ void ConstantPropagator::visitErrInstr(ErrInstr& instr) {
 }
 
 void ConstantPropagator::visitRetInstr(RetInstr& instr) {
+}
+
+void ConstantPropagator::visitJmpCcInstr(JmpCcInstr& instr) {
 }

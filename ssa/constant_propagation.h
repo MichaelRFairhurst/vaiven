@@ -28,6 +28,7 @@ class ConstantPropagator : public ForwardVisitor {
   void visitCmpLteInstr(CmpLteInstr& instr);
   void visitErrInstr(ErrInstr& instr);
   void visitRetInstr(RetInstr& instr);
+  void visitJmpCcInstr(JmpCcInstr& instr);
 
   bool isConstantBinIntInstruction(Instruction& instr);
   void replaceWithConstant(Instruction& instr, Value newVal);

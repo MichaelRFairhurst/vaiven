@@ -16,7 +16,46 @@ void SsaBuilder::emit(Instruction* next) {
 }
 
 void SsaBuilder::visitIfStatement(IfStatement<TypedLocationInfo>& stmt) {
-  throw "not supported";
+  stmt.condition->accept(*this);
+  JmpCcInstr* jmp = new JmpCcInstr(cur);
+  ConditionalBlockExit* exitToTrue = new ConditionalBlockExit(jmp);
+  UnconditionalBlockExit* exitToFalse = new UnconditionalBlockExit();
+  UnconditionalBlockExit* trueExit = new UnconditionalBlockExit();
+  UnconditionalBlockExit* falseExit = new UnconditionalBlockExit();
+  
+  ssa::Block* trueBlock = new ssa::Block();
+  ssa::Block* falseBlock = new ssa::Block();
+  ssa::Block* followBlock = new ssa::Block();
+
+  curBlock->next = trueBlock;
+  trueBlock->next = falseBlock;
+  falseBlock->next = followBlock;
+
+  exitToTrue->toGoTo = trueBlock;
+  exitToFalse->toGoTo = falseBlock;
+  trueExit->toGoTo = followBlock;
+  falseExit->toGoTo = followBlock;
+
+  curBlock->exits.push_back(unique_ptr<BlockExit>(exitToTrue));
+  curBlock->exits.push_back(unique_ptr<BlockExit>(exitToFalse));
+  trueBlock->exits.push_back(unique_ptr<BlockExit>(trueExit));
+  falseBlock->exits.push_back(unique_ptr<BlockExit>(falseExit));
+
+  curBlock = trueBlock;
+  for(vector<unique_ptr<Statement<TypedLocationInfo> > >::iterator it = stmt.trueStatements.begin();
+      it != stmt.trueStatements.end();
+      ++it) {
+    (*it)->accept(*this);
+  }
+
+  curBlock = falseBlock;
+  for(vector<unique_ptr<Statement<TypedLocationInfo> > >::iterator it = stmt.falseStatements.begin();
+      it != stmt.falseStatements.end();
+      ++it) {
+    (*it)->accept(*this);
+  }
+
+  curBlock = followBlock;
 }
 
 void SsaBuilder::visitReturnStatement(ReturnStatement<TypedLocationInfo>& stmt) {

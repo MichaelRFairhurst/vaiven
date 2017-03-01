@@ -28,10 +28,11 @@ class ForwardVisitor : public SsaVisitor {
   virtual void visitCmpLteInstr(CmpLteInstr& instr)=0;
   virtual void visitErrInstr(ErrInstr& instr)=0;
   virtual void visitRetInstr(RetInstr& instr)=0;
+  virtual void visitJmpCcInstr(JmpCcInstr& instr)=0;
 
-  void visitBlock(Block& block);
-  void visitUnconditionalBlockExit(UnconditionalBlockExit& exit);
-  void visitConditionalBlockExit(ConditionalBlockExit& exit);
+  virtual void visitBlock(Block& block);
+  virtual void visitUnconditionalBlockExit(UnconditionalBlockExit& exit);
+  virtual void visitConditionalBlockExit(ConditionalBlockExit& exit);
 
   protected:
   Block* curBlock;

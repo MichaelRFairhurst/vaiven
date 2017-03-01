@@ -63,10 +63,12 @@ void InstructionCombiner::visitAddInstr(AddInstr& instr) {
       && instr.inputs[0]->inputs[1] == instr.inputs[1]) {
     // (z - x) + x  == z
     instr.replaceUsagesWith(instr.inputs[0]->inputs[0]);
+    performedWork = true;
   } else if (instr.inputs[0]->tag == INSTR_SUB
       && instr.inputs[0]->inputs[0] == instr.inputs[1]) {
     // (x - z) + x  == z
     instr.replaceUsagesWith(instr.inputs[0]->inputs[1]);
+    performedWork = true;
   } else if (instr.inputs[1]->tag == INSTR_CONSTANT
       && instr.inputs[0]->tag == INSTR_ADD
       && instr.inputs[0]->inputs[1]->tag == INSTR_CONSTANT) {
@@ -122,18 +124,22 @@ void InstructionCombiner::visitSubInstr(SubInstr& instr) {
       && instr.inputs[0]->inputs[1] == instr.inputs[1]) {
     // (z + x) - x  == z
     instr.replaceUsagesWith(instr.inputs[0]->inputs[0]);
+    performedWork = true;
   } else if (instr.inputs[0]->tag == INSTR_ADD
       && instr.inputs[0]->inputs[0] == instr.inputs[1]) {
     // (x + z) - x  == z
     instr.replaceUsagesWith(instr.inputs[0]->inputs[1]);
+    performedWork = true;
   } else if (instr.inputs[1]->tag == INSTR_ADD
       && instr.inputs[1]->inputs[1] == instr.inputs[0]) {
     // x - (z + x)  == z
     instr.replaceUsagesWith(instr.inputs[1]->inputs[0]);
+    performedWork = true;
   } else if (instr.inputs[1]->tag == INSTR_ADD
       && instr.inputs[1]->inputs[0] == instr.inputs[0]) {
     // x - (x + z)  == z
     instr.replaceUsagesWith(instr.inputs[1]->inputs[1]);
+    performedWork = true;
   } else if (instr.inputs[0]->tag == INSTR_CONSTANT
       && instr.inputs[1]->tag == INSTR_SUB
       && instr.inputs[1]->inputs[0]->tag == INSTR_CONSTANT) {
@@ -315,4 +321,7 @@ void InstructionCombiner::visitErrInstr(ErrInstr& instr) {
 }
 
 void InstructionCombiner::visitRetInstr(RetInstr& instr) {
+}
+
+void InstructionCombiner::visitJmpCcInstr(JmpCcInstr& instr) {
 }

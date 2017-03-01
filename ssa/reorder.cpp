@@ -75,3 +75,6 @@ void UnusedCodeEliminator::visitErrInstr(ErrInstr& instr) {
 void UnusedCodeEliminator::visitRetInstr(RetInstr& instr) {
   visitImpureInstr(instr);
 }
+
+void UnusedCodeEliminator::visitJmpCcInstr(JmpCcInstr& instr) {
+}

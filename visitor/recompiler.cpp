@@ -12,6 +12,7 @@
 #include "../ssa/unused_code.h"
 #include "../ssa/type_analysis.h"
 #include "../ssa/constant_inliner.h"
+#include "../ssa/jmp_threader.h"
 
 #include <iostream>
 #include <stdint.h>
@@ -91,6 +92,11 @@ void ReCompiler::visitFuncDecl(FuncDecl<TypedLocationInfo>& decl) {
   builder.head.accept(constInliner);
   builder.head.accept(printer); printer.varIds.clear();
 
+  std::cout << "jmp threading" << std::endl;
+  ssa::JmpThreader jmpThreader;
+  builder.head.accept(jmpThreader);
+  builder.head.accept(printer); printer.varIds.clear();
+
   while(true) {
     std::cout << "unused val elim" << std::endl;
     ssa::UnusedCodeEliminator unused_code_elim;
@@ -101,7 +107,6 @@ void ReCompiler::visitFuncDecl(FuncDecl<TypedLocationInfo>& decl) {
       break;
     }
   }
-
   std::cout << "final code" << std::endl;
   ssa::RegAlloc allocator(cc);
   builder.head.accept(allocator);

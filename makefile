@@ -28,6 +28,7 @@ SSA_OBJECTS = \
 	ssa/type_analysis.o \
 	ssa/constant_inliner.o \
 	ssa/forward_visitor.o \
+	ssa/jmp_threader.o \
 
 NANOJIT_OBJECTS = \
 	nanojit-central/Containers.o \
@@ -83,7 +84,7 @@ MAIN_OBJECTS = \
 	functions.o \
 	#nanojitsupport.o \
 
-CXXFLAGS := -DASMJIT_EMBED -std=c++11 -O3 -g
+CXXFLAGS := -DASMJIT_EMBED -std=c++11 -O0 -g
 #DEFS := -DHAVE_CONFIG_H -DNANOJIT_CENTRAL
 
 main : ${MAIN_OBJECTS} ${AST_OBJECTS} ${VISITOR_OBJECTS} ${ASMJIT_OBJECTS} ${SSA_OBJECTS}

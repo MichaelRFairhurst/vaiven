@@ -29,6 +29,9 @@ class UnusedCodeEliminator : public ForwardVisitor {
   void visitCmpLteInstr(CmpLteInstr& instr);
   void visitErrInstr(ErrInstr& instr);
   void visitRetInstr(RetInstr& instr);
+  void visitJmpCcInstr(JmpCcInstr& instr);
+  void visitConditionalBlockExit(ConditionalBlockExit& exit);
+  void visitBlock(Block& block);
 
   bool performedWork;
 

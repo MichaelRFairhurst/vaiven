@@ -104,3 +104,7 @@ void PrintVisitor::visitErrInstr(ErrInstr& instr) {
 void PrintVisitor::visitRetInstr(RetInstr& instr) {
   printInstruction("ret", &instr);
 }
+
+void PrintVisitor::visitJmpCcInstr(JmpCcInstr& instr) {
+  printInstruction("jmpcc", &instr);
+}

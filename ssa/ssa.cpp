@@ -10,6 +10,7 @@ void Instruction::replaceInput(Instruction* oldInstr, Instruction* newInstr) {
       *it = newInstr;
     }
   }
+  newInstr->usages.insert(this);
 }
 
 void Instruction::replaceUsagesWith(Instruction* newInstr) {
@@ -19,7 +20,7 @@ void Instruction::replaceUsagesWith(Instruction* newInstr) {
     (*it)->replaceInput(this, newInstr);
   }
 
-  newInstr->usages = usages;
+  newInstr->usages.insert(usages.begin(), usages.end());
   usages.clear();
 }
 

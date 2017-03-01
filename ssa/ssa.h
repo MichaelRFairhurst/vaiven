@@ -35,6 +35,7 @@ enum InstructionType {
   INSTR_CMPLTE,
   INSTR_ERR,
   INSTR_RET,
+  INSTR_JMPCC,
 };
 
 class SsaVisitor;
@@ -80,6 +81,7 @@ class CmpLtInstr;
 class CmpLteInstr;
 class ErrInstr;
 class RetInstr;
+class JmpCcInstr;
 
 // from cfg.h
 class Block;
@@ -107,6 +109,7 @@ class SsaVisitor {
   virtual void visitCmpLteInstr(CmpLteInstr& instr)=0;
   virtual void visitErrInstr(ErrInstr& instr)=0;
   virtual void visitRetInstr(RetInstr& instr)=0;
+  virtual void visitJmpCcInstr(JmpCcInstr& instr)=0;
 
   virtual void visitBlock(Block& block)=0;
   virtual void visitUnconditionalBlockExit(UnconditionalBlockExit& exit)=0;
@@ -267,12 +270,21 @@ class NotInstr : public Instruction {
 class CmpEqInstr : public Instruction {
   public:
   CmpEqInstr(Instruction* lhs, Instruction* rhs)
-      : Instruction(INSTR_CMPEQ, VAIVEN_STATIC_TYPE_BOOL, false) {
+      : Instruction(INSTR_CMPEQ, VAIVEN_STATIC_TYPE_BOOL, false), hasConstRhs(false) {
     inputs.push_back(lhs);
     inputs.push_back(rhs);
     lhs->usages.insert(this);
     rhs->usages.insert(this);
   };
+  CmpEqInstr(Instruction* lhs, int rhsI32)
+      : Instruction(INSTR_CMPEQ, VAIVEN_STATIC_TYPE_BOOL, false),
+      hasConstRhs(true), constI32Rhs(rhsI32) {
+    inputs.push_back(lhs);
+    lhs->usages.insert(this);
+  };
+
+  int constI32Rhs;
+  bool hasConstRhs;
 
   void accept(SsaVisitor& visitor) {
     visitor.visitCmpEqInstr(*this);
@@ -282,12 +294,21 @@ class CmpEqInstr : public Instruction {
 class CmpIneqInstr : public Instruction {
   public:
   CmpIneqInstr(Instruction* lhs, Instruction* rhs)
-      : Instruction(INSTR_CMPINEQ, VAIVEN_STATIC_TYPE_BOOL, false) {
+      : Instruction(INSTR_CMPINEQ, VAIVEN_STATIC_TYPE_BOOL, false), hasConstRhs(false) {
     inputs.push_back(lhs);
     inputs.push_back(rhs);
     lhs->usages.insert(this);
     rhs->usages.insert(this);
   };
+  CmpIneqInstr(Instruction* lhs, int rhsI32)
+      : Instruction(INSTR_CMPINEQ, VAIVEN_STATIC_TYPE_BOOL, false),
+    hasConstRhs(true), constI32Rhs(rhsI32) {
+    inputs.push_back(lhs);
+    lhs->usages.insert(this);
+  };
+
+  int constI32Rhs;
+  bool hasConstRhs;
 
   void accept(SsaVisitor& visitor) {
     visitor.visitCmpIneqInstr(*this);
@@ -297,12 +318,20 @@ class CmpIneqInstr : public Instruction {
 class CmpGtInstr : public Instruction {
   public:
   CmpGtInstr(Instruction* lhs, Instruction* rhs)
-      : Instruction(INSTR_CMPGT, VAIVEN_STATIC_TYPE_BOOL, false) {
+      : Instruction(INSTR_CMPGT, VAIVEN_STATIC_TYPE_BOOL, false), hasConstRhs(false) {
     inputs.push_back(lhs);
     inputs.push_back(rhs);
     lhs->usages.insert(this);
     rhs->usages.insert(this);
   };
+  CmpGtInstr(Instruction* lhs, int rhs)
+      : Instruction(INSTR_CMPGT, VAIVEN_STATIC_TYPE_BOOL, false), hasConstRhs(true), constRhs(rhs) {
+    inputs.push_back(lhs);
+    lhs->usages.insert(this);
+  };
+
+  int constRhs;
+  bool hasConstRhs;
 
   void accept(SsaVisitor& visitor) {
     visitor.visitCmpGtInstr(*this);
@@ -312,12 +341,20 @@ class CmpGtInstr : public Instruction {
 class CmpGteInstr : public Instruction {
   public:
   CmpGteInstr(Instruction* lhs, Instruction* rhs)
-      : Instruction(INSTR_CMPGTE, VAIVEN_STATIC_TYPE_BOOL, false) {
+      : Instruction(INSTR_CMPGTE, VAIVEN_STATIC_TYPE_BOOL, false), hasConstRhs(false) {
     inputs.push_back(lhs);
     inputs.push_back(rhs);
     lhs->usages.insert(this);
     rhs->usages.insert(this);
   };
+  CmpGteInstr(Instruction* lhs, int rhs)
+      : Instruction(INSTR_CMPGTE, VAIVEN_STATIC_TYPE_BOOL, false), hasConstRhs(true), constRhs(rhs) {
+    inputs.push_back(lhs);
+    lhs->usages.insert(this);
+  };
+
+  int constRhs;
+  bool hasConstRhs;
 
   void accept(SsaVisitor& visitor) {
     visitor.visitCmpGteInstr(*this);
@@ -327,12 +364,20 @@ class CmpGteInstr : public Instruction {
 class CmpLtInstr : public Instruction {
   public:
   CmpLtInstr(Instruction* lhs, Instruction* rhs)
-      : Instruction(INSTR_CMPLT, VAIVEN_STATIC_TYPE_BOOL, false) {
+      : Instruction(INSTR_CMPLT, VAIVEN_STATIC_TYPE_BOOL, false), hasConstRhs(false) {
     inputs.push_back(lhs);
     inputs.push_back(rhs);
     lhs->usages.insert(this);
     rhs->usages.insert(this);
   };
+  CmpLtInstr(Instruction* lhs, int rhs)
+      : Instruction(INSTR_CMPLT, VAIVEN_STATIC_TYPE_BOOL, false), hasConstRhs(true), constRhs(rhs) {
+    inputs.push_back(lhs);
+    lhs->usages.insert(this);
+  };
+
+  int constRhs;
+  bool hasConstRhs;
 
   void accept(SsaVisitor& visitor) {
     visitor.visitCmpLtInstr(*this);
@@ -342,12 +387,20 @@ class CmpLtInstr : public Instruction {
 class CmpLteInstr : public Instruction {
   public:
   CmpLteInstr(Instruction* lhs, Instruction* rhs)
-      : Instruction(INSTR_CMPLTE, VAIVEN_STATIC_TYPE_BOOL, false) {
+      : Instruction(INSTR_CMPLTE, VAIVEN_STATIC_TYPE_BOOL, false), hasConstRhs(false) {
     inputs.push_back(lhs);
     inputs.push_back(rhs);
     lhs->usages.insert(this);
     rhs->usages.insert(this);
   };
+  CmpLteInstr(Instruction* lhs, int rhs)
+      : Instruction(INSTR_CMPLTE, VAIVEN_STATIC_TYPE_BOOL, false), hasConstRhs(true), constRhs(rhs) {
+    inputs.push_back(lhs);
+    lhs->usages.insert(this);
+  };
+
+  int constRhs;
+  bool hasConstRhs;
 
   void accept(SsaVisitor& visitor) {
     visitor.visitCmpLteInstr(*this);
@@ -372,6 +425,21 @@ class RetInstr : public Instruction {
 
   void accept(SsaVisitor& visitor) {
     visitor.visitRetInstr(*this);
+  }
+};
+
+class JmpCcInstr : public Instruction {
+  public:
+  JmpCcInstr(Instruction* val)
+      : Instruction(INSTR_JMPCC, VAIVEN_STATIC_TYPE_VOID, false), jmpTrue(true) {
+    inputs.push_back(val);
+    val->usages.insert(this);
+  };
+
+  bool jmpTrue;
+
+  void accept(SsaVisitor& visitor) {
+    visitor.visitJmpCcInstr(*this);
   }
 };
 

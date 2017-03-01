@@ -11,6 +11,28 @@ void TypeAnalysis::emit(Instruction* instr) {
   }
 }
 
+void TypeAnalysis::box(Instruction** input, Instruction* instr) {
+  // these can be generated in boxed formats
+  Instruction* curInput = *input;
+  if (curInput->tag == INSTR_CONSTANT
+      || curInput->tag == INSTR_NOT
+      || curInput->tag == INSTR_CMPEQ
+      || curInput->tag == INSTR_CMPINEQ
+      || curInput->tag == INSTR_CMPGT
+      || curInput->tag == INSTR_CMPGTE
+      || curInput->tag == INSTR_CMPLT
+      || curInput->tag == INSTR_CMPLTE) {
+    curInput->isBoxed = true;
+    return;
+  }
+
+  BoxInstr* boxInstr = new BoxInstr(curInput);
+  emit(boxInstr);
+  curInput->usages.erase(instr);
+  *input = boxInstr;
+  boxInstr->usages.insert(instr);
+}
+
 void TypeAnalysis::visitPhiInstr(PhiInstr& instr) {
 }
 
@@ -25,11 +47,7 @@ void TypeAnalysis::visitCallInstr(CallInstr& instr) {
       it != instr.inputs.end();
       ++it) {
     if (!(*it)->isBoxed) {
-      BoxInstr* boxInstr = new BoxInstr((*it));
-      emit(boxInstr);
-      (*it)->usages.erase(&instr);
-      (*it) = boxInstr;
-      boxInstr->usages.insert(&instr);
+      box(&*it, &instr);
     }
   }
 }
@@ -47,6 +65,7 @@ void TypeAnalysis::visitBinIntInstruction(Instruction& instr) {
     emit(checkInstr);
     // edge case: x + x. But this will be solved later in this function.
     instr.inputs[0]->usages.erase(&instr);
+    instr.inputs[0]->usages.insert(checkInstr);
     instr.inputs[0] = checkInstr;
   } else if (instr.inputs[0]->type != VAIVEN_STATIC_TYPE_INT) {
     emit(new ErrInstr());
@@ -58,6 +77,7 @@ void TypeAnalysis::visitBinIntInstruction(Instruction& instr) {
     emit(checkInstr);
     // edge case: x + x, solved right now.
     instr.inputs[1]->usages.erase(&instr);
+    instr.inputs[1]->usages.insert(checkInstr);
     instr.inputs[1] = checkInstr;
   } else if (instr.inputs[1]->type != VAIVEN_STATIC_TYPE_INT) {
     emit(new ErrInstr());
@@ -90,15 +110,19 @@ void TypeAnalysis::visitCmpIneqInstr(CmpIneqInstr& instr) {
 }
 
 void TypeAnalysis::visitCmpGtInstr(CmpGtInstr& instr) {
+  visitBinIntInstruction(instr);
 }
 
 void TypeAnalysis::visitCmpGteInstr(CmpGteInstr& instr) {
+  visitBinIntInstruction(instr);
 }
 
 void TypeAnalysis::visitCmpLtInstr(CmpLtInstr& instr) {
+  visitBinIntInstruction(instr);
 }
 
 void TypeAnalysis::visitCmpLteInstr(CmpLteInstr& instr) {
+  visitBinIntInstruction(instr);
 }
 
 void TypeAnalysis::visitErrInstr(ErrInstr& instr) {
@@ -106,10 +130,9 @@ void TypeAnalysis::visitErrInstr(ErrInstr& instr) {
 
 void TypeAnalysis::visitRetInstr(RetInstr& instr) {
   if (!instr.inputs[0]->isBoxed) {
-    BoxInstr* boxInstr = new BoxInstr(instr.inputs[0]);
-    emit(boxInstr);
-    instr.inputs[0]->usages.erase(&instr);
-    instr.inputs[0] = boxInstr;
-    boxInstr->usages.insert(&instr);
+    box(&instr.inputs[0], &instr);
   }
+}
+
+void TypeAnalysis::visitJmpCcInstr(JmpCcInstr& instr) {
 }

@@ -20,7 +20,7 @@ void ForwardVisitor::visitBlock(Block& block) {
     (*it)->accept(*this);
   }
 
-  if (next != NULL) {
+  if (block.next != NULL) {
     block.next->accept(*this);
   }
 }

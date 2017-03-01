@@ -41,6 +41,7 @@ class UnconditionalBlockExit : public BlockExit {
 
 class ConditionalBlockExit : public BlockExit {
   public:
+  ConditionalBlockExit(Instruction* condition) : condition(condition) {};
   Instruction* condition;
 
   virtual void accept(SsaVisitor& visitor) {

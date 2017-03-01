@@ -1,14 +1,13 @@
-#ifndef VAIVEN_VISITOR_HEADER_SSA_INSTRUCTION_COMBINER
-#define VAIVEN_VISITOR_HEADER_SSA_INSTRUCTION_COMBINER
+#ifndef VAIVEN_VISITOR_HEADER_SSA_JMP_THREADER
+#define VAIVEN_VISITOR_HEADER_SSA_JMP_THREADER
 #include "forward_visitor.h"
+#include "../functions.h"
 
 namespace vaiven { namespace ssa {
 
-class InstructionCombiner : public ForwardVisitor {
+class JmpThreader : public ForwardVisitor {
 
   public:
-  InstructionCombiner() : performedWork(false) {};
-
   void visitPhiInstr(PhiInstr& instr);
   void visitArgInstr(ArgInstr& instr);
   void visitConstantInstr(ConstantInstr& instr);
@@ -26,14 +25,17 @@ class InstructionCombiner : public ForwardVisitor {
   void visitCmpGteInstr(CmpGteInstr& instr);
   void visitCmpLtInstr(CmpLtInstr& instr);
   void visitCmpLteInstr(CmpLteInstr& instr);
+  void doCmpEqInstr(CmpEqInstr& instr);
+  void doCmpIneqInstr(CmpIneqInstr& instr);
+  void doCmpGtInstr(CmpGtInstr& instr);
+  void doCmpGteInstr(CmpGteInstr& instr);
+  void doCmpLtInstr(CmpLtInstr& instr);
+  void doCmpLteInstr(CmpLteInstr& instr);
   void visitErrInstr(ErrInstr& instr);
   void visitRetInstr(RetInstr& instr);
   void visitJmpCcInstr(JmpCcInstr& instr);
 
-  bool isBinIntInstruction(Instruction& instr);
-  void replaceReferencingNewConstant(Instruction& oldInstr, Instruction* newInstr);
-
-  bool performedWork;
+  void visitConditionalBlockExit(ConditionalBlockExit& exit);
 };
 
 }}

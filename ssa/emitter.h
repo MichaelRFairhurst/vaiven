@@ -27,8 +27,19 @@ class Emitter : public ForwardVisitor {
   void visitCmpGteInstr(CmpGteInstr& instr);
   void visitCmpLtInstr(CmpLtInstr& instr);
   void visitCmpLteInstr(CmpLteInstr& instr);
+  void doCmpEqInstr(CmpEqInstr& instr);
+  void doCmpIneqInstr(CmpIneqInstr& instr);
+  void doCmpGtInstr(CmpGtInstr& instr);
+  void doCmpGteInstr(CmpGteInstr& instr);
+  void doCmpLtInstr(CmpLtInstr& instr);
+  void doCmpLteInstr(CmpLteInstr& instr);
   void visitErrInstr(ErrInstr& instr);
   void visitRetInstr(RetInstr& instr);
+  void visitJmpCcInstr(JmpCcInstr& instr);
+
+  void visitUnconditionalBlockExit(UnconditionalBlockExit& exit);
+  void visitConditionalBlockExit(ConditionalBlockExit& exit);
+  void visitBlock(Block& block);
 
   asmjit::X86Compiler& cc;
   Functions& funcs;

@@ -1,13 +1,13 @@
 #ifndef VAIVEN_VISITOR_HEADER_SSA_REG_ALLOC
 #define VAIVEN_VISITOR_HEADER_SSA_REG_ALLOC
 #include "ssa.h"
-#include "cfg.h"
+#include "forward_visitor.h"
 
 #include "../asmjit/src/asmjit/asmjit.h"
 
 namespace vaiven { namespace ssa {
 
-class RegAlloc : public SsaVisitor {
+class RegAlloc : public ForwardVisitor {
 
   public:
   RegAlloc(asmjit::X86Compiler& cc) : cc(cc) {};
@@ -31,10 +31,9 @@ class RegAlloc : public SsaVisitor {
   void visitCmpLteInstr(CmpLteInstr& instr);
   void visitErrInstr(ErrInstr& instr);
   void visitRetInstr(RetInstr& instr);
+  void visitJmpCcInstr(JmpCcInstr& instr);
 
   void visitBlock(Block& block);
-  void visitUnconditionalBlockExit(UnconditionalBlockExit& exit);
-  void visitConditionalBlockExit(ConditionalBlockExit& exit);
 
   private:
   asmjit::X86Compiler& cc;

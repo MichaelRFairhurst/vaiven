@@ -26,9 +26,11 @@ class TypeAnalysis : public ForwardVisitor {
   void visitCmpLteInstr(CmpLteInstr& instr);
   void visitErrInstr(ErrInstr& instr);
   void visitRetInstr(RetInstr& instr);
+  void visitJmpCcInstr(JmpCcInstr& instr);
 
   void visitBinIntInstruction(Instruction& instr);
   void emit(Instruction* instr);
+  void box(Instruction** input, Instruction* instr);
 
 };
 

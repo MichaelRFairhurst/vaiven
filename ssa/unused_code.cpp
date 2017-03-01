@@ -112,3 +112,47 @@ void UnusedCodeEliminator::visitRetInstr(RetInstr& instr) {
   //  deleteFrom = next;
   //}
 }
+
+void UnusedCodeEliminator::visitJmpCcInstr(JmpCcInstr& instr) {
+  Instruction* deleteFrom = instr.next;
+  instr.next = NULL;
+
+  // TODO free multiple instructions in a row right
+  //while (deleteFrom != NULL) {
+  //  Instruction* next = deleteFrom->next;
+  //  delete deleteFrom;
+  //  deleteFrom = next;
+  //}
+}
+
+void UnusedCodeEliminator::visitBlock(Block& block) {
+  curBlock = &block;
+  lastInstr = NULL;
+  Instruction* next = block.head;
+  while (next != NULL) {
+    next->accept(*this);
+    // special cases: next was deleted
+    if (lastInstr != NULL && lastInstr->next != next) {
+      next = lastInstr->next;
+    } else if (lastInstr == NULL && block.head != next) {
+      next = block.head;
+    } else {
+      lastInstr = next;
+      next = next->next;
+    }
+  }
+
+  for (vector<unique_ptr<BlockExit>>::iterator it = block.exits.begin();
+      it != block.exits.end();
+      ++it) {
+    (*it)->accept(*this);
+  }
+
+  if (block.next != NULL) {
+    block.next->accept(*this);
+  }
+}
+
+void UnusedCodeEliminator::visitConditionalBlockExit(ConditionalBlockExit& exit) {
+  // the instruction in here is never dead
+}

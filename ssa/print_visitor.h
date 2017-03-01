@@ -27,6 +27,7 @@ class PrintVisitor : public ForwardVisitor {
   void visitCmpLteInstr(CmpLteInstr& instr);
   void visitErrInstr(ErrInstr& instr);
   void visitRetInstr(RetInstr& instr);
+  void visitJmpCcInstr(JmpCcInstr& instr);
 
   std::map<Instruction*, int> varIds;
 

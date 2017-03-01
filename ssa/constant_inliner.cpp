@@ -63,28 +63,116 @@ void ConstantInliner::visitDivInstr(DivInstr& instr) {
 }
 
 void ConstantInliner::visitNotInstr(NotInstr& instr) {
+  // !true or !false is always reduced by constant propagation
 }
 
 void ConstantInliner::visitCmpEqInstr(CmpEqInstr& instr) {
+  if (instr.inputs[0]->tag == INSTR_CONSTANT) {
+    std::swap(instr.inputs[0], instr.inputs[1]);
+  }
+
+  if (instr.inputs[1]->tag == INSTR_CONSTANT
+      && (instr.inputs[0]->type == VAIVEN_STATIC_TYPE_INT
+          || instr.inputs[0]->type == VAIVEN_STATIC_TYPE_BOOL)) {
+    int val = static_cast<ConstantInstr*>(instr.inputs[1])->val.getInt();
+    instr.hasConstRhs = true;
+    instr.constI32Rhs = val;
+    instr.inputs[1]->usages.erase(&instr);
+    instr.inputs.pop_back();
+  } else if (instr.inputs[1]->tag == INSTR_CONSTANT) {
+    // TODO do I have to replace with a boxed constant?
+    instr.inputs[1]->isBoxed = true;
+  }
 }
 
 void ConstantInliner::visitCmpIneqInstr(CmpIneqInstr& instr) {
+  if (instr.inputs[0]->tag == INSTR_CONSTANT) {
+    std::swap(instr.inputs[0], instr.inputs[1]);
+  }
+
+  if (instr.inputs[1]->tag == INSTR_CONSTANT
+      && (instr.inputs[0]->type == VAIVEN_STATIC_TYPE_INT
+          || instr.inputs[0]->type == VAIVEN_STATIC_TYPE_BOOL)) {
+    int val = static_cast<ConstantInstr*>(instr.inputs[1])->val.getInt();
+    instr.hasConstRhs = true;
+    instr.constI32Rhs = val;
+    instr.inputs[1]->usages.erase(&instr);
+    instr.inputs.pop_back();
+  } else if (instr.inputs[1]->tag == INSTR_CONSTANT) {
+    // TODO do I have to replace with a boxed constant?
+    instr.inputs[1]->isBoxed = true;
+  }
 }
 
 void ConstantInliner::visitCmpGtInstr(CmpGtInstr& instr) {
+  if (instr.inputs[0]->tag == INSTR_CONSTANT) {
+    int val = static_cast<ConstantInstr*>(instr.inputs[0])->val.getInt();
+    CmpLtInstr* inverted = new CmpLtInstr(instr.inputs[1], instr.inputs[0]);
+    instr.append(inverted);
+    instr.replaceUsagesWith(inverted);
+    // and we'll visit the new node next to inline the rhs
+  } else if (instr.inputs[1]->tag == INSTR_CONSTANT) {
+    int val = static_cast<ConstantInstr*>(instr.inputs[1])->val.getInt();
+    instr.hasConstRhs = true;
+    instr.constRhs = val;
+    instr.inputs[1]->usages.erase(&instr);
+    instr.inputs.pop_back();
+  }
 }
 
 void ConstantInliner::visitCmpGteInstr(CmpGteInstr& instr) {
+  if (instr.inputs[0]->tag == INSTR_CONSTANT) {
+    int val = static_cast<ConstantInstr*>(instr.inputs[0])->val.getInt();
+    CmpLteInstr* inverted = new CmpLteInstr(instr.inputs[1], instr.inputs[0]);
+    instr.append(inverted);
+    instr.replaceUsagesWith(inverted);
+    // and we'll visit the new node next to inline the rhs
+  } else if (instr.inputs[1]->tag == INSTR_CONSTANT) {
+    int val = static_cast<ConstantInstr*>(instr.inputs[1])->val.getInt();
+    instr.hasConstRhs = true;
+    instr.constRhs = val;
+    instr.inputs[1]->usages.erase(&instr);
+    instr.inputs.pop_back();
+  }
 }
 
 void ConstantInliner::visitCmpLtInstr(CmpLtInstr& instr) {
+  if (instr.inputs[0]->tag == INSTR_CONSTANT) {
+    int val = static_cast<ConstantInstr*>(instr.inputs[0])->val.getInt();
+    CmpGtInstr* inverted = new CmpGtInstr(instr.inputs[1], instr.inputs[0]);
+    instr.append(inverted);
+    instr.replaceUsagesWith(inverted);
+    // and we'll visit the new node next to inline the rhs
+  } else if (instr.inputs[1]->tag == INSTR_CONSTANT) {
+    int val = static_cast<ConstantInstr*>(instr.inputs[1])->val.getInt();
+    instr.hasConstRhs = true;
+    instr.constRhs = val;
+    instr.inputs[1]->usages.erase(&instr);
+    instr.inputs.pop_back();
+  }
 }
 
 void ConstantInliner::visitCmpLteInstr(CmpLteInstr& instr) {
+  if (instr.inputs[0]->tag == INSTR_CONSTANT) {
+    int val = static_cast<ConstantInstr*>(instr.inputs[0])->val.getInt();
+    CmpGteInstr* inverted = new CmpGteInstr(instr.inputs[1], instr.inputs[0]);
+    instr.append(inverted);
+    instr.replaceUsagesWith(inverted);
+    // and we'll visit the new node next to inline the rhs
+  } else if (instr.inputs[1]->tag == INSTR_CONSTANT) {
+    int val = static_cast<ConstantInstr*>(instr.inputs[1])->val.getInt();
+    instr.hasConstRhs = true;
+    instr.constRhs = val;
+    instr.inputs[1]->usages.erase(&instr);
+    instr.inputs.pop_back();
+  }
 }
 
 void ConstantInliner::visitErrInstr(ErrInstr& instr) {
 }
 
 void ConstantInliner::visitRetInstr(RetInstr& instr) {
+}
+
+void ConstantInliner::visitJmpCcInstr(JmpCcInstr& instr) {
 }

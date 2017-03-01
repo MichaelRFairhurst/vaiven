@@ -111,25 +111,8 @@ void RegAlloc::visitRetInstr(RetInstr& instr) {
 
 void RegAlloc::visitBlock(Block& block) {
   block.label = cc.newLabel();
-  Instruction* next = block.head;
-  while (next != NULL) {
-    next->accept(*this);
-    next = next->next;
-  }
-
-  for (vector<unique_ptr<BlockExit>>::iterator it = block.exits.begin();
-      it != block.exits.end();
-      ++it) {
-    (*it)->accept(*this);
-  }
-
-  if (next != NULL) {
-    block.next->accept(*this);
-  }
+  ForwardVisitor::visitBlock(block);
 }
 
-void RegAlloc::visitUnconditionalBlockExit(UnconditionalBlockExit& exit) {
-}
-
-void RegAlloc::visitConditionalBlockExit(ConditionalBlockExit& exit) {
+void RegAlloc::visitJmpCcInstr(JmpCcInstr& instr) {
 }
