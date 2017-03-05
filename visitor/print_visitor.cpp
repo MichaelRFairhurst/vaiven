@@ -84,6 +84,11 @@ void PrintVisitor::visitBlock(Block<>& block) {
   cout << "}" << std::endl;
 }
 
+void PrintVisitor::visitAssignmentExpression(AssignmentExpression<>& expr) {
+  cout << expr.varname << " = ";
+  expr.expr->accept(*this);
+}
+
 void PrintVisitor::visitAdditionExpression(AdditionExpression<>& expr) {
   cout << "(";
   expr.left->accept(*this);

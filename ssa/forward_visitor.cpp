@@ -7,7 +7,7 @@ using std::unique_ptr;
 void ForwardVisitor::visitBlock(Block& block) {
   curBlock = &block;
   lastInstr = NULL;
-  Instruction* next = block.head;
+  Instruction* next = block.head.get();
   while (next != NULL) {
     next->accept(*this);
     lastInstr = next;

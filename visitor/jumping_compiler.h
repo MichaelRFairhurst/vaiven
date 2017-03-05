@@ -27,6 +27,7 @@ class JumpingCompiler : public Visitor<TypedLocationInfo> {
       bool jmpFalse)
     : cc(cc), compiler(compiler), label(label), jmpFalse(jmpFalse), didJmp(false) {};
 
+  virtual void visitAssignmentExpression(AssignmentExpression<TypedLocationInfo>& expr);
   virtual void visitAdditionExpression(AdditionExpression<TypedLocationInfo>& expr);
   virtual void visitSubtractionExpression(SubtractionExpression<TypedLocationInfo>& expr);
   virtual void visitMultiplicationExpression(MultiplicationExpression<TypedLocationInfo>& expr);

@@ -2,6 +2,12 @@
 #define VAIVEN_VISITOR_HEADER_SSA_UNUSED_CODE
 #include "forward_visitor.h"
 
+#include <map>
+#include <set>
+
+using std::map;
+using std::set;
+
 namespace vaiven { namespace ssa {
 
 // TODO should be a backwards visitor...
@@ -37,6 +43,11 @@ class UnusedCodeEliminator : public ForwardVisitor {
 
   void visitPureInstr(Instruction& instr);
   void remove(Instruction* instr);
+
+  private:
+  map<Block*, Block*> backRefs;
+  set<Block*> usedBlocks;
+  set<Block*> allBlocks;
 };
 
 }}

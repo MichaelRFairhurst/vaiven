@@ -6,6 +6,8 @@ namespace vaiven { namespace ast {
 template<typename RD=void>
 class Node;
 template<typename RD=void>
+class AssignmentExpression;
+template<typename RD=void>
 class AdditionExpression;
 template<typename RD=void>
 class SubtractionExpression;
@@ -53,6 +55,7 @@ class Visitor {
 
   public:
   virtual void visitAdditionExpression(AdditionExpression<RD>& expr)=0;
+  virtual void visitAssignmentExpression(AssignmentExpression<RD>& expr)=0;
   virtual void visitSubtractionExpression(SubtractionExpression<RD>& expr)=0;
   virtual void visitMultiplicationExpression(MultiplicationExpression<RD>& expr)=0;
   virtual void visitDivisionExpression(DivisionExpression<RD>& expr)=0;

@@ -115,4 +115,6 @@ void RegAlloc::visitBlock(Block& block) {
 }
 
 void RegAlloc::visitJmpCcInstr(JmpCcInstr& instr) {
+  // this means we're jumping on a noncmp, like a var or func call result
+  instr.out = instr.inputs[0]->out;
 }

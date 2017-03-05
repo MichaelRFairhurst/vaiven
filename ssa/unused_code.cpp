@@ -7,11 +7,13 @@ using namespace asmjit;
 void UnusedCodeEliminator::remove(Instruction* instr) {
   if (lastInstr != NULL) {
     lastInstr->next = instr->next;
+    instr->next = NULL;
+    delete instr;
   } else {
-    curBlock->head = instr->next;
+    Instruction* next = instr->next;
+    instr->next = NULL;
+    curBlock->head.reset(next);
   }
-  instr->next = NULL;
-  delete instr;
   performedWork = true;
 }
 
@@ -90,66 +92,115 @@ void UnusedCodeEliminator::visitCmpLteInstr(CmpLteInstr& instr) {
 }
 
 void UnusedCodeEliminator::visitErrInstr(ErrInstr& instr) {
-  Instruction* deleteFrom = instr.next;
+  delete instr.next;
   instr.next = NULL;
-
-  // TODO free multiple instructions in a row right
-  //while (deleteFrom != NULL) {
-  //  Instruction* next = deleteFrom->next;
-  //  delete deleteFrom;
-  //  deleteFrom = next;
-  //}
 }
 
 void UnusedCodeEliminator::visitRetInstr(RetInstr& instr) {
-  Instruction* deleteFrom = instr.next;
+  delete instr.next;
   instr.next = NULL;
-
-  // TODO free multiple instructions in a row right
-  //while (deleteFrom != NULL) {
-  //  Instruction* next = deleteFrom->next;
-  //  delete deleteFrom;
-  //  deleteFrom = next;
-  //}
 }
 
 void UnusedCodeEliminator::visitJmpCcInstr(JmpCcInstr& instr) {
-  Instruction* deleteFrom = instr.next;
+  delete instr.next;
   instr.next = NULL;
-
-  // TODO free multiple instructions in a row right
-  //while (deleteFrom != NULL) {
-  //  Instruction* next = deleteFrom->next;
-  //  delete deleteFrom;
-  //  deleteFrom = next;
-  //}
 }
 
 void UnusedCodeEliminator::visitBlock(Block& block) {
+  // entry point is always used
+  if (allBlocks.size() == 0) {
+    usedBlocks.insert(&block);
+  }
+
+  allBlocks.insert(&block);
+
   curBlock = &block;
   lastInstr = NULL;
-  Instruction* next = block.head;
+  Instruction* next = block.head.get();
   while (next != NULL) {
     next->accept(*this);
     // special cases: next was deleted
     if (lastInstr != NULL && lastInstr->next != next) {
       next = lastInstr->next;
-    } else if (lastInstr == NULL && block.head != next) {
-      next = block.head;
+    } else if (lastInstr == NULL && block.head.get() != next) {
+      next = block.head.get();
     } else {
       lastInstr = next;
       next = next->next;
     }
   }
 
-  for (vector<unique_ptr<BlockExit>>::iterator it = block.exits.begin();
-      it != block.exits.end();
-      ++it) {
-    (*it)->accept(*this);
+  if (block.exits.size() && lastInstr != NULL && (lastInstr->tag == INSTR_RET || lastInstr->tag == INSTR_ERR)) {
+    // all exits are dead code
+    block.exits.clear();
+    performedWork = true;
+  }
+
+  vector<unique_ptr<BlockExit>>::iterator it = block.exits.begin();
+  while (it != block.exits.end()) {
+    if ((*it)->tag == BLOCK_EXIT_UNCONDITIONAL) {
+      (*it)->accept(*this);
+      usedBlocks.insert((*it)->toGoTo);
+      ++it;
+
+      if (it != block.exits.end()) {
+        block.exits.erase(it, block.exits.end());
+        performedWork = true;
+      }
+      break;
+    } else {
+      ConditionalBlockExit& exit = static_cast<ConditionalBlockExit&>(**it);
+
+      // find dead or guaranteed jmps
+      if (exit.condition->tag == INSTR_JMPCC
+          && exit.condition->inputs[0]->tag == INSTR_CONSTANT) {
+        // we know its an int, otherwise it'd be a type error
+        bool alwaysJmp = static_cast<ConstantInstr*>(exit.condition->inputs[0])->val.getBool();
+
+        if (alwaysJmp) {
+          usedBlocks.insert((*it)->toGoTo);
+          BlockExit* unconditionalExit = new UnconditionalBlockExit((*it)->toGoTo);
+          it->reset(unconditionalExit);
+          ++it;
+          block.exits.erase(it, block.exits.end());
+
+          performedWork = true;
+          break;
+        } else {
+          // never jmp
+          it = block.exits.erase(it);
+
+          performedWork = true;
+          continue;
+        }
+      }
+
+      // live and unguaranteed jmps
+      (*it)->accept(*this);
+      usedBlocks.insert((*it)->toGoTo);
+      ++it;
+    }
   }
 
   if (block.next != NULL) {
+    backRefs[&*block.next] = &block;
     block.next->accept(*this);
+  } else {
+    // we're at the end, clean up unused blocks
+    for (set<Block*>::iterator it = allBlocks.begin(); it != allBlocks.end(); ++it) {
+      if (usedBlocks.find(*it) != usedBlocks.end()) {
+        continue;
+      }
+
+      Block* unusedBlock = *it;
+      Block* priorBlock = backRefs[unusedBlock];
+      Block* nextBlock = &*unusedBlock->next;
+
+      priorBlock->next.reset(unusedBlock->next.release());
+      backRefs[nextBlock] = priorBlock;
+
+      performedWork = true;
+    }
   }
 }
 

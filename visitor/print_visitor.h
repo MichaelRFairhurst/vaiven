@@ -10,6 +10,7 @@ using namespace vaiven::ast;
 class PrintVisitor : public Visitor<> {
 
   public:
+  virtual void visitAssignmentExpression(AssignmentExpression<>& expr);
   virtual void visitAdditionExpression(AdditionExpression<>& expr);
   virtual void visitSubtractionExpression(SubtractionExpression<>& expr);
   virtual void visitMultiplicationExpression(MultiplicationExpression<>& expr);

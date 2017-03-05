@@ -59,6 +59,10 @@ void UsageApplier::visitBlock(Block<TypedLocationInfo>& block) {
   }
 }
 
+void UsageApplier::visitAssignmentExpression(AssignmentExpression<TypedLocationInfo>& expr) {
+  expr.expr->accept(*this);
+}
+
 void UsageApplier::visitAdditionExpression(AdditionExpression<TypedLocationInfo>& expr) {
   expr.left->accept(*this);
   expr.right->accept(*this);

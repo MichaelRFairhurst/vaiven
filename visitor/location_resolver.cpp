@@ -132,6 +132,28 @@ void LocationResolver::visitBlock(Block<>& block) {
   stmtCopyStack.push(copy.release());
 }
 
+void LocationResolver::visitAssignmentExpression(AssignmentExpression<>& expr) {
+  TypedLocationInfo loc;
+  if (argIndexes.find(expr.varname) == argIndexes.end()) {
+    if (scope.contains(expr.varname)) {
+      loc = TypedLocationInfo(Location::local(), VAIVEN_STATIC_TYPE_UNKNOWN, true);
+    } else {
+      throw "unknown var name";
+    }
+  } else {
+    int argNum = argIndexes[expr.varname];
+    loc = TypedLocationInfo(Location::arg(argNum), VAIVEN_STATIC_TYPE_UNKNOWN, true);
+  }
+
+  expr.expr->accept(*this);
+  unique_ptr<Expression<TypedLocationInfo> > inner(move(exprCopyStack.top()));
+  exprCopyStack.pop();
+  loc.type = inner->resolvedData.type;
+  unique_ptr<Expression<TypedLocationInfo> > copy(new AssignmentExpression<TypedLocationInfo>(expr.varname, move(inner)));
+  copy->resolvedData = loc;
+  exprCopyStack.push(copy.release());
+}
+
 void LocationResolver::visitAdditionExpression(AdditionExpression<>& expr) {
   expr.left->accept(*this);
   expr.right->accept(*this);

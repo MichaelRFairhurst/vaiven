@@ -6,8 +6,8 @@ using namespace vaiven::visitor;
 using namespace vaiven::ssa;
 
 void SsaBuilder::emit(Instruction* next) {
-  if (curBlock->head == NULL) {
-    curBlock->head = next;
+  if (curBlock->head.get() == NULL) {
+    curBlock->head.reset(next);
   } else {
     writePoint->next = next;
   }
@@ -17,29 +17,24 @@ void SsaBuilder::emit(Instruction* next) {
 
 void SsaBuilder::visitIfStatement(IfStatement<TypedLocationInfo>& stmt) {
   stmt.condition->accept(*this);
+  emit(new NotInstr(cur));
   JmpCcInstr* jmp = new JmpCcInstr(cur);
-  ConditionalBlockExit* exitToTrue = new ConditionalBlockExit(jmp);
-  UnconditionalBlockExit* exitToFalse = new UnconditionalBlockExit();
-  UnconditionalBlockExit* trueExit = new UnconditionalBlockExit();
-  UnconditionalBlockExit* falseExit = new UnconditionalBlockExit();
   
   ssa::Block* trueBlock = new ssa::Block();
+  curBlock->next.reset(trueBlock);
   ssa::Block* falseBlock = new ssa::Block();
+  trueBlock->next.reset(falseBlock);
   ssa::Block* followBlock = new ssa::Block();
+  falseBlock->next.reset(followBlock);
 
-  curBlock->next = trueBlock;
-  trueBlock->next = falseBlock;
-  falseBlock->next = followBlock;
-
-  exitToTrue->toGoTo = trueBlock;
-  exitToFalse->toGoTo = falseBlock;
-  trueExit->toGoTo = followBlock;
-  falseExit->toGoTo = followBlock;
-
-  curBlock->exits.push_back(unique_ptr<BlockExit>(exitToTrue));
-  curBlock->exits.push_back(unique_ptr<BlockExit>(exitToFalse));
-  trueBlock->exits.push_back(unique_ptr<BlockExit>(trueExit));
-  falseBlock->exits.push_back(unique_ptr<BlockExit>(falseExit));
+  ConditionalBlockExit* jmpToFalse = new ConditionalBlockExit(jmp, falseBlock);
+  curBlock->exits.push_back(unique_ptr<BlockExit>(jmpToFalse));
+  UnconditionalBlockExit* jmpToTrue = new UnconditionalBlockExit(trueBlock);
+  curBlock->exits.push_back(unique_ptr<BlockExit>(jmpToTrue));
+  UnconditionalBlockExit* jmpFromTrue = new UnconditionalBlockExit(followBlock);
+  trueBlock->exits.push_back(unique_ptr<BlockExit>(jmpFromTrue));
+  UnconditionalBlockExit* jmpFromFalse = new UnconditionalBlockExit(followBlock);
+  falseBlock->exits.push_back(unique_ptr<BlockExit>(jmpFromFalse));
 
   curBlock = trueBlock;
   for(vector<unique_ptr<Statement<TypedLocationInfo> > >::iterator it = stmt.trueStatements.begin();
@@ -105,6 +100,17 @@ void SsaBuilder::visitExpressionStatement(ExpressionStatement<TypedLocationInfo>
 
 void SsaBuilder::visitBlock(Block<TypedLocationInfo>& block) {
   throw "not supported";
+}
+
+void SsaBuilder::visitAssignmentExpression(AssignmentExpression<TypedLocationInfo>& expr) {
+  expr.expr->accept(*this);
+  if (scope.contains(expr.varname)) {
+    // var now points to cur
+    // TODO phis
+    scope.replace(expr.varname, cur);
+  } else {
+    emit(new ErrInstr());
+  }
 }
 
 void SsaBuilder::visitAdditionExpression(AdditionExpression<TypedLocationInfo>& expr) {

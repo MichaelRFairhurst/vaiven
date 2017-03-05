@@ -4,8 +4,8 @@ using namespace vaiven::ssa;
 
 void TypeAnalysis::emit(Instruction* instr) {
   if (lastInstr == NULL) {
-    instr->next = curBlock->head;
-    curBlock->head = instr;
+    instr->next = curBlock->head.release();;
+    curBlock->head.reset(instr);
   } else {
     lastInstr->append(instr);
   }
@@ -58,30 +58,23 @@ void TypeAnalysis::visitTypecheckInstr(TypecheckInstr& instr) {
 void TypeAnalysis::visitBoxInstr(BoxInstr& instr) {
 }
 
-void TypeAnalysis::visitBinIntInstruction(Instruction& instr) {
-  if (instr.inputs[0]->type == VAIVEN_STATIC_TYPE_UNKNOWN) {
+void TypeAnalysis::typecheckInput(Instruction& instr, VaivenStaticType expectedType, int input) {
+  if (instr.inputs[input]->type == VAIVEN_STATIC_TYPE_UNKNOWN) {
     // TODO cache this so we don't have to detect it with CSE
-    TypecheckInstr* checkInstr = new TypecheckInstr(instr.inputs[0], VAIVEN_STATIC_TYPE_INT);
+    TypecheckInstr* checkInstr = new TypecheckInstr(instr.inputs[input], expectedType);
     emit(checkInstr);
     // edge case: x + x. But this will be solved later in this function.
-    instr.inputs[0]->usages.erase(&instr);
-    instr.inputs[0]->usages.insert(checkInstr);
-    instr.inputs[0] = checkInstr;
-  } else if (instr.inputs[0]->type != VAIVEN_STATIC_TYPE_INT) {
+    instr.inputs[input]->usages.erase(&instr);
+    instr.inputs[input]->usages.insert(checkInstr);
+    instr.inputs[input] = checkInstr;
+  } else if (instr.inputs[input]->type != expectedType) {
     emit(new ErrInstr());
   }
+}
 
-  if (instr.inputs[1]->type == VAIVEN_STATIC_TYPE_UNKNOWN) {
-    // TODO cache this so we don't have to detect it with CSE
-    TypecheckInstr* checkInstr = new TypecheckInstr(instr.inputs[1], VAIVEN_STATIC_TYPE_INT);
-    emit(checkInstr);
-    // edge case: x + x, solved right now.
-    instr.inputs[1]->usages.erase(&instr);
-    instr.inputs[1]->usages.insert(checkInstr);
-    instr.inputs[1] = checkInstr;
-  } else if (instr.inputs[1]->type != VAIVEN_STATIC_TYPE_INT) {
-    emit(new ErrInstr());
-  }
+void TypeAnalysis::visitBinIntInstruction(Instruction& instr) {
+  typecheckInput(instr, VAIVEN_STATIC_TYPE_INT, 0);
+  typecheckInput(instr, VAIVEN_STATIC_TYPE_INT, 1);
 }
 
 void TypeAnalysis::visitAddInstr(AddInstr& instr) {
@@ -101,12 +94,33 @@ void TypeAnalysis::visitDivInstr(DivInstr& instr) {
 }
 
 void TypeAnalysis::visitNotInstr(NotInstr& instr) {
+  typecheckInput(instr, VAIVEN_STATIC_TYPE_BOOL, 0);
 }
 
 void TypeAnalysis::visitCmpEqInstr(CmpEqInstr& instr) {
+  // When one type is unknown, the other must be unknown or boxed
+  if (instr.inputs[0]->type == VAIVEN_STATIC_TYPE_UNKNOWN
+      && instr.inputs[1]->type != VAIVEN_STATIC_TYPE_UNKNOWN
+      && !instr.inputs[1]->isBoxed) {
+    box(&instr.inputs[1], &instr);
+  } else if (instr.inputs[1]->type == VAIVEN_STATIC_TYPE_UNKNOWN
+      && instr.inputs[0]->type != VAIVEN_STATIC_TYPE_UNKNOWN
+      && !instr.inputs[0]->isBoxed) {
+    box(&instr.inputs[0], &instr);
+  }
 }
 
 void TypeAnalysis::visitCmpIneqInstr(CmpIneqInstr& instr) {
+  // When one type is unknown, the other must be unknown or boxed
+  if (instr.inputs[0]->type == VAIVEN_STATIC_TYPE_UNKNOWN
+      && instr.inputs[1]->type != VAIVEN_STATIC_TYPE_UNKNOWN
+      && !instr.inputs[1]->isBoxed) {
+    box(&instr.inputs[1], &instr);
+  } else if (instr.inputs[1]->type == VAIVEN_STATIC_TYPE_UNKNOWN
+      && instr.inputs[0]->type != VAIVEN_STATIC_TYPE_UNKNOWN
+      && !instr.inputs[0]->isBoxed) {
+    box(&instr.inputs[0], &instr);
+  }
 }
 
 void TypeAnalysis::visitCmpGtInstr(CmpGtInstr& instr) {
@@ -135,4 +149,5 @@ void TypeAnalysis::visitRetInstr(RetInstr& instr) {
 }
 
 void TypeAnalysis::visitJmpCcInstr(JmpCcInstr& instr) {
+  typecheckInput(instr, VAIVEN_STATIC_TYPE_BOOL, 0);
 }

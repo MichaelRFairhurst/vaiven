@@ -33,6 +33,7 @@ class Interpreter : public Visitor<> {
   //int interpret(Node<>& root, vector<Value> args, map<string, int>* variablesMap);
   Value interpret(Node<>& root);
 
+  virtual void visitAssignmentExpression(AssignmentExpression<>& expr);
   virtual void visitAdditionExpression(AdditionExpression<>& expr);
   virtual void visitSubtractionExpression(SubtractionExpression<>& expr);
   virtual void visitMultiplicationExpression(MultiplicationExpression<>& expr);

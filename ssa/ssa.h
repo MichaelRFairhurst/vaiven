@@ -430,13 +430,10 @@ class RetInstr : public Instruction {
 
 class JmpCcInstr : public Instruction {
   public:
-  JmpCcInstr(Instruction* val)
-      : Instruction(INSTR_JMPCC, VAIVEN_STATIC_TYPE_VOID, false), jmpTrue(true) {
+  JmpCcInstr(Instruction* val) : Instruction(INSTR_JMPCC, VAIVEN_STATIC_TYPE_VOID, false) {
     inputs.push_back(val);
     val->usages.insert(this);
   };
-
-  bool jmpTrue;
 
   void accept(SsaVisitor& visitor) {
     visitor.visitJmpCcInstr(*this);

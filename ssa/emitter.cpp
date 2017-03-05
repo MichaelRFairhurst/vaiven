@@ -59,6 +59,11 @@ void Emitter::visitTypecheckInstr(TypecheckInstr& instr) {
     cc.shr(checkReg, VALUE_TAG_SHIFT);
     cc.cmp(checkReg, INT_TAG_SHIFTED);
     cc.jne((unsigned long long) 0); // TODO jmp to throw error
+  } else if (instr.type == VAIVEN_STATIC_TYPE_BOOL) {
+    cc.mov(checkReg, instr.out);
+    cc.shr(checkReg, VALUE_TAG_SHIFT);
+    cc.cmp(checkReg, BOOL_TAG_SHIFTED);
+    cc.jne((unsigned long long) 0); // TODO jmp to throw error
   }
 }
 
@@ -261,7 +266,7 @@ void Emitter::visitRetInstr(RetInstr& instr) {
 }
 
 void Emitter::visitUnconditionalBlockExit(UnconditionalBlockExit& exit) {
-  if (exit.toGoTo != curBlock->next) {
+  if (exit.toGoTo != &*curBlock->next) {
     cc.jmp(exit.toGoTo->label);
   }
 }
@@ -291,6 +296,10 @@ void Emitter::visitConditionalBlockExit(ConditionalBlockExit& exit) {
     case INSTR_CMPLTE:
       doCmpLteInstr(static_cast<CmpLteInstr&>(*exit.condition));
       cc.jle(exit.toGoTo->label);
+      break;
+    case INSTR_NOT:
+      cc.test(exit.condition->inputs[0]->out, exit.condition->inputs[0]->out);
+      cc.jz(exit.toGoTo->label);
       break;
     default:
       exit.condition->accept(*this);

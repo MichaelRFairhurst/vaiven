@@ -36,6 +36,7 @@ class JmpThreader : public ForwardVisitor {
   void visitJmpCcInstr(JmpCcInstr& instr);
 
   void visitConditionalBlockExit(ConditionalBlockExit& exit);
+  void visitUnconditionalBlockExit(UnconditionalBlockExit& exit);
 };
 
 }}

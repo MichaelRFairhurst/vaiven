@@ -62,13 +62,35 @@ void JmpThreader::visitRetInstr(RetInstr& instr) {
 void JmpThreader::visitJmpCcInstr(JmpCcInstr& instr) {
 }
 
+void JmpThreader::visitUnconditionalBlockExit(UnconditionalBlockExit& exit) {
+  if (exit.toGoTo->head == NULL) {
+    if (exit.toGoTo->exits.size() == 0 && exit.toGoTo->next != NULL) {
+      exit.toGoTo = &*exit.toGoTo->next;
+    } else if (exit.toGoTo->exits.size() == 1
+          && exit.toGoTo->exits[0]->tag == BLOCK_EXIT_UNCONDITIONAL) {
+      exit.toGoTo = exit.toGoTo->exits[0]->toGoTo;
+    }
+    // TODO jump thread conditional exits
+  }
+}
+
 void JmpThreader::visitConditionalBlockExit(ConditionalBlockExit& exit) {
-  if(exit.condition->tag != INSTR_JMPCC) {
+  if (exit.toGoTo->head == NULL) {
+    if (exit.toGoTo->exits.size() == 0 && exit.toGoTo->next != NULL) {
+      exit.toGoTo = &*exit.toGoTo->next;
+    } else if (exit.toGoTo->exits.size() == 1
+          && exit.toGoTo->exits[0]->tag == BLOCK_EXIT_UNCONDITIONAL) {
+      exit.toGoTo = exit.toGoTo->exits[0]->toGoTo;
+    }
+    // TODO jump thread conditional exits
+  }
+
+  if (exit.condition->tag != INSTR_JMPCC) {
     return;
   }
 
-  JmpCcInstr* jmpInstr = static_cast<JmpCcInstr*>(exit.condition);
-  Instruction* condition = jmpInstr->inputs[0];
+  JmpCcInstr& jmpInstr = static_cast<JmpCcInstr&>(*exit.condition);
+  Instruction* condition = jmpInstr.inputs[0];
   Instruction* replacementInstr;
   switch(condition->tag) {
     case INSTR_CMPEQ:
@@ -131,11 +153,15 @@ void JmpThreader::visitConditionalBlockExit(ConditionalBlockExit& exit) {
       }
       break;
     }
+    case INSTR_NOT:
+    {
+      replacementInstr = new NotInstr(condition->inputs[0]);
+      break;
+    }
     default:
       return;
   }
 
-  condition->usages.erase(jmpInstr);
-  delete jmpInstr;
-  exit.condition = replacementInstr;
+  condition->usages.erase(&jmpInstr);
+  exit.condition.reset(replacementInstr);
 }

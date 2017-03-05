@@ -1,9 +1,11 @@
 #include "parser.h"
 
 #include "ast/all.h"
+#include "visitor/assignment_producer.h"
 
 #include <vector>
 using std::vector;
+using vaiven::visitor::AssignmentProducer;
 
 using namespace vaiven;
 
@@ -189,7 +191,31 @@ unique_ptr<ast::ExpressionStatement<> > Parser::parseExpressionStatement() {
 
 
 unique_ptr<ast::Expression<> > Parser::parseExpression() {
+  unique_ptr<ast::Expression<> > lhs(parseAssignmentExpression());
+  return std::move(lhs);
+}
+
+unique_ptr<ast::Expression<> > Parser::parseAssignmentExpression() {
   unique_ptr<ast::Expression<> > lhs(parseEqualityExpression());
+
+  while (current->type != TOKEN_TYPE_SEMICOLON
+      && current->type != TOKEN_TYPE_CLOSE_PAREN
+      && current->type != TOKEN_TYPE_COMMA
+      && current->type != TOKEN_TYPE_DO
+      && current->type != TOKEN_TYPE_EOF) {
+
+    if (current->type == TOKEN_TYPE_EQ) {
+      next();
+      unique_ptr<ast::Expression<> > rhs = parseAssignmentExpression();
+      AssignmentProducer assignmentProducer(std::move(rhs));
+      lhs->accept(assignmentProducer);
+      return std::move(assignmentProducer.result);
+    } else {
+      // error
+      throw string("blah");
+    }
+  }
+
   return std::move(lhs);
 }
 
@@ -200,6 +226,7 @@ unique_ptr<ast::Expression<> > Parser::parseEqualityExpression() {
       && current->type != TOKEN_TYPE_CLOSE_PAREN
       && current->type != TOKEN_TYPE_COMMA
       && current->type != TOKEN_TYPE_DO
+      && current->type != TOKEN_TYPE_EQ
       && current->type != TOKEN_TYPE_EOF) {
 
     if (current->type == TOKEN_TYPE_EQEQ) {
@@ -226,6 +253,7 @@ unique_ptr<ast::Expression<> > Parser::parseComparisonExpression() {
       && current->type != TOKEN_TYPE_CLOSE_PAREN
       && current->type != TOKEN_TYPE_COMMA
       && current->type != TOKEN_TYPE_DO
+      && current->type != TOKEN_TYPE_EQ
       && current->type != TOKEN_TYPE_EQEQ
       && current->type != TOKEN_TYPE_BANGEQ
       && current->type != TOKEN_TYPE_EOF) {
@@ -262,6 +290,7 @@ unique_ptr<ast::Expression<> > Parser::parseAddSubExpression() {
       && current->type != TOKEN_TYPE_CLOSE_PAREN
       && current->type != TOKEN_TYPE_COMMA
       && current->type != TOKEN_TYPE_DO
+      && current->type != TOKEN_TYPE_EQ
       && current->type != TOKEN_TYPE_EQEQ
       && current->type != TOKEN_TYPE_BANGEQ
       && current->type != TOKEN_TYPE_GT
@@ -298,6 +327,7 @@ unique_ptr<ast::Expression<> > Parser::parseDivMulExpression() {
       && current->type != TOKEN_TYPE_COMMA
       && current->type != TOKEN_TYPE_CLOSE_PAREN
       && current->type != TOKEN_TYPE_DO
+      && current->type != TOKEN_TYPE_EQ
       && current->type != TOKEN_TYPE_EQEQ
       && current->type != TOKEN_TYPE_BANGEQ
       && current->type != TOKEN_TYPE_GT

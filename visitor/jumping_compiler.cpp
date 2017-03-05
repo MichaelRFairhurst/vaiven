@@ -3,6 +3,10 @@
 using namespace vaiven::visitor;
 using namespace vaiven::ast;
 
+void JumpingCompiler::visitAssignmentExpression(AssignmentExpression<TypedLocationInfo>& expr) {
+  compiler.visitAssignmentExpression(expr);
+}
+
 void JumpingCompiler::visitAdditionExpression(AdditionExpression<TypedLocationInfo>& expr) {
   compiler.visitAdditionExpression(expr);
 }

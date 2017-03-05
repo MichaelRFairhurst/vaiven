@@ -60,6 +60,10 @@ class Scope {
     currentVars[name] = v;
   }
 
+  void replace(string name, V v) {
+    currentVars[name] = v;
+  }
+
   bool contains(string name) {
     return currentVars.find(name) != currentVars.end();
   }

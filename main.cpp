@@ -63,8 +63,7 @@ void printExpressionStream(Parser& parser) {
       codeHolder.setLogger(&logger);
       X86Assembler assembler(&codeHolder);
       X86Compiler cc(&codeHolder);
-      //visitor::Compiler compiler(assembler);
-      //compiler.compile(*resolved, locResolver.argIndexes.size());
+      //visitor::Compiler compiler(assembler, codeHolder, funcs);
       visitor::AutoCompiler compiler(cc, codeHolder, funcs);
       compiler.compile(*resolved);
       resolved.release(); // compiler owns pointer now

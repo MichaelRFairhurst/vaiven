@@ -28,6 +28,7 @@ class AutoCompiler : public Visitor<TypedLocationInfo> {
 
   void compile(Node<TypedLocationInfo>& expr);
 
+  virtual void visitAssignmentExpression(AssignmentExpression<TypedLocationInfo>& expr);
   virtual void visitAdditionExpression(AdditionExpression<TypedLocationInfo>& expr);
   virtual void visitSubtractionExpression(SubtractionExpression<TypedLocationInfo>& expr);
   virtual void visitMultiplicationExpression(MultiplicationExpression<TypedLocationInfo>& expr);

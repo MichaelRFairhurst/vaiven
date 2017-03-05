@@ -108,3 +108,17 @@ void PrintVisitor::visitRetInstr(RetInstr& instr) {
 void PrintVisitor::visitJmpCcInstr(JmpCcInstr& instr) {
   printInstruction("jmpcc", &instr);
 }
+
+void PrintVisitor::visitBlock(Block& block) {
+  cout << "block " << &block << endl;
+  ForwardVisitor::visitBlock(block);
+}
+
+void PrintVisitor::visitUnconditionalBlockExit(UnconditionalBlockExit& exit) {
+  cout << "goto " << exit.toGoTo << endl;
+}
+
+void PrintVisitor::visitConditionalBlockExit(ConditionalBlockExit& exit) {
+  ForwardVisitor::visitConditionalBlockExit(exit);
+  cout << "if " << varIds[&*exit.condition] << " goto " << exit.toGoTo << endl;
+}

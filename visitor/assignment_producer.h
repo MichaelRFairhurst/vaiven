@@ -1,25 +1,21 @@
-#ifndef VAIVEN_VISITOR_HEADER_LOCATION_RESOLVER
-#define VAIVEN_VISITOR_HEADER_LOCATION_RESOLVER
-
-#include <map>
-#include <memory>
-#include <stack>
-#include <string>
+#ifndef VAIVEN_VISITOR_HEADER_ASSIGNMENT_PRODUCER
+#define VAIVEN_VISITOR_HEADER_ASSIGNMENT_PRODUCER
 
 #include "../ast/visitor.h"
 #include "../ast/all.h"
-#include "../type_info.h"
-#include "../scope.h"
+
+#include <memory>
 
 namespace vaiven { namespace visitor {
 
 using namespace vaiven::ast;
-using namespace vaiven;
-using namespace std;
+using std::unique_ptr;
 
-class LocationResolver : public Visitor<> {
+class AssignmentProducer : public Visitor<> {
 
   public:
+  AssignmentProducer(unique_ptr<Expression<>> rhs) : rhs(std::move(rhs)) {};
+
   virtual void visitAssignmentExpression(AssignmentExpression<>& expr);
   virtual void visitAdditionExpression(AdditionExpression<>& expr);
   virtual void visitSubtractionExpression(SubtractionExpression<>& expr);
@@ -43,12 +39,8 @@ class LocationResolver : public Visitor<> {
   virtual void visitFuncDecl(FuncDecl<>& funcDecl);
   virtual void visitVarDecl(VarDecl<>& varDecl);
 
-  stack<Expression<TypedLocationInfo>* > exprCopyStack;
-  stack<Statement<TypedLocationInfo>* > stmtCopyStack;
-  stack<Node<TypedLocationInfo>* > nodeCopyStack;
-  map<string, int> argIndexes;
-
-  Scope<bool> scope;
+  unique_ptr<Expression<>> rhs;
+  unique_ptr<Expression<>> result;
 
 };
 

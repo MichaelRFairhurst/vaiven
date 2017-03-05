@@ -141,6 +141,10 @@ void Interpreter::visitBlock(Block<>& block) {
   }
 }
 
+void Interpreter::visitAssignmentExpression(AssignmentExpression<>& expr) {
+  throw "Not supported";
+}
+
 void Interpreter::visitAdditionExpression(AdditionExpression<>& expr) {
   expr.left->accept(*this);
   expr.right->accept(*this);

@@ -163,7 +163,7 @@ void AutoCompiler::generateTypeShapePrelog(FuncDecl<TypedLocationInfo>& decl, Fu
   optimizeLabel = cc.newLabel();
   X86Gp count = cc.newInt32();
   cc.mov(count, asmjit::x86::dword_ptr((uint64_t) &usage->count));
-  cc.cmp(count, 1);
+  cc.cmp(count, 2);
   cc.je(optimizeLabel);
   cc.add(count, 1);
   cc.mov(asmjit::x86::dword_ptr((uint64_t) &usage->count), count);
@@ -243,6 +243,20 @@ void AutoCompiler::visitBlock(Block<TypedLocationInfo>& block) {
       ++it) {
     (*it)->accept(*this);
   }
+}
+
+void AutoCompiler::visitAssignmentExpression(AssignmentExpression<TypedLocationInfo>& expr) {
+  expr.expr->accept(*this);
+  X86Gp target;
+  if (scope.contains(expr.varname)) {
+    target = scope.get(expr.varname);
+  } else {
+    target = argRegs[expr.resolvedData.location.data.argIndex];
+  }
+  box(vRegs.top(), expr.expr->resolvedData);
+  cc.mov(target, vRegs.top());
+  vRegs.pop();
+  vRegs.push(target);
 }
 
 void AutoCompiler::visitAdditionExpression(AdditionExpression<TypedLocationInfo>& expr) {

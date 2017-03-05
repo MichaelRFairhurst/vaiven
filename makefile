@@ -16,6 +16,7 @@ VISITOR_OBJECTS = \
 	visitor/recompiler.o \
 	visitor/jumping_compiler.o \
 	visitor/ssa_builder.o \
+	visitor/assignment_producer.o \
 
 SSA_OBJECTS = \
 	ssa/ssa.o \
@@ -96,3 +97,7 @@ clean:
 	rm ssa/*.o
 	rm *.o
 	rm main
+
+cleanasmjit:
+	rm asmjit/src/asmjit/base/*.o
+	rm asmjit/src/asmjit/x86/*.o

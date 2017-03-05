@@ -28,6 +28,7 @@ class TypeAnalysis : public ForwardVisitor {
   void visitRetInstr(RetInstr& instr);
   void visitJmpCcInstr(JmpCcInstr& instr);
 
+  void typecheckInput(Instruction& instr, VaivenStaticType expectedType, int input);
   void visitBinIntInstruction(Instruction& instr);
   void emit(Instruction* instr);
   void box(Instruction** input, Instruction* instr);

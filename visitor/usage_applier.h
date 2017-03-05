@@ -23,6 +23,7 @@ class UsageApplier : public Visitor<TypedLocationInfo> {
   public:
   UsageApplier(FunctionUsage& usageInfo) : usageInfo(usageInfo) {};
 
+  virtual void visitAssignmentExpression(AssignmentExpression<TypedLocationInfo>& expr);
   virtual void visitAdditionExpression(AdditionExpression<TypedLocationInfo>& expr);
   virtual void visitSubtractionExpression(SubtractionExpression<TypedLocationInfo>& expr);
   virtual void visitMultiplicationExpression(MultiplicationExpression<TypedLocationInfo>& expr);
