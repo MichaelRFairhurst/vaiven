@@ -14,7 +14,21 @@ void RegAlloc::reuseInputRegIfPossible(Instruction& instr) {
 }
 
 void RegAlloc::visitPhiInstr(PhiInstr& instr) {
-  reuseInputRegIfPossible(instr);
+  instr.out = cc.newUInt64();
+
+  // reuse any available input
+  for (vector<Instruction*>::iterator it = instr.inputs.begin(); it != instr.inputs.end(); ++it) {
+    if ((*it)->usages.size() == 1) {
+      instr.out = (*it)->out;
+    }
+  }
+
+  // all non-special, now-dead values can just output straight to the phi
+  for (vector<Instruction*>::iterator it = instr.inputs.begin(); it != instr.inputs.end(); ++it) {
+    if ((*it)->tag != INSTR_ARG && (*it)->usages.size() == 1) {
+      (*it)->out = instr.out;
+    }
+  }
 }
 
 void RegAlloc::visitArgInstr(ArgInstr& instr) {

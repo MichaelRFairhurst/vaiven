@@ -26,7 +26,23 @@ void UnusedCodeEliminator::visitPureInstr(Instruction& instr) {
 }
 
 void UnusedCodeEliminator::visitPhiInstr(PhiInstr& instr) {
-  visitPureInstr(instr);
+  vector<Instruction* >::iterator it = instr.inputs.begin();
+  // phi nodes involving dead blocks get NULL inputs that need to be deleted
+  while (it != instr.inputs.end()) {
+    if (*it == NULL) {
+      it = instr.inputs.erase(it);
+    } else {
+      ++it;
+    }
+  }
+
+  // phi(x) is the same as just x
+  if (instr.inputs.size() == 1) {
+    instr.replaceUsagesWith(instr.inputs[0]);
+    remove(&instr);
+  } else {
+    visitPureInstr(instr);
+  }
 }
 
 void UnusedCodeEliminator::visitArgInstr(ArgInstr& instr) {
@@ -41,10 +57,20 @@ void UnusedCodeEliminator::visitCallInstr(CallInstr& instr) {
 }
 
 void UnusedCodeEliminator::visitTypecheckInstr(TypecheckInstr& instr) {
+  // TODO should really be somewhere else
+  if (instr.inputs[0]->type == instr.type) {
+    instr.replaceUsagesWith(instr.inputs[0]);
+    remove(&instr);
+  }
 }
 
 void UnusedCodeEliminator::visitBoxInstr(BoxInstr& instr) {
-  visitPureInstr(instr);
+  // this happens for dead phis sometimes
+  if (instr.inputs[0] == NULL) {
+    remove(&instr);
+  } else {
+    visitPureInstr(instr);
+  }
 }
 
 void UnusedCodeEliminator::visitAddInstr(AddInstr& instr) {

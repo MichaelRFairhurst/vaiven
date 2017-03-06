@@ -34,6 +34,30 @@ void TypeAnalysis::box(Instruction** input, Instruction* instr) {
 }
 
 void TypeAnalysis::visitPhiInstr(PhiInstr& instr) {
+  VaivenStaticType commonType = instr.inputs[0]->type;
+  for (vector<Instruction*>::iterator it = instr.inputs.begin() + 1;
+      it != instr.inputs.end();
+      ++it) {
+    if ((*it)->type != commonType) {
+      commonType = VAIVEN_STATIC_TYPE_UNKNOWN;
+      break;
+    }
+  }
+
+  instr.type = commonType;
+  if (commonType == VAIVEN_STATIC_TYPE_UNKNOWN) {
+    for (vector<Instruction*>::iterator it = instr.inputs.begin();
+        it != instr.inputs.end();
+        ++it) {
+      if (!(*it)->isBoxed) {
+        box(&*it, &instr);
+      }
+    }
+    instr.isBoxed = true;
+  } else {
+    // TODO once we support doubles, this must box the required doubles
+    instr.isBoxed = false;
+  }
 }
 
 void TypeAnalysis::visitArgInstr(ArgInstr& instr) {

@@ -118,7 +118,13 @@ class SsaVisitor {
 
 class PhiInstr : public Instruction {
   public:
-  PhiInstr() : Instruction(INSTR_PHI, VAIVEN_STATIC_TYPE_UNKNOWN, true) {};
+  PhiInstr(Instruction* optionA, Instruction* optionB)
+      : Instruction(INSTR_PHI, VAIVEN_STATIC_TYPE_UNKNOWN, true) {
+    inputs.push_back(optionA);
+    inputs.push_back(optionB);
+    optionA->usages.insert(this);
+    optionB->usages.insert(this);
+  };
 
   void accept(SsaVisitor& visitor) {
     visitor.visitPhiInstr(*this);

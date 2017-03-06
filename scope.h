@@ -4,12 +4,12 @@
 #include <map>
 #include <string>
 #include <stack>
-#include <vector>
+#include <unordered_set>
 
 using std::map;
 using std::string;
 using std::stack;
-using std::vector;
+using std::unordered_set;
 
 namespace vaiven {
 
@@ -40,11 +40,11 @@ class Scope {
   }
 
   void newFrame() {
-    frames.push(vector<string>());
+    frames.push(unordered_set<string>());
   }
 
   void endFrame() {
-    for (vector<string>::iterator it = frames.top().begin(); it != frames.top().end(); ++it) {
+    for (unordered_set<string>::iterator it = frames.top().begin(); it != frames.top().end(); ++it) {
       currentVars.erase(*it);
     }
 
@@ -56,7 +56,7 @@ class Scope {
       throw "already in scope";
     }
     
-    frames.top().push_back(name);
+    frames.top().insert(name);
     currentVars[name] = v;
   }
 
@@ -68,14 +68,22 @@ class Scope {
     return currentVars.find(name) != currentVars.end();
   }
 
+  bool inHigherScope(string name) {
+    return frames.top().find(name) == frames.top().end();
+  }
+
   V get(string name) {
     return currentVars[name];
+  }
+
+  void fill(map<string, V>& toFill) {
+    toFill.insert(currentVars.begin(), currentVars.end());
   }
 
   private:
   map<string, V> currentVars;
 
-  stack<vector<string> > frames;
+  stack<unordered_set<string> > frames;
 
 };
 

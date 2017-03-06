@@ -93,7 +93,7 @@ void ConstantPropagator::visitNotInstr(NotInstr& instr) {
   if (instr.inputs[0]->tag == INSTR_CONSTANT) {
     bool newval = static_cast<ConstantInstr*>(instr.inputs[0])->val.getBool();
 
-    replaceWithConstant(instr, Value(newval));
+    replaceWithConstant(instr, Value(!newval));
   }
 }
 

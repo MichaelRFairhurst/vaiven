@@ -36,21 +36,77 @@ void SsaBuilder::visitIfStatement(IfStatement<TypedLocationInfo>& stmt) {
   UnconditionalBlockExit* jmpFromFalse = new UnconditionalBlockExit(followBlock);
   falseBlock->exits.push_back(unique_ptr<BlockExit>(jmpFromFalse));
 
-  curBlock = trueBlock;
-  for(vector<unique_ptr<Statement<TypedLocationInfo> > >::iterator it = stmt.trueStatements.begin();
-      it != stmt.trueStatements.end();
-      ++it) {
-    (*it)->accept(*this);
+  unordered_set<string> prevVarsToPhi = varsToPhi;
+  map<string, Instruction*> scopeStatePreIf;
+  map<string, Instruction*> modifiedTrue;
+  scope.fill(scopeStatePreIf);
+
+  {
+    ScopeFrame<Instruction*> initScope(scope);
+    curBlock = trueBlock;
+    for(vector<unique_ptr<Statement<TypedLocationInfo> > >::iterator it = stmt.trueStatements.begin();
+        it != stmt.trueStatements.end();
+        ++it) {
+      (*it)->accept(*this);
+    }
+
+    for (unordered_set<string>::iterator it = varsToPhi.begin(); it != varsToPhi.end(); ++it) {
+      modifiedTrue[*it] = scope.get(*it);
+      scope.replace(*it, scopeStatePreIf[*it]);
+    }
   }
 
-  curBlock = falseBlock;
-  for(vector<unique_ptr<Statement<TypedLocationInfo> > >::iterator it = stmt.falseStatements.begin();
-      it != stmt.falseStatements.end();
-      ++it) {
-    (*it)->accept(*this);
+  prevVarsToPhi.insert(varsToPhi.begin(), varsToPhi.end());
+  varsToPhi.clear();
+
+  {
+    ScopeFrame<Instruction*> initScope(scope);
+    curBlock = falseBlock;
+    for(vector<unique_ptr<Statement<TypedLocationInfo> > >::iterator it = stmt.falseStatements.begin();
+        it != stmt.falseStatements.end();
+        ++it) {
+      (*it)->accept(*this);
+    }
+
+    // phis have to be in the follow block
+    curBlock = followBlock;
+
+    for (map<string, Instruction*>::iterator it = modifiedTrue.begin(); it != modifiedTrue.end(); ++it) {
+      if (varsToPhi.find(it->first) == varsToPhi.end()) {
+        // phi(before_if, in_true)
+        Instruction* newPhi = new PhiInstr(it->second, scopeStatePreIf[it->first]);
+        emit(newPhi);
+        scope.replace(it->first, newPhi);
+
+        // erase so that all varsToPhi left over are not in modifiedTrue for sure
+        varsToPhi.erase(it->first);
+      } else {
+        // phi(in_false, in_true)
+        Instruction* newPhi = new PhiInstr(it->second, scope.get(it->first));
+        emit(newPhi);
+        scope.replace(it->first, newPhi);
+      }
+    }
+
+    // all varsToPhi left over are not in modifiedTrue
+    for (unordered_set<string>::iterator it = varsToPhi.begin(); it != varsToPhi.end(); ++it) {
+      // phi(before_if, in_false)
+      Instruction* newPhi = new PhiInstr(scopeStatePreIf[*it], scope.get(*it));
+      emit(newPhi);
+      scope.replace(*it, newPhi);
+    }
   }
 
-  curBlock = followBlock;
+  // restore previous varsToPhi, some are from this scope which doesn't affect upper ifs
+  varsToPhi.insert(prevVarsToPhi.begin(), prevVarsToPhi.end());
+  unordered_set<string>::iterator it = varsToPhi.begin();
+  while (it != varsToPhi.end()) {
+    if (!scope.inHigherScope(*it)) {
+      it = varsToPhi.erase(it);
+    } else {
+      ++it;
+    }
+  }
 }
 
 void SsaBuilder::visitReturnStatement(ReturnStatement<TypedLocationInfo>& stmt) {
@@ -104,13 +160,17 @@ void SsaBuilder::visitBlock(Block<TypedLocationInfo>& block) {
 
 void SsaBuilder::visitAssignmentExpression(AssignmentExpression<TypedLocationInfo>& expr) {
   expr.expr->accept(*this);
-  if (scope.contains(expr.varname)) {
-    // var now points to cur
-    // TODO phis
-    scope.replace(expr.varname, cur);
-  } else {
+  if (!scope.contains(expr.varname)) {
     emit(new ErrInstr());
+    return;
   }
+
+  // x = y; if foo do x = z; ... use phi after block
+  if (scope.inHigherScope(expr.varname)) {
+    varsToPhi.insert(expr.varname);
+  }
+
+  scope.replace(expr.varname, cur);
 }
 
 void SsaBuilder::visitAdditionExpression(AdditionExpression<TypedLocationInfo>& expr) {

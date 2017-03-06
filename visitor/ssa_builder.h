@@ -4,6 +4,7 @@
 #include <stack>
 #include <map>
 #include <string>
+#include <unordered_set>
 
 #include "../ast/visitor.h"
 #include "../ast/all.h"
@@ -19,6 +20,7 @@ using namespace vaiven::ast;
 using std::stack;
 using std::map;
 using std::string;
+using std::unordered_set;
 
 class SsaBuilder : public Visitor<TypedLocationInfo> {
 
@@ -59,6 +61,7 @@ class SsaBuilder : public Visitor<TypedLocationInfo> {
 
   Scope<ssa::Instruction*> scope;
   FunctionUsage& usageInfo;
+  unordered_set<string> varsToPhi;
 
 };
 

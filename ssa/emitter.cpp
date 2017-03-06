@@ -310,7 +310,30 @@ void Emitter::visitConditionalBlockExit(ConditionalBlockExit& exit) {
 
 void Emitter::visitBlock(Block& block) {
   cc.bind(block.label);
-  ForwardVisitor::visitBlock(block);
+  curBlock = &block;
+  lastInstr = NULL;
+  Instruction* next = block.head.get();
+  while (next != NULL) {
+    next->accept(*this);
+    // handle PHIs
+    for (set<Instruction*>::iterator it = next->usages.begin(); it != next->usages.end(); ++it) {
+      if ((*it)->tag == INSTR_PHI && (*it)->out != next->out) {
+        cc.mov((*it)->out, next->out);
+      }
+    }
+    lastInstr = next;
+    next = next->next;
+  }
+
+  for (vector<unique_ptr<BlockExit>>::iterator it = block.exits.begin();
+      it != block.exits.end();
+      ++it) {
+    (*it)->accept(*this);
+  }
+
+  if (block.next != NULL) {
+    block.next->accept(*this);
+  }
 }
 
 void Emitter::visitJmpCcInstr(JmpCcInstr& instr) {
