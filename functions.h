@@ -23,14 +23,20 @@ typedef Value (*OverkillFunc)(Value rdi, Value rsi, Value rdx, Value rcx, Value 
 class Function {
   public: 
   Function(const Function& that) = delete;
-  Function(asmjit::JitRuntime& runtime, OverkillFunc fptr, int argc, unique_ptr<FunctionUsage> usage, ast::FuncDecl<TypedLocationInfo>* ast)
-    : runtime(runtime), fptr(fptr), argc(argc), usage(std::move(usage)), ast(ast) {};
+  Function(asmjit::JitRuntime& runtime,
+      OverkillFunc fptr,
+      int argc,
+      unique_ptr<FunctionUsage> usage,
+      ast::FuncDecl<TypedLocationInfo>* ast,
+      int worstSize)
+    : runtime(runtime), fptr(fptr), argc(argc), usage(std::move(usage)), ast(ast), worstSize(worstSize) {};
 
   ~Function() {
     runtime.release(fptr);
   }
 
   int argc;
+  int worstSize;
   OverkillFunc fptr;
   OverkillFunc slowfptr;
   unique_ptr<FunctionUsage> usage;
@@ -44,10 +50,12 @@ class Functions {
   public:
   asmjit::JitRuntime runtime;
 
-  void addFunc(string name, asmjit::CodeHolder* holder, int argc, unique_ptr<FunctionUsage> usage, ast::FuncDecl<TypedLocationInfo>* ast) {
+  void addFunc(string name, asmjit::CodeHolder* holder, int argc, unique_ptr<FunctionUsage> usage,
+      ast::FuncDecl<TypedLocationInfo>* ast) {
+    int worstSize = holder->getCodeSize();
     OverkillFunc fptr;
     runtime.add(&fptr, holder);
-    funcs[name] = unique_ptr<Function>(new Function(runtime, fptr, argc, std::move(usage), ast));
+    funcs[name] = unique_ptr<Function>(new Function(runtime, fptr, argc, std::move(usage), ast, worstSize));
   }
 
   // private:

@@ -8,7 +8,8 @@ namespace vaiven { namespace ssa {
 class Emitter : public ForwardVisitor {
 
   public:
-  Emitter(asmjit::X86Compiler& cc, Functions& funcs) : cc(cc), funcs(funcs) {};
+  Emitter(asmjit::X86Compiler& cc, Functions& funcs, asmjit::Label funcLabel, string funcName)
+      : cc(cc), funcs(funcs), funcLabel(funcLabel), funcName(funcName) {};
 
   void visitPhiInstr(PhiInstr& instr);
   void visitArgInstr(ArgInstr& instr);
@@ -42,6 +43,8 @@ class Emitter : public ForwardVisitor {
   void visitBlock(Block& block);
 
   asmjit::X86Compiler& cc;
+  asmjit::Label funcLabel;
+  string funcName;
   Functions& funcs;
 };
 

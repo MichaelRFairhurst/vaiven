@@ -15,15 +15,21 @@ void Inliner::visitConstantInstr(ConstantInstr& instr) {
 }
 
 void Inliner::visitCallInstr(CallInstr& instr) {
-  if (inlineCount > 10) {
-    return;
-  }
-
-  inlineCount++;
-
   if (funcs.funcs.find(instr.funcName) == funcs.funcs.end()) {
     // TODO emit err
   }
+
+  // arbitrary max size to stop inlining
+  if (currentWorstSize > 2250) {
+    return;
+  }
+
+  // arbitrary max inline size....
+  if (funcs.funcs[instr.funcName]->worstSize > 512) {
+    return;
+  }
+
+  currentWorstSize += funcs.funcs[instr.funcName]->worstSize;
 
   FuncDecl<TypedLocationInfo>& funcDecl = *funcs.funcs[instr.funcName]->ast;
 

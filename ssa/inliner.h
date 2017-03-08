@@ -9,7 +9,7 @@ namespace vaiven { namespace ssa {
 
 class Inliner : public ForwardVisitor {
   public:
-  Inliner(Functions& funcs) : funcs(funcs), inlineCount(0) {};
+  Inliner(Functions& funcs, int currentWorstSize) : funcs(funcs), currentWorstSize(currentWorstSize) {};
 
   void visitPhiInstr(PhiInstr& instr);
   void visitArgInstr(ArgInstr& instr);
@@ -34,7 +34,7 @@ class Inliner : public ForwardVisitor {
   void visitBlock(Block& block);
 
   Functions& funcs;
-  int inlineCount;
+  int currentWorstSize;
 };
 
 }}

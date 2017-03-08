@@ -65,7 +65,7 @@ void ReCompiler::visitFuncDecl(FuncDecl<TypedLocationInfo>& decl) {
   builder.head.accept(printer); printer.varIds.clear();
 #endif
 
-  ssa::Inliner inliner(funcs);
+  ssa::Inliner inliner(funcs, funcs.funcs[decl.name]->worstSize);
   builder.head.accept(inliner);
 #ifdef SSA_DIAGNOSTICS
   std::cout << "inliner" << std::endl;
@@ -135,7 +135,7 @@ void ReCompiler::visitFuncDecl(FuncDecl<TypedLocationInfo>& decl) {
   }
   ssa::RegAlloc allocator(cc);
   builder.head.accept(allocator);
-  ssa::Emitter emitter(cc, funcs);
+  ssa::Emitter emitter(cc, funcs, curFunc->getLabel(), decl.name);
   builder.head.accept(emitter);
 #ifdef SSA_DIAGNOSTICS
   std::cout << "final code" << std::endl;

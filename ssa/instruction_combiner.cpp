@@ -65,6 +65,10 @@ void InstructionCombiner::visitPhiInstr(PhiInstr& instr) {
 
   vector<Instruction*>::iterator it = instr.inputs.begin();
   while (it != instr.inputs.end()) {
+    if (*it == NULL) {
+      it = instr.inputs.erase(it);
+      continue;
+    }
     if ((*it)->tag == INSTR_PHI) {
       innerPhis.push_back(*it);
       (*it)->usages.erase(&instr);

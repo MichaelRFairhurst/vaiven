@@ -36,14 +36,14 @@ void Emitter::visitCallInstr(CallInstr& instr) {
   sig.init(CallConv::kIdHost, TypeIdOf<int64_t>::kTypeId, sigArgs, instr.inputs.size());
 
   CCFuncCall* call;
-  //if (instr.funcName == curFuncName) {
-  //  call = cc.call(curFunc->getLabel(), sig);
-  //} else {
+  if (instr.funcName == funcName) {
+    call = cc.call(funcLabel, sig);
+  } else {
     X86Gp lookup = cc.newUInt64();
     cc.mov(lookup, (unsigned long long) &funcs.funcs[instr.funcName]->fptr);
     cc.mov(lookup, x86::ptr(lookup));
     call = cc.call(lookup, sig);
-  //}
+  }
 
   for (int i = 0; i < instr.inputs.size(); ++i) {
     call->setArg(i, instr.inputs[i]->out);
