@@ -105,13 +105,7 @@ void ConstantInliner::visitCmpIneqInstr(CmpIneqInstr& instr) {
 }
 
 void ConstantInliner::visitCmpGtInstr(CmpGtInstr& instr) {
-  if (instr.inputs[0]->tag == INSTR_CONSTANT) {
-    int val = static_cast<ConstantInstr*>(instr.inputs[0])->val.getInt();
-    CmpLtInstr* inverted = new CmpLtInstr(instr.inputs[1], instr.inputs[0]);
-    instr.append(inverted);
-    instr.replaceUsagesWith(inverted);
-    // and we'll visit the new node next to inline the rhs
-  } else if (instr.inputs[1]->tag == INSTR_CONSTANT) {
+  if (instr.inputs[1]->tag == INSTR_CONSTANT) {
     int val = static_cast<ConstantInstr*>(instr.inputs[1])->val.getInt();
     instr.hasConstRhs = true;
     instr.constRhs = val;
@@ -121,13 +115,7 @@ void ConstantInliner::visitCmpGtInstr(CmpGtInstr& instr) {
 }
 
 void ConstantInliner::visitCmpGteInstr(CmpGteInstr& instr) {
-  if (instr.inputs[0]->tag == INSTR_CONSTANT) {
-    int val = static_cast<ConstantInstr*>(instr.inputs[0])->val.getInt();
-    CmpLteInstr* inverted = new CmpLteInstr(instr.inputs[1], instr.inputs[0]);
-    instr.append(inverted);
-    instr.replaceUsagesWith(inverted);
-    // and we'll visit the new node next to inline the rhs
-  } else if (instr.inputs[1]->tag == INSTR_CONSTANT) {
+  if (instr.inputs[1]->tag == INSTR_CONSTANT) {
     int val = static_cast<ConstantInstr*>(instr.inputs[1])->val.getInt();
     instr.hasConstRhs = true;
     instr.constRhs = val;
@@ -137,13 +125,7 @@ void ConstantInliner::visitCmpGteInstr(CmpGteInstr& instr) {
 }
 
 void ConstantInliner::visitCmpLtInstr(CmpLtInstr& instr) {
-  if (instr.inputs[0]->tag == INSTR_CONSTANT) {
-    int val = static_cast<ConstantInstr*>(instr.inputs[0])->val.getInt();
-    CmpGtInstr* inverted = new CmpGtInstr(instr.inputs[1], instr.inputs[0]);
-    instr.append(inverted);
-    instr.replaceUsagesWith(inverted);
-    // and we'll visit the new node next to inline the rhs
-  } else if (instr.inputs[1]->tag == INSTR_CONSTANT) {
+  if (instr.inputs[1]->tag == INSTR_CONSTANT) {
     int val = static_cast<ConstantInstr*>(instr.inputs[1])->val.getInt();
     instr.hasConstRhs = true;
     instr.constRhs = val;
@@ -153,13 +135,7 @@ void ConstantInliner::visitCmpLtInstr(CmpLtInstr& instr) {
 }
 
 void ConstantInliner::visitCmpLteInstr(CmpLteInstr& instr) {
-  if (instr.inputs[0]->tag == INSTR_CONSTANT) {
-    int val = static_cast<ConstantInstr*>(instr.inputs[0])->val.getInt();
-    CmpGteInstr* inverted = new CmpGteInstr(instr.inputs[1], instr.inputs[0]);
-    instr.append(inverted);
-    instr.replaceUsagesWith(inverted);
-    // and we'll visit the new node next to inline the rhs
-  } else if (instr.inputs[1]->tag == INSTR_CONSTANT) {
+  if (instr.inputs[1]->tag == INSTR_CONSTANT) {
     int val = static_cast<ConstantInstr*>(instr.inputs[1])->val.getInt();
     instr.hasConstRhs = true;
     instr.constRhs = val;

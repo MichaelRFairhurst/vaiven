@@ -25,17 +25,18 @@ OverkillFunc vaiven::optimize(vaiven::Functions& funcs, ast::FuncDecl<vaiven::Ty
     throw "func not known";
   }
 
+#ifdef OPTIMIZATION_DIAGNOSTICS
   std::cout << "optimizing " << funcDecl.name << std::endl;
-  for (int i = 0; i < funcDecl.args.size(); ++i) {
-    std::cout << "arg " << i << funcs.funcs[funcDecl.name]->usage->argShapes[i].isPure() << std::endl;
-  }
+#endif
 
-  PrintErrorHandler2 eh;
-  FileLogger logger(stdout);
   CodeHolder codeHolder;
   codeHolder.init(funcs.runtime.getCodeInfo());
+#ifdef DISASSEMBLY_DIAGNOSTICS
+  PrintErrorHandler2 eh;
+  FileLogger logger(stdout);
   codeHolder.setErrorHandler(&eh);
   codeHolder.setLogger(&logger);
+#endif
   X86Assembler assembler(&codeHolder);
   X86Compiler cc(&codeHolder);
 
@@ -45,7 +46,9 @@ OverkillFunc vaiven::optimize(vaiven::Functions& funcs, ast::FuncDecl<vaiven::Ty
   visitor::ReCompiler compiler(cc, codeHolder, funcs, *funcs.funcs[funcDecl.name]->usage);
   compiler.compile(funcDecl);
 
+#ifdef OPTIMIZATION_DIAGNOSTICS
   std::cout << "done optimizing" << std::endl;
+#endif
   return funcs.funcs[funcDecl.name]->fptr;
 }
 

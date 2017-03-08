@@ -25,7 +25,7 @@ void RegAlloc::visitPhiInstr(PhiInstr& instr) {
 
   // all non-special, now-dead values can just output straight to the phi
   for (vector<Instruction*>::iterator it = instr.inputs.begin(); it != instr.inputs.end(); ++it) {
-    if ((*it)->tag != INSTR_ARG && (*it)->usages.size() == 1) {
+    if ((*it)->tag != INSTR_ARG && (*it)->tag != INSTR_PHI && (*it)->usages.size() == 1) {
       (*it)->out = instr.out;
     }
   }

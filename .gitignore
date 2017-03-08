@@ -1,4 +1,5 @@
 *.o
-main
+vvn
 *.swp
 *.dSYM
+bench/bench_log*

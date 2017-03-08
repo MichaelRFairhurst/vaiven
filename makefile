@@ -30,6 +30,8 @@ SSA_OBJECTS = \
 	ssa/constant_inliner.o \
 	ssa/forward_visitor.o \
 	ssa/jmp_threader.o \
+	ssa/inliner.o \
+	ssa/function_merge.o \
 
 NANOJIT_OBJECTS = \
 	nanojit-central/Containers.o \
@@ -83,20 +85,21 @@ MAIN_OBJECTS = \
 	runtime_error.o \
 	optimize.o \
 	functions.o \
-	#nanojitsupport.o \
 
-CXXFLAGS := -DASMJIT_EMBED -std=c++11 -O0 -g
-#DEFS := -DHAVE_CONFIG_H -DNANOJIT_CENTRAL
+DEBUGCXXFLAGS := -O0 -g -DSSA_DIAGNOSTICS -DDISASSEMBLY_DIAGNOSTICS -DOPTIMIZATION_DIAGNOSTICS
+RELEASECXXFLAGS := -O3 -DNDEBUG
+PROFILECXXFLAGS := -O3 -g -DNDEBUG
+CXXFLAGS := -DASMJIT_EMBED -std=c++11 ${DEBUGCXXFLAGS}
 
-main : ${MAIN_OBJECTS} ${AST_OBJECTS} ${VISITOR_OBJECTS} ${ASMJIT_OBJECTS} ${SSA_OBJECTS}
-	g++ $^ -o main
+vvn : ${MAIN_OBJECTS} ${AST_OBJECTS} ${VISITOR_OBJECTS} ${ASMJIT_OBJECTS} ${SSA_OBJECTS}
+	g++ $^ -o vvn
 
 clean:
 	rm visitor/*.o
 	rm ast/*.o
 	rm ssa/*.o
 	rm *.o
-	rm main
+	rm vvn
 
 cleanasmjit:
 	rm asmjit/src/asmjit/base/*.o

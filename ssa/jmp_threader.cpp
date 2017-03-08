@@ -63,24 +63,30 @@ void JmpThreader::visitJmpCcInstr(JmpCcInstr& instr) {
 }
 
 void JmpThreader::visitUnconditionalBlockExit(UnconditionalBlockExit& exit) {
-  if (exit.toGoTo->head == NULL) {
-    if (exit.toGoTo->exits.size() == 0 && exit.toGoTo->next != NULL) {
-      exit.toGoTo = &*exit.toGoTo->next;
-    } else if (exit.toGoTo->exits.size() == 1
+  while (exit.toGoTo->head == NULL) {
+    //if (exit.toGoTo->exits.size() == 0 && exit.toGoTo->next != NULL) {
+    //  exit.toGoTo = &*exit.toGoTo->next;
+    //} else
+    if (exit.toGoTo->exits.size() == 1
           && exit.toGoTo->exits[0]->tag == BLOCK_EXIT_UNCONDITIONAL) {
       exit.toGoTo = exit.toGoTo->exits[0]->toGoTo;
+    } else {
+      break;
     }
     // TODO jump thread conditional exits
   }
 }
 
 void JmpThreader::visitConditionalBlockExit(ConditionalBlockExit& exit) {
-  if (exit.toGoTo->head == NULL) {
-    if (exit.toGoTo->exits.size() == 0 && exit.toGoTo->next != NULL) {
-      exit.toGoTo = &*exit.toGoTo->next;
-    } else if (exit.toGoTo->exits.size() == 1
+  while (exit.toGoTo->head == NULL) {
+    //if (exit.toGoTo->exits.size() == 0 && exit.toGoTo->next != NULL) {
+    //  exit.toGoTo = &*exit.toGoTo->next;
+    //} else
+    if (exit.toGoTo->exits.size() == 1
           && exit.toGoTo->exits[0]->tag == BLOCK_EXIT_UNCONDITIONAL) {
       exit.toGoTo = exit.toGoTo->exits[0]->toGoTo;
+    } else {
+      break;
     }
     // TODO jump thread conditional exits
   }

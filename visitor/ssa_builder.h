@@ -51,15 +51,15 @@ class SsaBuilder : public Visitor<TypedLocationInfo> {
   virtual void visitFuncDecl(FuncDecl<TypedLocationInfo>& funcDecl);
   virtual void visitVarDecl(VarDecl<TypedLocationInfo>& varDecl);
 
+  void emit(ssa::Instruction* next);
+
   ssa::Block head;
   ssa::Block* curBlock;
   ssa::Instruction* cur;
   ssa::Instruction* writePoint;
+  Scope<ssa::Instruction*> scope;
 
   private:
-  void emit(ssa::Instruction* next);
-
-  Scope<ssa::Instruction*> scope;
   FunctionUsage& usageInfo;
   unordered_set<string> varsToPhi;
 

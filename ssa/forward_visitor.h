@@ -34,7 +34,6 @@ class ForwardVisitor : public SsaVisitor {
   virtual void visitUnconditionalBlockExit(UnconditionalBlockExit& exit);
   virtual void visitConditionalBlockExit(ConditionalBlockExit& exit);
 
-  protected:
   Block* curBlock;
   Instruction* lastInstr;
 };

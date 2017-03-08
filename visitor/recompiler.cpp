@@ -13,6 +13,7 @@
 #include "../ssa/type_analysis.h"
 #include "../ssa/constant_inliner.h"
 #include "../ssa/jmp_threader.h"
+#include "../ssa/inliner.h"
 
 #include <iostream>
 #include <stdint.h>
@@ -59,27 +60,46 @@ void ReCompiler::visitFuncDecl(FuncDecl<TypedLocationInfo>& decl) {
     endType = (*it)->resolvedData;
   }
   decl.accept(builder);
+#ifdef SSA_DIAGNOSTICS
   ssa::PrintVisitor printer;
   builder.head.accept(printer); printer.varIds.clear();
-  std::cout << "type analysis" << std::endl;
+#endif
+
+  ssa::Inliner inliner(funcs);
+  builder.head.accept(inliner);
+#ifdef SSA_DIAGNOSTICS
+  std::cout << "inliner" << std::endl;
+  builder.head.accept(printer); printer.varIds.clear();
+#endif
+
   ssa::TypeAnalysis typeAnalysis;
   builder.head.accept(typeAnalysis);
+#ifdef SSA_DIAGNOSTICS
+  std::cout << "type analysis" << std::endl;
   builder.head.accept(printer); printer.varIds.clear();
+#endif
+
   while(true) {
-    std::cout << "constant prop" << std::endl;
     ssa::ConstantPropagator constant_prop;
     builder.head.accept(constant_prop);
+#ifdef SSA_DIAGNOSTICS
+    std::cout << "constant prop" << std::endl;
     builder.head.accept(printer); printer.varIds.clear();
+#endif
 
-    std::cout << "instr comb" << std::endl;
     ssa::InstructionCombiner instr_comb;
     builder.head.accept(instr_comb);
+#ifdef SSA_DIAGNOSTICS
+    std::cout << "instr comb" << std::endl;
     builder.head.accept(printer); printer.varIds.clear();
+#endif
 
-    std::cout << "unused val elim" << std::endl;
     ssa::UnusedCodeEliminator unused_code_elim;
     builder.head.accept(unused_code_elim);
+#ifdef SSA_DIAGNOSTICS
+    std::cout << "unused val elim" << std::endl;
     builder.head.accept(printer); printer.varIds.clear();
+#endif
 
     if (!unused_code_elim.performedWork && !instr_comb.performedWork && !constant_prop.performedWork) {
       break;
@@ -87,32 +107,40 @@ void ReCompiler::visitFuncDecl(FuncDecl<TypedLocationInfo>& decl) {
 
   }
 
-  std::cout << "const inliner" << std::endl;
   ssa::ConstantInliner constInliner;
   builder.head.accept(constInliner);
+#ifdef SSA_DIAGNOSTICS
+  std::cout << "const inliner" << std::endl;
   builder.head.accept(printer); printer.varIds.clear();
+#endif
 
-  std::cout << "jmp threading" << std::endl;
   ssa::JmpThreader jmpThreader;
   builder.head.accept(jmpThreader);
+#ifdef SSA_DIAGNOSTICS
+  std::cout << "jmp threading" << std::endl;
   builder.head.accept(printer); printer.varIds.clear();
+#endif
 
   while(true) {
-    std::cout << "unused val elim" << std::endl;
     ssa::UnusedCodeEliminator unused_code_elim;
     builder.head.accept(unused_code_elim);
+#ifdef SSA_DIAGNOSTICS
+    std::cout << "unused val elim" << std::endl;
     builder.head.accept(printer); printer.varIds.clear();
+#endif
 
     if (!unused_code_elim.performedWork) {
       break;
     }
   }
-  std::cout << "final code" << std::endl;
   ssa::RegAlloc allocator(cc);
   builder.head.accept(allocator);
   ssa::Emitter emitter(cc, funcs);
   builder.head.accept(emitter);
+#ifdef SSA_DIAGNOSTICS
+  std::cout << "final code" << std::endl;
   builder.head.accept(printer); printer.varIds.clear();
+#endif
 
   //if (vRegs.size()) {
   //  box(vRegs.top(), endType);

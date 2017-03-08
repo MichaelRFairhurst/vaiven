@@ -59,8 +59,10 @@ void printExpressionStream(Parser& parser) {
 
       CodeHolder codeHolder;
       codeHolder.init(funcs.runtime.getCodeInfo());
+#ifdef DISASSEMBLY_DIAGNOSTICS
       codeHolder.setErrorHandler(&eh);
       codeHolder.setLogger(&logger);
+#endif
       X86Assembler assembler(&codeHolder);
       X86Compiler cc(&codeHolder);
       //visitor::Compiler compiler(assembler, codeHolder, funcs);

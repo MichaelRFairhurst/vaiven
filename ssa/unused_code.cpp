@@ -39,10 +39,9 @@ void UnusedCodeEliminator::visitPhiInstr(PhiInstr& instr) {
   // phi(x) is the same as just x
   if (instr.inputs.size() == 1) {
     instr.replaceUsagesWith(instr.inputs[0]);
-    remove(&instr);
-  } else {
-    visitPureInstr(instr);
   }
+
+  visitPureInstr(instr);
 }
 
 void UnusedCodeEliminator::visitArgInstr(ArgInstr& instr) {

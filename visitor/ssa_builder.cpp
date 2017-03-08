@@ -145,7 +145,8 @@ void SsaBuilder::visitFuncDecl(FuncDecl<TypedLocationInfo>& decl) {
     (*it)->accept(*this);
   }
 
-  if (cur != NULL) {
+  // TODO proper logic to force return
+  if (cur != NULL && cur->tag != INSTR_RET) {
     emit(new RetInstr(cur));
   }
 }
