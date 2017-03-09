@@ -10,6 +10,7 @@
 #include "../ast/all.h"
 #include "../functions.h"
 #include "../value.h"
+#include "../scope.h"
 
 namespace vaiven { namespace visitor {
 
@@ -29,7 +30,7 @@ using namespace vaiven::ast;
 class Interpreter : public Visitor<> {
 
   public:
-  Interpreter(Functions& funcs) : funcs(funcs) {};
+  Interpreter(Functions& funcs, Scope<Value>& scope) : funcs(funcs), scope(scope) {};
   //int interpret(Node<>& root, vector<Value> args, map<string, int>* variablesMap);
   Value interpret(Node<>& root);
 
@@ -51,14 +52,15 @@ class Interpreter : public Visitor<> {
   virtual void visitFuncCallExpression(FuncCallExpression<>& expr);
   virtual void visitExpressionStatement(ExpressionStatement<>& stmt);
   virtual void visitIfStatement(IfStatement<>& stmt);
+  virtual void visitForCondition(ForCondition<>& stmt);
   virtual void visitReturnStatement(ReturnStatement<>& stmt);
   virtual void visitBlock(Block<>& expr);
   virtual void visitFuncDecl(FuncDecl<>& funcDecl);
   virtual void visitVarDecl(VarDecl<>& varDecl);
 
   stack_with_container<Value> stack;
-  map<string, int>* variablesMap;
   Functions& funcs;
+  Scope<Value>& scope;
 };
 
 }}

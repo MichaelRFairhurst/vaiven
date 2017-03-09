@@ -36,6 +36,7 @@ void Interpreter::visitIfStatement(IfStatement<>& stmt) {
   stmt.condition->accept(*this);
   Value condVal = stack.top(); stack.pop();
   if (condVal.getBool()) {
+    ScopeFrame<Value> trueScope(scope);
     for(vector<unique_ptr<Statement<> > >::iterator it = stmt.trueStatements.begin();
         it != stmt.trueStatements.end();
         ++it) {
@@ -45,6 +46,7 @@ void Interpreter::visitIfStatement(IfStatement<>& stmt) {
       (*it)->accept(*this);
     }
   } else {
+    ScopeFrame<Value> falseScope(scope);
     for(vector<unique_ptr<Statement<> > >::iterator it = stmt.falseStatements.begin();
         it != stmt.falseStatements.end();
         ++it) {
@@ -56,13 +58,37 @@ void Interpreter::visitIfStatement(IfStatement<>& stmt) {
   }
 }
 
+void Interpreter::visitForCondition(ForCondition<>& stmt) {
+  do {
+    stmt.condition->accept(*this);
+    Value condVal = stack.top(); stack.pop();
+    if (!condVal.getBool()) {
+      break;
+    }
+
+    ScopeFrame<Value> subScope(scope);
+    bool first = true;
+    for(vector<unique_ptr<Statement<> > >::iterator it = stmt.statements.begin();
+        it != stmt.statements.end();
+        ++it) {
+      if (!first) {
+        stack.pop();
+        first = true;
+      }
+      (*it)->accept(*this);
+    }
+  } while(true);
+}
+
 void Interpreter::visitReturnStatement(ReturnStatement<>& stmt) {
   stmt.expr->accept(*this);
   throw(stack.top());
 }
 
 void Interpreter::visitVarDecl(VarDecl<>& varDecl) {
-  throw "not supported";
+  varDecl.expr->accept(*this);
+  scope.put(varDecl.varname, stack.top());
+  stack.pop();
 }
 
 void Interpreter::visitFuncCallExpression(FuncCallExpression<>& expr) {
@@ -142,7 +168,9 @@ void Interpreter::visitBlock(Block<>& block) {
 }
 
 void Interpreter::visitAssignmentExpression(AssignmentExpression<>& expr) {
-  throw "Not supported";
+  expr.expr->accept(*this);
+  scope.replace(expr.varname, stack.top());
+  stack.pop();
 }
 
 void Interpreter::visitAdditionExpression(AdditionExpression<>& expr) {
@@ -189,7 +217,7 @@ void Interpreter::visitIntegerExpression(IntegerExpression<>& expr) {
   stack.push(Value(expr.value));
 }
 void Interpreter::visitVariableExpression(VariableExpression<>& expr) {
-  Value val = stack.c[(*variablesMap)[expr.id]];
+  Value val = scope.get(expr.id);
   stack.push(val);
 }
 

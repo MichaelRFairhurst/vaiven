@@ -34,6 +34,7 @@ class AssignmentProducer : public Visitor<> {
   virtual void visitFuncCallExpression(FuncCallExpression<>& expr);
   virtual void visitExpressionStatement(ExpressionStatement<>& stmt);
   virtual void visitIfStatement(IfStatement<>& stmt);
+  virtual void visitForCondition(ForCondition<>& stmt);
   virtual void visitReturnStatement(ReturnStatement<>& stmt);
   virtual void visitBlock(Block<>& expr);
   virtual void visitFuncDecl(FuncDecl<>& funcDecl);

@@ -30,6 +30,21 @@ void PrintVisitor::visitIfStatement(IfStatement<>& stmt) {
   cout << "end" << std::endl;
 }
 
+void PrintVisitor::visitForCondition(ForCondition<>& stmt) {
+  cout << "for ";
+  stmt.condition->accept(*this);
+  cout << std::endl;
+  cout << "do " << std::endl;
+
+  for(vector<unique_ptr<Statement<> > >::iterator it = stmt.statements.begin();
+      it != stmt.statements.end();
+      ++it) {
+    (*it)->accept(*this);
+  }
+
+  cout << "end " << std::endl;
+}
+
 void PrintVisitor::visitReturnStatement(ReturnStatement<>& stmt) {
   cout << "return ";
   stmt.expr->accept(*this);

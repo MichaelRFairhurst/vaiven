@@ -41,6 +41,7 @@ class UsageApplier : public Visitor<TypedLocationInfo> {
   virtual void visitFuncCallExpression(FuncCallExpression<TypedLocationInfo>& expr);
   virtual void visitExpressionStatement(ExpressionStatement<TypedLocationInfo>& stmt);
   virtual void visitIfStatement(IfStatement<TypedLocationInfo>& stmt);
+  virtual void visitForCondition(ForCondition<TypedLocationInfo>& stmt);
   virtual void visitReturnStatement(ReturnStatement<TypedLocationInfo>& stmt);
   virtual void visitBlock(Block<TypedLocationInfo>& expr);
   virtual void visitFuncDecl(FuncDecl<TypedLocationInfo>& funcDecl);

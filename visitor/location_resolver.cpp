@@ -42,6 +42,32 @@ void LocationResolver::visitIfStatement(IfStatement<>& stmt) {
   stmtCopyStack.push(copy.release());
 }
 
+void LocationResolver::visitForCondition(ForCondition<>& stmt) {
+  stmt.condition->accept(*this);
+  unique_ptr<Expression<TypedLocationInfo> > condition(move(exprCopyStack.top()));
+  exprCopyStack.pop();
+
+  vector<unique_ptr<Statement<TypedLocationInfo> > > newStmts;
+  {
+    ScopeFrame<bool> scopeFrame(scope);
+    for(vector<unique_ptr<Statement<> > >::iterator it = stmt.statements.begin();
+        it != stmt.statements.end();
+        ++it) {
+      (*it)->accept(*this);
+      unique_ptr<Statement<TypedLocationInfo> > newStmt(move(stmtCopyStack.top()));
+      stmtCopyStack.pop();
+      newStmts.push_back(move(newStmt));
+    }
+  }
+
+  TypedLocationInfo void_(Location::void_(), VAIVEN_STATIC_TYPE_VOID, false);
+  unique_ptr<Statement<TypedLocationInfo> > copy(new ForCondition<TypedLocationInfo>(
+    move(condition),
+    move(newStmts)));
+  copy->resolvedData = void_;
+  stmtCopyStack.push(copy.release());
+}
+
 void LocationResolver::visitReturnStatement(ReturnStatement<>& stmt) {
   stmt.expr->accept(*this);
   unique_ptr<Expression<TypedLocationInfo> > expr(move(exprCopyStack.top()));

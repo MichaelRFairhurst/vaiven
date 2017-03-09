@@ -12,6 +12,10 @@ void AssignmentProducer::visitIfStatement(IfStatement<>& stmt) {
   throw "not supported";
 }
 
+void AssignmentProducer::visitForCondition(ForCondition<>& stmt) {
+  throw "not supported";
+}
+
 void AssignmentProducer::visitReturnStatement(ReturnStatement<>& stmt) {
   throw "not supported";
 }

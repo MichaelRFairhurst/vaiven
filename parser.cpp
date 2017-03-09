@@ -84,6 +84,8 @@ unique_ptr<ast::Statement<> > Parser::parseStatement() {
     return unique_ptr<ast::Statement<> > (parseVarDecl().release());
   } else if (current->type == TOKEN_TYPE_IF) {
     return unique_ptr<ast::Statement<> > (parseIfStatement().release());
+  } else if (current->type == TOKEN_TYPE_FOR) {
+    return unique_ptr<ast::Statement<> > (parseForCondition().release());
   } else if (current->type == TOKEN_TYPE_RET) {
     return unique_ptr<ast::Statement<> > (parseReturnStatement().release());
   } else {
@@ -166,6 +168,32 @@ unique_ptr<ast::IfStatement<> > Parser::parseIfStatement() {
       std::move(condition),
       std::move(trueStmts),
       std::move(falseStmts)));
+}
+
+unique_ptr<ast::ForCondition<> > Parser::parseForCondition() {
+  next();
+  unique_ptr<ast::Expression<> > condition(parseExpression());
+
+  if (current->type != TOKEN_TYPE_DO) {
+    throw string("missing end");
+  }
+  next();
+
+  vector<unique_ptr<ast::Statement<> > > stmts;
+  while (current->type != TOKEN_TYPE_EOF
+      && current->type != TOKEN_TYPE_END) {
+    stmts.push_back(parseStatement());
+
+    next(); // statements don't consume their final token
+  }
+
+  if (current->type != TOKEN_TYPE_END) {
+    throw string("missing end");
+  }
+
+  return unique_ptr<ast::ForCondition<> >(new ast::ForCondition<>(
+      std::move(condition),
+      std::move(stmts)));
 }
 
 unique_ptr<ast::ReturnStatement<> > Parser::parseReturnStatement() {

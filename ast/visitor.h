@@ -48,6 +48,8 @@ class VarDecl;
 template<typename RD=void>
 class IfStatement;
 template<typename RD=void>
+class ForCondition;
+template<typename RD=void>
 class ReturnStatement;
 
 template<typename RD=void>
@@ -72,6 +74,7 @@ class Visitor {
   virtual void visitFuncCallExpression(FuncCallExpression<RD>& expr)=0;
   virtual void visitExpressionStatement(ExpressionStatement<RD>& stmt)=0;
   virtual void visitIfStatement(IfStatement<RD>& stmt)=0;
+  virtual void visitForCondition(ForCondition<RD>& stmt)=0;
   virtual void visitReturnStatement(ReturnStatement<RD>& stmt)=0;
   virtual void visitBlock(Block<RD>& block)=0;
   virtual void visitFuncDecl(FuncDecl<RD>& funcDecl)=0;

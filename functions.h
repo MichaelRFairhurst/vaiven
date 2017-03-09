@@ -24,12 +24,10 @@ class Function {
   public: 
   Function(const Function& that) = delete;
   Function(asmjit::JitRuntime& runtime,
-      OverkillFunc fptr,
       int argc,
       unique_ptr<FunctionUsage> usage,
-      ast::FuncDecl<TypedLocationInfo>* ast,
-      int worstSize)
-    : runtime(runtime), fptr(fptr), argc(argc), usage(std::move(usage)), ast(ast), worstSize(worstSize) {};
+      ast::FuncDecl<TypedLocationInfo>* ast)
+    : runtime(runtime), argc(argc), usage(std::move(usage)), ast(ast) {};
 
   ~Function() {
     runtime.release(fptr);
@@ -50,12 +48,15 @@ class Functions {
   public:
   asmjit::JitRuntime runtime;
 
-  void addFunc(string name, asmjit::CodeHolder* holder, int argc, unique_ptr<FunctionUsage> usage,
+  void prepareFunc(string name, int argc, unique_ptr<FunctionUsage> usage,
       ast::FuncDecl<TypedLocationInfo>* ast) {
+    funcs[name] = unique_ptr<Function>(new Function(runtime, argc, std::move(usage), ast));
+  }
+
+  void finalizeFunc(string name, asmjit::CodeHolder* holder) {
     int worstSize = holder->getCodeSize();
-    OverkillFunc fptr;
-    runtime.add(&fptr, holder);
-    funcs[name] = unique_ptr<Function>(new Function(runtime, fptr, argc, std::move(usage), ast, worstSize));
+    runtime.add(&funcs[name]->fptr, holder);
+    funcs[name]->worstSize = worstSize;
   }
 
   // private:

@@ -33,6 +33,10 @@ void Compiler::visitIfStatement(IfStatement<TypedLocationInfo>& stmt) {
   asm.bind(lafter);
 }
 
+void Compiler::visitForCondition(ForCondition<TypedLocationInfo>& stmt) {
+  throw "not supported";
+}
+
 void Compiler::visitReturnStatement(ReturnStatement<TypedLocationInfo>& stmt) {
   stmt.expr->accept(*this);
   asm.ret();
@@ -58,6 +62,7 @@ void Compiler::visitFuncDecl(FuncDecl<TypedLocationInfo>& decl) {
   void* usageMem = malloc(sizeof(FunctionUsage) + sizeof(ArgumentShape) * decl.args.size());
   unique_ptr<FunctionUsage> usage(new (usageMem) FunctionUsage());
 
+  funcs.prepareFunc(decl.name, decl.args.size(), std::move(usage), &decl);
   //generateTypeShapePrelog(decl, &*usage);
 
   //typeErrorLabel = asm.newLabel();
@@ -84,7 +89,7 @@ void Compiler::visitFuncDecl(FuncDecl<TypedLocationInfo>& decl) {
   //generateOptimizeProlog(decl, sig);
   //generateTypeErrorProlog();
 
-  funcs.addFunc(decl.name, &codeHolder, decl.args.size(), std::move(usage), &decl);
+  funcs.finalizeFunc(decl.name, &codeHolder);
 }
 
 void Compiler::visitExpressionStatement(ExpressionStatement<TypedLocationInfo>& stmt) {

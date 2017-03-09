@@ -43,6 +43,7 @@ public:
 
 void printExpressionStream(Parser& parser) {
   Functions funcs;
+  Scope<Value> globalScope;
   FileLogger logger(stdout);
   PrintErrorHandler eh;
   unique_ptr<ast::Node<> > cur = parser.parseLogicalGroup();
@@ -76,7 +77,7 @@ void printExpressionStream(Parser& parser) {
     }
 
     cout << "=";
-    visitor::Interpreter interpreter(funcs);
+    visitor::Interpreter interpreter(funcs, globalScope);
     //std::vector<int> args;
     //args.push_back(1); args.push_back(2); args.push_back(3);
     //args.push_back(4); args.push_back(5); args.push_back(6);

@@ -63,7 +63,7 @@ void JumpingCompiler::visitInequalityExpression(InequalityExpression<TypedLocati
 void JumpingCompiler::visitGtExpression(GtExpression<TypedLocationInfo>& expr) {
   Location& left_loc = expr.left->resolvedData.location;
   Location& right_loc = expr.right->resolvedData.location;
-  bool backwardsCmp = left_loc.type != LOCATION_TYPE_IMM && right_loc.type == LOCATION_TYPE_IMM;
+  bool backwardsCmp = left_loc.type == LOCATION_TYPE_IMM && right_loc.type != LOCATION_TYPE_IMM;
   compiler.doCmpIntExpression(*expr.left, *expr.right);
   if (jmpFalse) {
     if (backwardsCmp) {
@@ -84,7 +84,7 @@ void JumpingCompiler::visitGtExpression(GtExpression<TypedLocationInfo>& expr) {
 void JumpingCompiler::visitGteExpression(GteExpression<TypedLocationInfo>& expr) {
   Location& left_loc = expr.left->resolvedData.location;
   Location& right_loc = expr.right->resolvedData.location;
-  bool backwardsCmp = left_loc.type != LOCATION_TYPE_IMM && right_loc.type == LOCATION_TYPE_IMM;
+  bool backwardsCmp = left_loc.type == LOCATION_TYPE_IMM && right_loc.type != LOCATION_TYPE_IMM;
   compiler.doCmpIntExpression(*expr.left, *expr.right);
   if (jmpFalse) {
     if (backwardsCmp) {
@@ -105,7 +105,7 @@ void JumpingCompiler::visitGteExpression(GteExpression<TypedLocationInfo>& expr)
 void JumpingCompiler::visitLtExpression(LtExpression<TypedLocationInfo>& expr) {
   Location& left_loc = expr.left->resolvedData.location;
   Location& right_loc = expr.right->resolvedData.location;
-  bool backwardsCmp = left_loc.type != LOCATION_TYPE_IMM && right_loc.type == LOCATION_TYPE_IMM;
+  bool backwardsCmp = left_loc.type == LOCATION_TYPE_IMM && right_loc.type != LOCATION_TYPE_IMM;
   compiler.doCmpIntExpression(*expr.left, *expr.right);
   if (jmpFalse) {
     if (backwardsCmp) {
@@ -126,7 +126,7 @@ void JumpingCompiler::visitLtExpression(LtExpression<TypedLocationInfo>& expr) {
 void JumpingCompiler::visitLteExpression(LteExpression<TypedLocationInfo>& expr) {
   Location& left_loc = expr.left->resolvedData.location;
   Location& right_loc = expr.right->resolvedData.location;
-  bool backwardsCmp = left_loc.type != LOCATION_TYPE_IMM && right_loc.type == LOCATION_TYPE_IMM;
+  bool backwardsCmp = left_loc.type == LOCATION_TYPE_IMM && right_loc.type != LOCATION_TYPE_IMM;
   compiler.doCmpIntExpression(*expr.left, *expr.right);
   if (jmpFalse) {
     if (backwardsCmp) {
@@ -154,6 +154,10 @@ void JumpingCompiler::visitExpressionStatement(ExpressionStatement<TypedLocation
 
 void JumpingCompiler::visitIfStatement(IfStatement<TypedLocationInfo>& stmt) {
   compiler.visitIfStatement(stmt);
+}
+
+void JumpingCompiler::visitForCondition(ForCondition<TypedLocationInfo>& stmt) {
+  compiler.visitForCondition(stmt);
 }
 
 void JumpingCompiler::visitReturnStatement(ReturnStatement<TypedLocationInfo>& stmt) {

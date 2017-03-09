@@ -25,7 +25,7 @@ class Tokenizer {
     unique_ptr<Token> tokenizeEndOrElse();
     unique_ptr<Token> tokenizeRet();
     unique_ptr<Token> tokenizeDo();
-    unique_ptr<Token> tokenizeFnOrFalse();
+    unique_ptr<Token> tokenizeFnOrFalseOrFor();
     unique_ptr<Token> tokenizeTrue();
     unique_ptr<Token> tokenizeOf();
     unique_ptr<Token> tokenizeVar();
@@ -43,6 +43,7 @@ enum TokenType {
   TOKEN_TYPE_OF,
   TOKEN_TYPE_VAR,
   TOKEN_TYPE_RET,
+  TOKEN_TYPE_FOR,
   TOKEN_TYPE_ELSE,
   TOKEN_TYPE_DO,
   TOKEN_TYPE_TRUE,

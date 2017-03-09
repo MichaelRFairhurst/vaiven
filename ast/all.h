@@ -21,4 +21,5 @@
 #include "func_call_expression.h"
 #include "var_decl.h"
 #include "if_statement.h"
+#include "for_cond.h"
 #include "return_statement.h"

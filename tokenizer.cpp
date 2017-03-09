@@ -225,7 +225,7 @@ unique_ptr<Token> Tokenizer::tokenizeOf() {
   return unique_ptr<Token>(new Token(TOKEN_TYPE_OF));
 }
 
-unique_ptr<Token> Tokenizer::tokenizeFnOrFalse() {
+unique_ptr<Token> Tokenizer::tokenizeFnOrFalseOrFor() {
   char c = input.peek();
   if (c == 'n') {
     input.get();
@@ -282,6 +282,27 @@ unique_ptr<Token> Tokenizer::tokenizeFnOrFalse() {
     }
 
     return unique_ptr<Token>(new Token(TOKEN_TYPE_FALSE));
+  } else if (c == 'o') {
+    input.get();
+    c = input.peek();
+    if (c != 'r') {
+      vector<char> buffer;
+      buffer.reserve(ID_BUFFER_RESERVE_SIZE);
+      buffer.push_back('f');
+      buffer.push_back('o');
+      return tokenizeId(buffer);
+    }
+    input.get();
+    if (isIdChar(input.peek())) {
+      vector<char> buffer;
+      buffer.reserve(ID_BUFFER_RESERVE_SIZE);
+      buffer.push_back('f');
+      buffer.push_back('o');
+      buffer.push_back('r');
+      return tokenizeId(buffer);
+    }
+
+    return unique_ptr<Token>(new Token(TOKEN_TYPE_FOR));
   }
 
   vector<char> buffer;
@@ -387,7 +408,7 @@ unique_ptr<Token> Tokenizer::next() {
     case 'e':
       return tokenizeEndOrElse();
     case 'f':
-      return tokenizeFnOrFalse();
+      return tokenizeFnOrFalseOrFor();
     case 'o':
       return tokenizeOf();
     case 'v':

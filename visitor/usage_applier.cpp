@@ -19,6 +19,16 @@ void UsageApplier::visitIfStatement(IfStatement<TypedLocationInfo>& stmt) {
   }
 }
 
+void UsageApplier::visitForCondition(ForCondition<TypedLocationInfo>& stmt) {
+  stmt.condition->accept(*this);
+
+  for(vector<unique_ptr<Statement<TypedLocationInfo> > >::iterator it = stmt.statements.begin();
+      it != stmt.statements.end();
+      ++it) {
+    (*it)->accept(*this);
+  }
+}
+
 void UsageApplier::visitReturnStatement(ReturnStatement<TypedLocationInfo>& stmt) {
   stmt.expr->accept(*this);
 }

@@ -44,6 +44,30 @@ void AutoCompiler::visitIfStatement(IfStatement<TypedLocationInfo>& stmt) {
   cc.bind(lafter);
 }
 
+void AutoCompiler::visitForCondition(ForCondition<TypedLocationInfo>& stmt) {
+  Label lcheck = cc.newLabel();
+  Label lafter = cc.newLabel();
+  cc.bind(lcheck);
+
+  JumpingCompiler jc(cc, *this, lafter, true /* jump on false */);
+  stmt.condition->accept(jc);
+
+  if (!jc.didJmp) {
+    typecheckBool(vRegs.top(), stmt.condition->resolvedData);
+    cc.cmp(vRegs.top().r32(), 0);
+    vRegs.pop();
+    cc.je(lafter);
+  }
+
+  for(vector<unique_ptr<Statement<TypedLocationInfo> > >::iterator it = stmt.statements.begin();
+      it != stmt.statements.end();
+      ++it) {
+    (*it)->accept(*this);
+  }
+  cc.jmp(lcheck);
+  cc.bind(lafter);
+}
+
 void AutoCompiler::visitReturnStatement(ReturnStatement<TypedLocationInfo>& stmt) {
   stmt.expr->accept(*this);
   box(vRegs.top(), stmt.expr->resolvedData);
@@ -82,15 +106,10 @@ void AutoCompiler::visitFuncCallExpression(FuncCallExpression<TypedLocationInfo>
   FuncSignature sig;
   sig.init(CallConv::kIdHost, TypeIdOf<int64_t>::kTypeId, sigArgs, expr.parameters.size());
 
-  CCFuncCall* call;
-  if (expr.name == curFuncName) {
-    call = cc.call(curFunc->getLabel(), sig);
-  } else {
-    X86Gp lookup = cc.newUInt64();
-    cc.mov(lookup, (unsigned long long) &funcs.funcs[expr.name]->fptr);
-    cc.mov(lookup, x86::ptr(lookup));
-    call = cc.call(lookup, sig);
-  }
+  // careful that this always handles self-optimization
+  X86Gp lookup = cc.newUInt64();
+  cc.mov(lookup, (unsigned long long) &funcs.funcs[expr.name]->fptr);
+  CCFuncCall* call = cc.call(x86::ptr(lookup), sig);
 
   for (int i = 0; i < expr.parameters.size(); ++i) {
     call->setArg(i, paramRegs[i]);
@@ -115,7 +134,11 @@ void AutoCompiler::visitFuncDecl(FuncDecl<TypedLocationInfo>& decl) {
 
   // allocate a variably sized FunctionUsage with room for shapes
   void* usageMem = malloc(sizeof(FunctionUsage) + sizeof(ArgumentShape) * decl.args.size());
-  unique_ptr<FunctionUsage> usage(new (usageMem) FunctionUsage());
+  FunctionUsage* usage = (FunctionUsage*) usageMem;
+  unique_ptr<FunctionUsage> savedUsage(new (usage) FunctionUsage());
+
+  // prepare it so it knows how to recurse
+  funcs.prepareFunc(decl.name, decl.args.size(), std::move(savedUsage), &decl);
 
   X86Gp checkReg = cc.newUInt64();
   X86Gp orReg = cc.newUInt64();
@@ -125,7 +148,7 @@ void AutoCompiler::visitFuncDecl(FuncDecl<TypedLocationInfo>& decl) {
     argRegs.push_back(arg);
   }
 
-  generateTypeShapePrelog(decl, &*usage);
+  generateTypeShapePrelog(decl, usage);
 
   typeErrorLabel = cc.newLabel();
 
@@ -152,7 +175,7 @@ void AutoCompiler::visitFuncDecl(FuncDecl<TypedLocationInfo>& decl) {
   cc.endFunc();
   cc.finalize();
 
-  funcs.addFunc(decl.name, &codeHolder, decl.args.size(), std::move(usage), &decl);
+  funcs.finalizeFunc(decl.name, &codeHolder);
 }
 
 void AutoCompiler::generateTypeShapePrelog(FuncDecl<TypedLocationInfo>& decl, FunctionUsage* usage) {
@@ -213,9 +236,17 @@ void AutoCompiler::generateOptimizeProlog(FuncDecl<TypedLocationInfo>& decl, Fun
   recompileCall->setArg(1, declReg);
   recompileCall->setRet(0, optimizedAddr);
 
+  // hack bugfix workaround
+  vector<X86Gp> argWorkarounds;
+  for (int i = 0; i < decl.args.size(); ++i) {
+    X86Gp argRegWorkaround = cc.newUInt64();
+    cc.mov(argRegWorkaround, argRegs[i]);
+    argWorkarounds.push_back(argRegWorkaround);
+  }
   CCFuncCall* optimizedCall = cc.call(optimizedAddr, sig);
   for (int i = 0; i < decl.args.size(); ++i) {
-    optimizedCall->setArg(i, argRegs[i]);
+    optimizedCall->setArg(i, argWorkarounds[i]);
+    //optimizedCall->setArg(i, argRegs[i]);
   }
   X86Gp optimizedRet = cc.newUInt64();
   optimizedCall->setRet(0, optimizedRet);

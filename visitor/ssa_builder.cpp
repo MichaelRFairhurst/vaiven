@@ -31,10 +31,6 @@ void SsaBuilder::visitIfStatement(IfStatement<TypedLocationInfo>& stmt) {
   curBlock->exits.push_back(unique_ptr<BlockExit>(jmpToFalse));
   UnconditionalBlockExit* jmpToTrue = new UnconditionalBlockExit(trueBlock);
   curBlock->exits.push_back(unique_ptr<BlockExit>(jmpToTrue));
-  UnconditionalBlockExit* jmpFromTrue = new UnconditionalBlockExit(followBlock);
-  trueBlock->exits.push_back(unique_ptr<BlockExit>(jmpFromTrue));
-  UnconditionalBlockExit* jmpFromFalse = new UnconditionalBlockExit(followBlock);
-  falseBlock->exits.push_back(unique_ptr<BlockExit>(jmpFromFalse));
 
   unordered_set<string> prevVarsToPhi = varsToPhi;
   map<string, Instruction*> scopeStatePreIf;
@@ -49,6 +45,10 @@ void SsaBuilder::visitIfStatement(IfStatement<TypedLocationInfo>& stmt) {
         ++it) {
       (*it)->accept(*this);
     }
+
+    // curBlock is now trueBlock or some block after it
+    UnconditionalBlockExit* jmpFromTrue = new UnconditionalBlockExit(followBlock);
+    curBlock->exits.push_back(unique_ptr<BlockExit>(jmpFromTrue));
 
     for (unordered_set<string>::iterator it = varsToPhi.begin(); it != varsToPhi.end(); ++it) {
       modifiedTrue[*it] = scope.get(*it);
@@ -67,6 +67,10 @@ void SsaBuilder::visitIfStatement(IfStatement<TypedLocationInfo>& stmt) {
         ++it) {
       (*it)->accept(*this);
     }
+
+    // curBlock is now falseBlock or some block after it
+    UnconditionalBlockExit* jmpFromFalse = new UnconditionalBlockExit(followBlock);
+    curBlock->exits.push_back(unique_ptr<BlockExit>(jmpFromFalse));
 
     // phis have to be in the follow block
     curBlock = followBlock;
@@ -98,6 +102,74 @@ void SsaBuilder::visitIfStatement(IfStatement<TypedLocationInfo>& stmt) {
   }
 
   // restore previous varsToPhi, some are from this scope which doesn't affect upper ifs
+  varsToPhi.insert(prevVarsToPhi.begin(), prevVarsToPhi.end());
+  unordered_set<string>::iterator it = varsToPhi.begin();
+  while (it != varsToPhi.end()) {
+    if (!scope.inHigherScope(*it)) {
+      it = varsToPhi.erase(it);
+    } else {
+      ++it;
+    }
+  }
+}
+
+void SsaBuilder::visitForCondition(ForCondition<TypedLocationInfo>& stmt) {
+  unordered_set<string> prevVarsToPhi = varsToPhi;
+  map<string, Instruction*> scopeStatePreFor;
+  scope.fill(scopeStatePreFor);
+
+  // any var could change. Make them all PHIs, if they aren't changed the PHI will be eliminated
+  map<string, Instruction*> phis;
+  for (auto it = scopeStatePreFor.begin(); it != scopeStatePreFor.end(); ++it) {
+    PhiInstr* phi = new PhiInstr();
+    phi->inputs.push_back(scopeStatePreFor[it->first]);
+    it->second->usages.insert(phi);
+    scope.replace(it->first, phi);
+    phis[it->first] = phi;
+    emit(phi);
+  }
+  
+  ssa::Block* checkBlock = new ssa::Block();
+  curBlock->next.reset(checkBlock);
+  ssa::Block* bodyBlock = new ssa::Block();
+  checkBlock->next.reset(bodyBlock);
+  ssa::Block* followBlock = new ssa::Block();
+
+  curBlock = checkBlock;
+
+  stmt.condition->accept(*this);
+  emit(new NotInstr(cur));
+  JmpCcInstr* jmp = new JmpCcInstr(cur);
+
+  ConditionalBlockExit* jmpToFollow = new ConditionalBlockExit(jmp, followBlock);
+  curBlock->exits.push_back(unique_ptr<BlockExit>(jmpToFollow));
+  UnconditionalBlockExit* jmpToBody = new UnconditionalBlockExit(bodyBlock);
+  curBlock->exits.push_back(unique_ptr<BlockExit>(jmpToBody));
+
+  {
+    ScopeFrame<Instruction*> initScope(scope);
+    curBlock = bodyBlock;
+    for(vector<unique_ptr<Statement<TypedLocationInfo> > >::iterator it = stmt.statements.begin();
+        it != stmt.statements.end();
+        ++it) {
+      (*it)->accept(*this);
+    }
+
+    // curBlock is now bodyBlock or some block after it
+    UnconditionalBlockExit* jmpToCheck = new UnconditionalBlockExit(checkBlock);
+    curBlock->exits.push_back(unique_ptr<BlockExit>(jmpToCheck));
+    curBlock->next.reset(followBlock);
+
+    for (unordered_set<string>::iterator it = varsToPhi.begin(); it != varsToPhi.end(); ++it) {
+      phis[*it]->inputs.push_back(scope.get(*it));
+      scope.get(*it)->usages.insert(phis[*it]);
+      scope.replace(*it, phis[*it]);
+    }
+  }
+
+  curBlock = followBlock;
+
+  // restore previous varsToPhi, preserving higher scope mutations which should stay in varsToPhi
   varsToPhi.insert(prevVarsToPhi.begin(), prevVarsToPhi.end());
   unordered_set<string>::iterator it = varsToPhi.begin();
   while (it != varsToPhi.end()) {

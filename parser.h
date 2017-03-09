@@ -21,6 +21,7 @@ class Parser {
   unique_ptr<ast::Block<> > parseBlock();
   unique_ptr<ast::VarDecl<> > parseVarDecl();
   unique_ptr<ast::IfStatement<> > parseIfStatement();
+  unique_ptr<ast::ForCondition<> > parseForCondition();
   unique_ptr<ast::ReturnStatement<> > parseReturnStatement();
   unique_ptr<ast::ExpressionStatement<> > parseExpressionStatement();
   unique_ptr<ast::Expression<> > parseExpression();
