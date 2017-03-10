@@ -1,14 +1,14 @@
 #!/bin/bash
 
 cat <<EOF
-fn loop is
-  var x = 1;
-  for x < 50000000 do
-    x + x - x * x / x;
-    x = x + 1;
+fn loop
+  var x = 1
+  for x < 50000000
+    x + x - x * x / x
+    x = x + 1
   end
 end
 
-loop();
+loop()
 
 EOF

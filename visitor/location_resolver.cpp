@@ -80,12 +80,17 @@ void LocationResolver::visitReturnStatement(ReturnStatement<>& stmt) {
 
 void LocationResolver::visitVarDecl(VarDecl<>& varDecl) {
   varDecl.expr->accept(*this);
-  scope.put(varDecl.varname, true);
   unique_ptr<Expression<TypedLocationInfo> > expr(move(exprCopyStack.top()));
   exprCopyStack.pop();
-  TypedLocationInfo void_(Location::spilled(), VAIVEN_STATIC_TYPE_VOID, false);
+  TypedLocationInfo loc;
+  if (scope.contains(varDecl.varname) || argIndexes.find(varDecl.varname) != argIndexes.end()) {
+    loc = TypedLocationInfo(Location::arg(-1), VAIVEN_STATIC_TYPE_VOID, false);
+  } else {
+    loc = TypedLocationInfo(Location::spilled(), VAIVEN_STATIC_TYPE_VOID, false);
+    scope.put(varDecl.varname, true);
+  }
   unique_ptr<Statement<TypedLocationInfo> > copy(new VarDecl<TypedLocationInfo>(varDecl.varname, move(expr)));
-  copy->resolvedData = void_;
+  copy->resolvedData = loc;
   stmtCopyStack.push(copy.release());
 }
 
@@ -164,7 +169,7 @@ void LocationResolver::visitAssignmentExpression(AssignmentExpression<>& expr) {
     if (scope.contains(expr.varname)) {
       loc = TypedLocationInfo(Location::local(), VAIVEN_STATIC_TYPE_UNKNOWN, true);
     } else {
-      throw "unknown var name";
+      loc = TypedLocationInfo(Location::arg(-1), VAIVEN_STATIC_TYPE_UNKNOWN, true);
     }
   } else {
     int argNum = argIndexes[expr.varname];
@@ -236,13 +241,15 @@ void LocationResolver::visitIntegerExpression(IntegerExpression<>& expr) {
 }
 void LocationResolver::visitVariableExpression(VariableExpression<>& expr) {
   if (argIndexes.find(expr.id) == argIndexes.end()) {
+    unique_ptr<Expression<TypedLocationInfo> > copy(new VariableExpression<TypedLocationInfo>(expr.id));
+    copy->resolvedData = TypedLocationInfo(Location::local(), VAIVEN_STATIC_TYPE_UNKNOWN, true);
     if (scope.contains(expr.id)) {
-      unique_ptr<Expression<TypedLocationInfo> > copy(new VariableExpression<TypedLocationInfo>(expr.id));
       copy->resolvedData = TypedLocationInfo(Location::local(), VAIVEN_STATIC_TYPE_UNKNOWN, true);
-      exprCopyStack.push(copy.release());
-      return;
+    } else {
+      copy->resolvedData = TypedLocationInfo(Location::arg(-1), VAIVEN_STATIC_TYPE_UNKNOWN, true);
     }
-    throw "unknown var name";
+    exprCopyStack.push(copy.release());
+    return;
   }
 
   int argNum = argIndexes[expr.id];

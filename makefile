@@ -85,6 +85,7 @@ MAIN_OBJECTS = \
 	runtime_error.o \
 	optimize.o \
 	functions.o \
+	error_compiler.o \
 
 DEBUGCXXFLAGS := -O0 -g -DSSA_DIAGNOSTICS -DDISASSEMBLY_DIAGNOSTICS -DOPTIMIZATION_DIAGNOSTICS
 RELEASECXXFLAGS := -O3 -DNDEBUG

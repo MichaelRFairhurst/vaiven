@@ -37,24 +37,24 @@ unique_ptr<ast::FuncDecl<> > Parser::parseFuncDecl() {
   if (current->type != TOKEN_TYPE_FN) {
     throw string("expected fn");
   }
-  next();
+  nextNoEol();
   if(current->type != TOKEN_TYPE_ID) {
     throw string("expected function name");
   }
   unique_ptr<StringToken> nametok(static_cast<StringToken*>(current.release()));
   string name = nametok->lexeme;
-  next();
+  nextOr(TOKEN_TYPE_IS);
   vector<string> args;
   if (current->type == TOKEN_TYPE_OF) {
-    next();
+    nextNoEol();
     while(current->type == TOKEN_TYPE_ID) {
       unique_ptr<StringToken> idtok(static_cast<StringToken*>(current.release()));
-      next();
+      nextOr(TOKEN_TYPE_COMMA);
       args.push_back(idtok->lexeme);
       if (current->type != TOKEN_TYPE_COMMA) {
         break;
       }
-      next();
+      nextNoEol();
     }
   }
 
@@ -62,12 +62,12 @@ unique_ptr<ast::FuncDecl<> > Parser::parseFuncDecl() {
     throw string("expected is");
   }
 
-  next();
+  nextNoEol();
   vector<unique_ptr<ast::Statement<> > > stmts;
   while (current->type != TOKEN_TYPE_EOF
       && current->type != TOKEN_TYPE_END) {
     stmts.push_back(parseStatement());
-    next(); // statements don't consume their final token
+    nextNoEol(); // statements don't consume their final token
   }
 
   if (current->type != TOKEN_TYPE_END) {
@@ -94,17 +94,17 @@ unique_ptr<ast::Statement<> > Parser::parseStatement() {
 }
 
 unique_ptr<ast::VarDecl<> > Parser::parseVarDecl() {
-  next();
+  nextNoEol();
   if(current->type != TOKEN_TYPE_ID) {
     throw string("expected var name");
   }
   unique_ptr<StringToken> nametok(static_cast<StringToken*>(current.release()));
   string name = nametok->lexeme;
-  next();
+  nextNoEol();
   if(current->type != TOKEN_TYPE_EQ) {
     throw string("expected =");
   }
-  next();
+  nextNoEol();
   unique_ptr<ast::Expression<> > initializer = parseExpression();
   if (current->type != TOKEN_TYPE_SEMICOLON) {
     throw string("missing end semicolon");
@@ -120,7 +120,7 @@ unique_ptr<ast::Block<> > Parser::parseBlock() {
       && current->type != TOKEN_TYPE_CLOSE_BRACE) {
     stmts.push_back(parseStatement());
 
-    next(); // statements don't consume their final token
+    nextNoEol(); // statements don't consume their final token
   }
 
   if (current->type != TOKEN_TYPE_CLOSE_BRACE) {
@@ -133,12 +133,14 @@ unique_ptr<ast::Block<> > Parser::parseBlock() {
 
 unique_ptr<ast::IfStatement<> > Parser::parseIfStatement() {
   next();
+  newlineReplacement = TOKEN_TYPE_DO;
   unique_ptr<ast::Expression<> > condition(parseExpression());
+  newlineReplacement = TOKEN_TYPE_SEMICOLON;
 
   if (current->type != TOKEN_TYPE_DO) {
     throw string("missing end");
   }
-  next();
+  nextNoEol();
 
   vector<unique_ptr<ast::Statement<> > > trueStmts;
   vector<unique_ptr<ast::Statement<> > > falseStmts;
@@ -147,20 +149,26 @@ unique_ptr<ast::IfStatement<> > Parser::parseIfStatement() {
       && current->type != TOKEN_TYPE_END) {
     trueStmts.push_back(parseStatement());
 
-    next(); // statements don't consume their final token
+    nextNoEol(); // statements don't consume their final token
   }
 
   if (current->type == TOKEN_TYPE_ELSE) {
-    next();
-    while (current->type != TOKEN_TYPE_EOF
-        && current->type != TOKEN_TYPE_END) {
+    nextOr(TOKEN_TYPE_DO);
+    if (current->type != TOKEN_TYPE_DO) {
       falseStmts.push_back(parseStatement());
+    } else {
+      nextNoEol();
+      while (current->type != TOKEN_TYPE_EOF
+          && current->type != TOKEN_TYPE_END) {
+        falseStmts.push_back(parseStatement());
 
-      next(); // statements don't consume their final token
+        nextNoEol(); // statements don't consume their final token
+      }
+      if (current->type != TOKEN_TYPE_END) {
+        throw string("missing end");
+      }
     }
-  }
-
-  if (current->type != TOKEN_TYPE_END) {
+  } else if (current->type != TOKEN_TYPE_END) {
     throw string("missing end");
   }
 
@@ -172,19 +180,21 @@ unique_ptr<ast::IfStatement<> > Parser::parseIfStatement() {
 
 unique_ptr<ast::ForCondition<> > Parser::parseForCondition() {
   next();
+  newlineReplacement = TOKEN_TYPE_DO;
   unique_ptr<ast::Expression<> > condition(parseExpression());
+  newlineReplacement = TOKEN_TYPE_SEMICOLON;
 
   if (current->type != TOKEN_TYPE_DO) {
     throw string("missing end");
   }
-  next();
+  nextNoEol();
 
   vector<unique_ptr<ast::Statement<> > > stmts;
   while (current->type != TOKEN_TYPE_EOF
       && current->type != TOKEN_TYPE_END) {
     stmts.push_back(parseStatement());
 
-    next(); // statements don't consume their final token
+    nextNoEol(); // statements don't consume their final token
   }
 
   if (current->type != TOKEN_TYPE_END) {
@@ -233,7 +243,7 @@ unique_ptr<ast::Expression<> > Parser::parseAssignmentExpression() {
       && current->type != TOKEN_TYPE_EOF) {
 
     if (current->type == TOKEN_TYPE_EQ) {
-      next();
+      nextNoEol();
       unique_ptr<ast::Expression<> > rhs = parseAssignmentExpression();
       AssignmentProducer assignmentProducer(std::move(rhs));
       lhs->accept(assignmentProducer);
@@ -258,11 +268,11 @@ unique_ptr<ast::Expression<> > Parser::parseEqualityExpression() {
       && current->type != TOKEN_TYPE_EOF) {
 
     if (current->type == TOKEN_TYPE_EQEQ) {
-      next();
+      nextNoEol();
       acc = unique_ptr<ast::Expression<> >(new ast::EqualityExpression<> (
           std::move(acc), parseComparisonExpression()));
     } else if (current->type == TOKEN_TYPE_BANGEQ) {
-      next();
+      nextNoEol();
       acc = unique_ptr<ast::Expression<> >(new ast::InequalityExpression<> (
           std::move(acc), parseComparisonExpression()));
     } else {
@@ -287,19 +297,19 @@ unique_ptr<ast::Expression<> > Parser::parseComparisonExpression() {
       && current->type != TOKEN_TYPE_EOF) {
 
     if (current->type == TOKEN_TYPE_GT) {
-      next();
+      nextNoEol();
       acc = unique_ptr<ast::Expression<> >(new ast::GtExpression<> (
           std::move(acc), parseAddSubExpression()));
     } else if (current->type == TOKEN_TYPE_GTE) {
-      next();
+      nextNoEol();
       acc = unique_ptr<ast::Expression<> >(new ast::GteExpression<> (
           std::move(acc), parseAddSubExpression()));
     } else if (current->type == TOKEN_TYPE_LT) {
-      next();
+      nextNoEol();
       acc = unique_ptr<ast::Expression<> >(new ast::LtExpression<> (
           std::move(acc), parseAddSubExpression()));
     } else if (current->type == TOKEN_TYPE_LTE) {
-      next();
+      nextNoEol();
       acc = unique_ptr<ast::Expression<> >(new ast::LteExpression<> (
           std::move(acc), parseAddSubExpression()));
     } else {
@@ -328,11 +338,11 @@ unique_ptr<ast::Expression<> > Parser::parseAddSubExpression() {
       && current->type != TOKEN_TYPE_EOF) {
 
     if (current->type == TOKEN_TYPE_PLUS) {
-      next();
+      nextNoEol();
       acc = unique_ptr<ast::Expression<> >(new ast::AdditionExpression<> (
           std::move(acc), parseDivMulExpression()));
     } else if (current->type == TOKEN_TYPE_MINUS) {
-      next();
+      nextNoEol();
       acc = unique_ptr<ast::Expression<> >(new ast::SubtractionExpression<> (
           std::move(acc), parseDivMulExpression()));
     } else {
@@ -365,11 +375,11 @@ unique_ptr<ast::Expression<> > Parser::parseDivMulExpression() {
       && current->type != TOKEN_TYPE_EOF) {
 
     if (current->type == TOKEN_TYPE_DIVIDE) {
-      next();
+      nextNoEol();
       acc = unique_ptr<ast::Expression<> >(new ast::DivisionExpression<> (
           std::move(acc), parseValue()));
     } else if (current->type == TOKEN_TYPE_MULTIPLY) {
-      next();
+      nextNoEol();
       acc = unique_ptr<ast::Expression<> >(new ast::MultiplicationExpression<> (
           std::move(acc), parseValue()));
     } else {
@@ -389,10 +399,15 @@ unique_ptr<ast::Expression<> > Parser::parseValue() {
   }
 
   if (current->type == TOKEN_TYPE_OPEN_PAREN) {
-    next();
+    TokenType prevNewlineReplacement = newlineReplacement;
+    newlineReplacement = TOKEN_TYPE_ERROR; // no newline replacement
+    nextNoEol();
     unique_ptr<ast::Expression<> > expr(parseExpression());
-    // TODO check it actually is TYPE_CLOSE_PAREN
-    next();
+    if (current->type != TOKEN_TYPE_CLOSE_PAREN) {
+      throw "not closed";
+    }
+    nextNoEol();
+    newlineReplacement = prevNewlineReplacement;
     return std::move(expr);
   }
 
@@ -400,17 +415,20 @@ unique_ptr<ast::Expression<> > Parser::parseValue() {
     unique_ptr<StringToken> idtok(static_cast<StringToken*>(current.release()));
     next();
     if (current->type == TOKEN_TYPE_OPEN_PAREN) {
-      next();
+      nextNoEol();
       vector<unique_ptr<ast::Expression<> > > params;
       while (current->type != TOKEN_TYPE_EOF
           && current->type != TOKEN_TYPE_CLOSE_PAREN) {
+        TokenType prevNewlineReplacement = newlineReplacement;
+        newlineReplacement = TOKEN_TYPE_COMMA;
         params.push_back(parseExpression());
+        newlineReplacement = prevNewlineReplacement;
 
         if (current->type != TOKEN_TYPE_COMMA) {
           break;
         }
 
-        next();
+        nextNoEol();
       }
 
       if (current->type != TOKEN_TYPE_CLOSE_PAREN) {
@@ -435,7 +453,7 @@ unique_ptr<ast::Expression<> > Parser::parseValue() {
   }
 
   if (current->type == TOKEN_TYPE_BANG) {
-    next();
+    nextNoEol();
     return unique_ptr<ast::Expression<> >(new ast::NotExpression<> (parseExpression()));
   }
   
@@ -443,6 +461,18 @@ unique_ptr<ast::Expression<> > Parser::parseValue() {
 }
 
 void Parser::next() {
-  current = tokenizer.next();
+  if (newlineReplacement == TOKEN_TYPE_ERROR) {
+    current = tokenizer.next();
+  } else {
+    current = tokenizer.nextOr(newlineReplacement);
+  }
+}
+
+void Parser::nextNoEol() {
+  current = tokenizer.nextNoEol();
+}
+
+void Parser::nextOr(TokenType newlineType) {
+  current = tokenizer.nextOr(newlineType);
 }
 

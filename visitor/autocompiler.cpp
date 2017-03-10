@@ -23,7 +23,7 @@ void AutoCompiler::visitIfStatement(IfStatement<TypedLocationInfo>& stmt) {
   stmt.condition->accept(jc);
 
   if (!jc.didJmp) {
-    typecheckBool(vRegs.top(), stmt.condition->resolvedData);
+    error.typecheckBool(vRegs.top(), stmt.condition->resolvedData);
     cc.cmp(vRegs.top().r32(), 0);
     vRegs.pop();
     cc.je(lfalse);
@@ -53,7 +53,7 @@ void AutoCompiler::visitForCondition(ForCondition<TypedLocationInfo>& stmt) {
   stmt.condition->accept(jc);
 
   if (!jc.didJmp) {
-    typecheckBool(vRegs.top(), stmt.condition->resolvedData);
+    error.typecheckBool(vRegs.top(), stmt.condition->resolvedData);
     cc.cmp(vRegs.top().r32(), 0);
     vRegs.pop();
     cc.je(lafter);
@@ -75,12 +75,15 @@ void AutoCompiler::visitReturnStatement(ReturnStatement<TypedLocationInfo>& stmt
 }
 
 void AutoCompiler::visitVarDecl(VarDecl<TypedLocationInfo>& varDecl) {
-  X86Gp varReg = cc.newInt64();
-
-  scope.put(varDecl.varname, varReg);
-
   varDecl.expr->accept(*this);
 
+  if (varDecl.resolvedData.location.type == LOCATION_TYPE_ARG) {
+    error.dupVarError();
+    return;
+  }
+
+  X86Gp varReg = cc.newInt64();
+  scope.put(varDecl.varname, varReg);
   cc.mov(varReg, vRegs.top());
   box(varReg, varDecl.expr->resolvedData);
   vRegs.pop();
@@ -88,7 +91,9 @@ void AutoCompiler::visitVarDecl(VarDecl<TypedLocationInfo>& varDecl) {
 
 void AutoCompiler::visitFuncCallExpression(FuncCallExpression<TypedLocationInfo>& expr) {
   if (expr.name != curFuncName && funcs.funcs.find(expr.name) == funcs.funcs.end()) {
-    throw "func not known";
+    error.noFuncError();
+    vRegs.push(cc.newUInt64());
+    return;
   }
   // TODO check arg counts
 
@@ -150,8 +155,6 @@ void AutoCompiler::visitFuncDecl(FuncDecl<TypedLocationInfo>& decl) {
 
   generateTypeShapePrelog(decl, usage);
 
-  typeErrorLabel = cc.newLabel();
-
   TypedLocationInfo endType;
   for(vector<unique_ptr<Statement<TypedLocationInfo> > >::iterator it = decl.statements.begin();
       it != decl.statements.end();
@@ -170,7 +173,7 @@ void AutoCompiler::visitFuncDecl(FuncDecl<TypedLocationInfo>& decl) {
   }
 
   generateOptimizeProlog(decl, sig);
-  generateTypeErrorProlog();
+  error.generateTypeErrorProlog();
 
   cc.endFunc();
   cc.finalize();
@@ -186,10 +189,10 @@ void AutoCompiler::generateTypeShapePrelog(FuncDecl<TypedLocationInfo>& decl, Fu
   optimizeLabel = cc.newLabel();
   X86Gp count = cc.newInt32();
   cc.mov(count, asmjit::x86::dword_ptr((uint64_t) &usage->count));
-  cc.cmp(count, 2);
-  cc.je(optimizeLabel);
   cc.add(count, 1);
   cc.mov(asmjit::x86::dword_ptr((uint64_t) &usage->count), count);
+  cc.cmp(count, HOT_COUNT);
+  cc.je(optimizeLabel);
 
   X86Gp checkReg = cc.newUInt64();
   X86Gp orReg = cc.newUInt64();
@@ -254,16 +257,6 @@ void AutoCompiler::generateOptimizeProlog(FuncDecl<TypedLocationInfo>& decl, Fun
   cc.ret(optimizedRet);
 }
 
-void AutoCompiler::generateTypeErrorProlog() {
-  if (!canThrow) {
-    return;
-  }
-
-  cc.bind(typeErrorLabel);
-  cc.call((size_t) &typeError, FuncSignature0<void>());
-}
-
-
 void AutoCompiler::visitExpressionStatement(ExpressionStatement<TypedLocationInfo>& stmt) {
   stmt.expr->accept(*this);
 }
@@ -282,7 +275,13 @@ void AutoCompiler::visitAssignmentExpression(AssignmentExpression<TypedLocationI
   if (scope.contains(expr.varname)) {
     target = scope.get(expr.varname);
   } else {
-    target = argRegs[expr.resolvedData.location.data.argIndex];
+    int argIndex = expr.resolvedData.location.data.argIndex;
+    if (argIndex == -1) {
+      error.noVarError();
+      return;
+    } else {
+      target = argRegs[expr.resolvedData.location.data.argIndex];
+    }
   }
   box(vRegs.top(), expr.expr->resolvedData);
   cc.mov(target, vRegs.top());
@@ -305,7 +304,7 @@ void AutoCompiler::visitAdditionExpression(AdditionExpression<TypedLocationInfo>
   } else if (leftImm) {
     expr.right->accept(*this);
     X86Gp rhsReg = vRegs.top(); vRegs.pop();
-    typecheckInt(rhsReg, expr.right->resolvedData);
+    error.typecheckInt(rhsReg, expr.right->resolvedData);
     if (right_loc.type != LOCATION_TYPE_ARG && right_loc.type != LOCATION_TYPE_LOCAL) {
       result = rhsReg;
     } else {
@@ -315,7 +314,7 @@ void AutoCompiler::visitAdditionExpression(AdditionExpression<TypedLocationInfo>
   } else if (rightImm) {
     expr.left->accept(*this);
     X86Gp lhsReg = vRegs.top(); vRegs.pop();
-    typecheckInt(lhsReg, expr.left->resolvedData);
+    error.typecheckInt(lhsReg, expr.left->resolvedData);
     if (left_loc.type != LOCATION_TYPE_ARG && left_loc.type != LOCATION_TYPE_LOCAL) {
       result = lhsReg;
     } else {
@@ -327,8 +326,8 @@ void AutoCompiler::visitAdditionExpression(AdditionExpression<TypedLocationInfo>
     X86Gp lhsReg = vRegs.top(); vRegs.pop();
     expr.right->accept(*this);
     X86Gp rhsReg = vRegs.top(); vRegs.pop();
-    typecheckInt(lhsReg, expr.left->resolvedData);
-    typecheckInt(rhsReg, expr.right->resolvedData);
+    error.typecheckInt(lhsReg, expr.left->resolvedData);
+    error.typecheckInt(rhsReg, expr.right->resolvedData);
     if (left_loc.type != LOCATION_TYPE_ARG && left_loc.type != LOCATION_TYPE_LOCAL) {
       result = lhsReg;
     } else if (right_loc.type != LOCATION_TYPE_ARG && right_loc.type != LOCATION_TYPE_LOCAL) {
@@ -357,7 +356,7 @@ void AutoCompiler::visitSubtractionExpression(SubtractionExpression<TypedLocatio
   } else if (leftImm) {
     expr.right->accept(*this);
     X86Gp rhsReg = vRegs.top(); vRegs.pop();
-    typecheckInt(rhsReg, expr.right->resolvedData);
+    error.typecheckInt(rhsReg, expr.right->resolvedData);
     if (right_loc.type != LOCATION_TYPE_ARG && right_loc.type != LOCATION_TYPE_LOCAL) {
       result = rhsReg;
     } else {
@@ -368,7 +367,7 @@ void AutoCompiler::visitSubtractionExpression(SubtractionExpression<TypedLocatio
   } else if (rightImm) {
     expr.left->accept(*this);
     X86Gp lhsReg = vRegs.top(); vRegs.pop();
-    typecheckInt(lhsReg, expr.left->resolvedData);
+    error.typecheckInt(lhsReg, expr.left->resolvedData);
     if (left_loc.type != LOCATION_TYPE_ARG && left_loc.type != LOCATION_TYPE_LOCAL) {
       result = lhsReg;
     } else {
@@ -380,8 +379,8 @@ void AutoCompiler::visitSubtractionExpression(SubtractionExpression<TypedLocatio
     X86Gp lhsReg = vRegs.top(); vRegs.pop();
     expr.right->accept(*this);
     X86Gp rhsReg = vRegs.top(); vRegs.pop();
-    typecheckInt(lhsReg, expr.left->resolvedData);
-    typecheckInt(rhsReg, expr.right->resolvedData);
+    error.typecheckInt(lhsReg, expr.left->resolvedData);
+    error.typecheckInt(rhsReg, expr.right->resolvedData);
     if (left_loc.type != LOCATION_TYPE_ARG && left_loc.type != LOCATION_TYPE_LOCAL) {
       result = lhsReg;
       cc.sub(result.r32(), rhsReg.r32());
@@ -411,7 +410,7 @@ void AutoCompiler::visitMultiplicationExpression(MultiplicationExpression<TypedL
   } else if (leftImm) {
     expr.right->accept(*this);
     X86Gp rhsReg = vRegs.top(); vRegs.pop();
-    typecheckInt(rhsReg, expr.right->resolvedData);
+    error.typecheckInt(rhsReg, expr.right->resolvedData);
     if (right_loc.type != LOCATION_TYPE_ARG && right_loc.type != LOCATION_TYPE_LOCAL) {
       result = rhsReg;
     } else {
@@ -421,7 +420,7 @@ void AutoCompiler::visitMultiplicationExpression(MultiplicationExpression<TypedL
   } else if (rightImm) {
     expr.left->accept(*this);
     X86Gp lhsReg = vRegs.top(); vRegs.pop();
-    typecheckInt(lhsReg, expr.left->resolvedData);
+    error.typecheckInt(lhsReg, expr.left->resolvedData);
     if (left_loc.type != LOCATION_TYPE_ARG && left_loc.type != LOCATION_TYPE_LOCAL) {
       result = lhsReg;
     } else {
@@ -433,8 +432,8 @@ void AutoCompiler::visitMultiplicationExpression(MultiplicationExpression<TypedL
     X86Gp lhsReg = vRegs.top(); vRegs.pop();
     expr.right->accept(*this);
     X86Gp rhsReg = vRegs.top(); vRegs.pop();
-    typecheckInt(lhsReg, expr.left->resolvedData);
-    typecheckInt(rhsReg, expr.right->resolvedData);
+    error.typecheckInt(lhsReg, expr.left->resolvedData);
+    error.typecheckInt(rhsReg, expr.right->resolvedData);
     if (left_loc.type != LOCATION_TYPE_ARG && left_loc.type != LOCATION_TYPE_LOCAL) {
       result = lhsReg;
     } else if (right_loc.type != LOCATION_TYPE_ARG && right_loc.type != LOCATION_TYPE_LOCAL) {
@@ -454,8 +453,6 @@ void AutoCompiler::visitDivisionExpression(DivisionExpression<TypedLocationInfo>
   bool rightImm = right_loc.type == LOCATION_TYPE_IMM;
 
   X86Gp result = cc.newInt64();
-  X86Gp dummy = cc.newInt64();
-  cc.xor_(dummy, dummy);
   X86Gp divisor = cc.newInt64();
   if (leftImm && rightImm) {
     // mov rax, lhsImm or exact reg
@@ -466,12 +463,12 @@ void AutoCompiler::visitDivisionExpression(DivisionExpression<TypedLocationInfo>
     expr.right->accept(*this);
     // will this work if its on the stack?
     divisor = vRegs.top(); vRegs.pop();
-    typecheckInt(divisor, expr.right->resolvedData);
+    error.typecheckInt(divisor, expr.right->resolvedData);
     cc.mov(result.r32(), left_loc.data.imm);
   } else if (rightImm) {
     expr.left->accept(*this);
     X86Gp lhsReg = vRegs.top(); vRegs.pop();
-    typecheckInt(lhsReg, expr.left->resolvedData);
+    error.typecheckInt(lhsReg, expr.left->resolvedData);
     if (left_loc.type != LOCATION_TYPE_ARG && left_loc.type != LOCATION_TYPE_LOCAL) {
       result = lhsReg;
     } else {
@@ -483,44 +480,18 @@ void AutoCompiler::visitDivisionExpression(DivisionExpression<TypedLocationInfo>
     X86Gp lhsReg = vRegs.top(); vRegs.pop();
     expr.right->accept(*this);
     divisor = vRegs.top(); vRegs.pop();
-    typecheckInt(lhsReg, expr.left->resolvedData);
-    typecheckInt(divisor, expr.right->resolvedData);
+    error.typecheckInt(lhsReg, expr.left->resolvedData);
+    error.typecheckInt(divisor, expr.right->resolvedData);
     if (left_loc.type != LOCATION_TYPE_ARG && left_loc.type != LOCATION_TYPE_LOCAL) {
       result = lhsReg;
     } else {
       cc.mov(result, lhsReg);
     }
   }
+  X86Gp dummy = cc.newInt64();
+  cc.xor_(dummy, dummy);
   cc.idiv(dummy.r32(), result.r32(), divisor.r32());
   vRegs.push(result);
-}
-
-void AutoCompiler::typecheckInt(asmjit::X86Gp vreg, TypedLocationInfo& typeInfo) {
-  if (typeInfo.type == VAIVEN_STATIC_TYPE_UNKNOWN) {
-    X86Gp testReg = cc.newInt64();
-    cc.mov(testReg, vreg);
-    cc.shr(testReg, VALUE_TAG_SHIFT);
-    cc.cmp(testReg, INT_TAG_SHIFTED);
-    cc.jne(typeErrorLabel);
-
-    canThrow = true;
-  } else if (typeInfo.type != VAIVEN_STATIC_TYPE_INT) {
-    typeError();
-  }
-}
-
-void AutoCompiler::typecheckBool(asmjit::X86Gp vreg, TypedLocationInfo& typeInfo) {
-  if (typeInfo.type == VAIVEN_STATIC_TYPE_UNKNOWN) {
-    X86Gp testReg = cc.newInt64();
-    cc.mov(testReg, vreg);
-    cc.shr(testReg, VALUE_TAG_SHIFT);
-    cc.cmp(testReg, BOOL_TAG_SHIFTED);
-    cc.jne(typeErrorLabel);
-
-    canThrow = true;
-  } else if (typeInfo.type != VAIVEN_STATIC_TYPE_BOOL) {
-    typeError();
-  }
 }
 
 void AutoCompiler::box(asmjit::X86Gp vReg, TypedLocationInfo& typeInfo) {
@@ -559,7 +530,12 @@ void AutoCompiler::visitVariableExpression(VariableExpression<TypedLocationInfo>
   if (scope.contains(expr.id)) {
     vRegs.push(scope.get(expr.id));
   } else {
-    vRegs.push(argRegs[expr.resolvedData.location.data.argIndex]);
+    int argIndex = expr.resolvedData.location.data.argIndex;
+    if (argIndex == -1) {
+      error.noVarError();
+    } else {
+      vRegs.push(argRegs[expr.resolvedData.location.data.argIndex]);
+    }
   }
 }
 
@@ -581,7 +557,7 @@ void AutoCompiler::doCmpNotExpression(NotExpression<TypedLocationInfo>& expr) {
   } else {
     expr.expr->accept(*this);
     X86Gp valReg = vRegs.top(); vRegs.pop();
-    typecheckBool(valReg, expr.expr->resolvedData);
+    error.typecheckBool(valReg, expr.expr->resolvedData);
     cc.test(valReg.r32(), valReg.r32());
   }
 }
@@ -677,20 +653,20 @@ void AutoCompiler::doCmpIntExpression(Expression<TypedLocationInfo>& left, Expre
   } else if (leftImm) {
     right.accept(*this);
     X86Gp rhsReg = vRegs.top(); vRegs.pop();
-    typecheckInt(rhsReg, right.resolvedData);
+    error.typecheckInt(rhsReg, right.resolvedData);
     cc.cmp(rhsReg.r32(), left_loc.data.imm);
   } else if (rightImm) {
     left.accept(*this);
     X86Gp lhsReg = vRegs.top(); vRegs.pop();
-    typecheckInt(lhsReg, left.resolvedData);
+    error.typecheckInt(lhsReg, left.resolvedData);
     cc.cmp(lhsReg.r32(), right_loc.data.imm);
   } else {
     left.accept(*this);
     X86Gp lhsReg = vRegs.top(); vRegs.pop();
     right.accept(*this);
     X86Gp rhsReg = vRegs.top(); vRegs.pop();
-    typecheckInt(rhsReg, right.resolvedData);
-    typecheckInt(lhsReg, left.resolvedData);
+    error.typecheckInt(rhsReg, right.resolvedData);
+    error.typecheckInt(lhsReg, left.resolvedData);
     cc.cmp(lhsReg, rhsReg);
   }
 }

@@ -92,7 +92,11 @@ void TypeAnalysis::typecheckInput(Instruction& instr, VaivenStaticType expectedT
     instr.inputs[input]->usages.insert(checkInstr);
     instr.inputs[input] = checkInstr;
   } else if (instr.inputs[input]->type != expectedType) {
-    emit(new ErrInstr());
+    if (expectedType == VAIVEN_STATIC_TYPE_INT) {
+      emit(new ErrInstr(EXPECTED_INT));
+    } else if (expectedType == VAIVEN_STATIC_TYPE_BOOL) {
+      emit(new ErrInstr(EXPECTED_BOOL));
+    }
   }
 }
 

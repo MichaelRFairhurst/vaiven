@@ -2,14 +2,15 @@
 #define VAIVEN_VISITOR_HEADER_SSA_EMITTER
 #include "forward_visitor.h"
 #include "../functions.h"
+#include "../error_compiler.h"
 
 namespace vaiven { namespace ssa {
 
 class Emitter : public ForwardVisitor {
 
   public:
-  Emitter(asmjit::X86Compiler& cc, Functions& funcs, asmjit::Label funcLabel, string funcName)
-      : cc(cc), funcs(funcs), funcLabel(funcLabel), funcName(funcName) {};
+  Emitter(asmjit::X86Compiler& cc, Functions& funcs, asmjit::Label funcLabel, string funcName, ErrorCompiler& error, asmjit::Label deoptimizeLabel)
+      : cc(cc), funcs(funcs), funcLabel(funcLabel), funcName(funcName), error(error), deoptimizeLabel(deoptimizeLabel) {};
 
   void visitPhiInstr(PhiInstr& instr);
   void visitArgInstr(ArgInstr& instr);
@@ -42,8 +43,10 @@ class Emitter : public ForwardVisitor {
   void visitConditionalBlockExit(ConditionalBlockExit& exit);
   void visitBlock(Block& block);
 
+  ErrorCompiler& error;
   asmjit::X86Compiler& cc;
   asmjit::Label funcLabel;
+  asmjit::Label deoptimizeLabel;
   string funcName;
   Functions& funcs;
 };

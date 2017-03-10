@@ -4,6 +4,7 @@
 #include "../asmjit/src/asmjit/asmjit.h"
 #include "../type_info.h"
 #include "../value.h"
+#include "../runtime_error.h"
 
 #include <string>
 #include <vector>
@@ -417,7 +418,8 @@ class CmpLteInstr : public Instruction {
 
 class ErrInstr : public Instruction {
   public:
-  ErrInstr() : Instruction(INSTR_ERR, VAIVEN_STATIC_TYPE_VOID, false) {};
+  ErrInstr(vaiven::ErrorCode error) : Instruction(INSTR_ERR, VAIVEN_STATIC_TYPE_VOID, false), error(error) {};
+  vaiven::ErrorCode error;
 
   void accept(SsaVisitor& visitor) {
     visitor.visitErrInstr(*this);

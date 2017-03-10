@@ -2,6 +2,7 @@
 #include "parser.h"
 #include "functions.h"
 #include "type_info.h"
+#include "runtime_error.h"
 #include "visitor/print_visitor.h"
 #include "visitor/interpreter.h"
 #include "visitor/compiler.h"
@@ -82,6 +83,14 @@ void printExpressionStream(Parser& parser) {
     //args.push_back(1); args.push_back(2); args.push_back(3);
     //args.push_back(4); args.push_back(5); args.push_back(6);
     //int result = interpreter.interpret(*cur /*, args, &locResolver.argIndexes*/);
+
+    int error = setjmp(errorJmpBuf);
+    if (error) {
+      defaultHandle((vaiven::ErrorCode) error);
+      cur = parser.parseLogicalGroup();
+      continue;
+    }
+
     Value result = interpreter.interpret(*cur);
     if (result.isInt()) {
       cout << "Int: " << result.getInt() << endl << endl;
@@ -96,7 +105,7 @@ void printExpressionStream(Parser& parser) {
     } else if (result.isDouble()) {
       cout << "Dbl: " << result.getDouble() << endl << endl;
     } else {
-      cout << "error" << result.getRaw();
+      cout << "error: " << result.getRaw();
     }
 
     for (size_t i = 0; i < /*5*/00/*500000*/; ++i) {

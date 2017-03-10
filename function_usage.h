@@ -14,6 +14,8 @@ const short VOID_SHAPE = VOID >> 48;
 const short DOUBLE_SHAPE = 0x08;
 const short OBJECT_SHAPE = 0x10;
 
+const int HOT_COUNT = 2;
+
 class ArgumentShape {
   public:
   short raw;

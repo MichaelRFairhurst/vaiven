@@ -32,8 +32,7 @@ void RegAlloc::visitPhiInstr(PhiInstr& instr) {
 }
 
 void RegAlloc::visitArgInstr(ArgInstr& instr) {
-  instr.out = cc.newUInt64();
-  cc.setArg(instr.argi, instr.out);
+  instr.out = argRegs[instr.argi];
 }
 
 void RegAlloc::visitConstantInstr(ConstantInstr& instr) {

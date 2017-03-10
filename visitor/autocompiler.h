@@ -10,6 +10,7 @@
 #include "../type_info.h"
 #include "../functions.h"
 #include "../scope.h"
+#include "../error_compiler.h"
 
 #include "../asmjit/src/asmjit/asmjit.h"
 
@@ -24,7 +25,8 @@ using asmjit::X86Compiler;
 class AutoCompiler : public Visitor<TypedLocationInfo> {
 
   public:
-  AutoCompiler(X86Compiler& cc, asmjit::CodeHolder& codeHolder, Functions& funcs) : cc(cc), codeHolder(codeHolder), funcs(funcs), canThrow(false) {};
+  AutoCompiler(X86Compiler& cc, asmjit::CodeHolder& codeHolder, Functions& funcs)
+    : cc(cc), codeHolder(codeHolder), funcs(funcs), error(cc) {}
 
   void compile(Node<TypedLocationInfo>& expr);
 
@@ -64,7 +66,6 @@ class AutoCompiler : public Visitor<TypedLocationInfo> {
   void typecheckBool(asmjit::X86Gp vreg, TypedLocationInfo& info);
   void box(asmjit::X86Gp vreg, TypedLocationInfo& info);
 
-  bool canThrow;
   X86Compiler& cc;
   asmjit::CodeHolder& codeHolder;
   Functions& funcs;
@@ -72,9 +73,10 @@ class AutoCompiler : public Visitor<TypedLocationInfo> {
   vector<asmjit::X86Gp> argRegs;
   string curFuncName;
   asmjit::CCFunc* curFunc;
-  asmjit::Label typeErrorLabel;
   asmjit::Label optimizeLabel;
   Scope<asmjit::X86Gp> scope;
+
+  ErrorCompiler error;
 
 };
 

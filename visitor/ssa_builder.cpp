@@ -131,6 +131,8 @@ void SsaBuilder::visitForCondition(ForCondition<TypedLocationInfo>& stmt) {
   
   ssa::Block* checkBlock = new ssa::Block();
   curBlock->next.reset(checkBlock);
+  UnconditionalBlockExit* jmpToCheck = new UnconditionalBlockExit(checkBlock);
+  curBlock->exits.push_back(unique_ptr<BlockExit>(jmpToCheck));
   ssa::Block* bodyBlock = new ssa::Block();
   checkBlock->next.reset(bodyBlock);
   ssa::Block* followBlock = new ssa::Block();
@@ -189,7 +191,11 @@ void SsaBuilder::visitReturnStatement(ReturnStatement<TypedLocationInfo>& stmt) 
 
 void SsaBuilder::visitVarDecl(VarDecl<TypedLocationInfo>& varDecl) {
   varDecl.expr->accept(*this);
-  scope.put(varDecl.varname, cur);
+  if (scope.contains(varDecl.varname)) {
+    emit(new ErrInstr(DUPLICATE_VAR));
+  } else {
+    scope.put(varDecl.varname, cur);
+  }
 }
 
 void SsaBuilder::visitFuncCallExpression(FuncCallExpression<TypedLocationInfo>& expr) {
@@ -234,7 +240,7 @@ void SsaBuilder::visitBlock(Block<TypedLocationInfo>& block) {
 void SsaBuilder::visitAssignmentExpression(AssignmentExpression<TypedLocationInfo>& expr) {
   expr.expr->accept(*this);
   if (!scope.contains(expr.varname)) {
-    emit(new ErrInstr());
+    emit(new ErrInstr(NO_SUCH_VAR));
     return;
   }
 
@@ -288,7 +294,7 @@ void SsaBuilder::visitVariableExpression(VariableExpression<TypedLocationInfo>& 
     // can reference it
     cur = scope.get(expr.id);
   } else {
-    emit(new ErrInstr());
+    emit(new ErrInstr(NO_SUCH_VAR));
   }
 }
 

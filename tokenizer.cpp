@@ -354,7 +354,21 @@ unique_ptr<Token> Tokenizer::tokenizeId(vector<char>& buffer) {
   return unique_ptr<Token>(new StringToken(TOKEN_TYPE_ID, string(buffer.begin(), buffer.end())));
 }
 
+unique_ptr<Token> Tokenizer::nextNoEol() {
+  char c = input.peek();
+  while (c == ' ' || c == '\n' || c == '\t') {
+    input.get();
+    c = input.peek();
+  }
+
+  return next();
+}
+
 unique_ptr<Token> Tokenizer::next() {
+  return nextOr(TOKEN_TYPE_SEMICOLON);
+}
+
+unique_ptr<Token> Tokenizer::nextOr(TokenType newlineType) {
   char c = input.get();
   switch(c) {
     case '+':
@@ -419,9 +433,11 @@ unique_ptr<Token> Tokenizer::next() {
       return tokenizeDo();
     case 't':
       return tokenizeTrue();
-    case ' ':
     case '\n':
-      return next();
+      return unique_ptr<Token>(new Token(newlineType));
+    case '\t':
+    case ' ':
+      return nextOr(newlineType);
 
     default:
       if (isNumChar(c)) {

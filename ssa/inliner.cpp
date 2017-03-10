@@ -5,6 +5,14 @@
 using namespace vaiven::ssa;
 using namespace vaiven::ast;
 
+const int STOP_INLINING_AT_SIZE = 5096; // ?
+const int MAX_INLINE_SIZE = 512; // ?
+const int RECURSION_IDEAL_SIZE = 128; // ?
+const int BOX_COST = 2;
+const int TYPECHECK_COST = 3;
+const int SPILL_COST = 1;
+const int ARG_COST = 1; // every arg is a chance to optimize
+
 void Inliner::visitPhiInstr(PhiInstr& instr) {
 }
 
@@ -16,16 +24,43 @@ void Inliner::visitConstantInstr(ConstantInstr& instr) {
 
 void Inliner::visitCallInstr(CallInstr& instr) {
   if (funcs.funcs.find(instr.funcName) == funcs.funcs.end()) {
-    // TODO emit err
-  }
-
-  // arbitrary max size to stop inlining
-  if (currentWorstSize > 2250) {
     return;
   }
 
-  // arbitrary max inline size....
-  if (funcs.funcs[instr.funcName]->worstSize > 512) {
+  // arbitrary max sizes to stop inlining
+  if (currentWorstSize > STOP_INLINING_AT_SIZE
+      || funcs.funcs[instr.funcName]->worstSize > MAX_INLINE_SIZE
+      || funcs.funcs[instr.funcName]->worstSize > MAX_INLINE_SIZE) {
+    return;
+  }
+
+  int argc = instr.inputs.size();
+  int callOverheadGuess = argc * SPILL_COST + argc * ARG_COST;
+  for (vector<Instruction*>::iterator it = instr.inputs.begin(); it != instr.inputs.end(); ++it) {
+    if ((*it)->tag == INSTR_BOX) {
+      callOverheadGuess += BOX_COST;
+    } else if ((*it)->type != VAIVEN_STATIC_TYPE_UNKNOWN) {
+      // assume passed in args are type checked at least once
+      callOverheadGuess += TYPECHECK_COST;
+    }
+  }
+
+  // rax will spill, must be a boxed value, may be typechecked after
+  callOverheadGuess += SPILL_COST + BOX_COST;
+  for (set<Instruction*>::iterator it = instr.usages.begin(); it != instr.usages.end(); ++it) {
+    if ((*it)->tag == INSTR_TYPECHECK) {
+      callOverheadGuess += TYPECHECK_COST;
+    }
+  }
+
+  // assume 40% reduction in code size from hot optimization (?) vs worst size
+  int afterOptimizeGuessSize = funcs.funcs[instr.funcName]->worstSize * 6 / 10;
+
+  // TODO count % of times executed rather than "is hot" (which doesn't even really matter)
+  bool isHot = funcs.funcs[instr.funcName]->usage->count == HOT_COUNT;
+
+  // if the function isn't smaller than its overhead, and its not hot, don't inline
+  if (afterOptimizeGuessSize > callOverheadGuess && !isHot) {
     return;
   }
 

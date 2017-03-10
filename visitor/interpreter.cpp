@@ -40,7 +40,7 @@ void Interpreter::visitIfStatement(IfStatement<>& stmt) {
     for(vector<unique_ptr<Statement<> > >::iterator it = stmt.trueStatements.begin();
         it != stmt.trueStatements.end();
         ++it) {
-      if (it != stmt.trueStatements.begin()) {
+      if (stack.size()) {
         stack.pop();
       }
       (*it)->accept(*this);
@@ -50,7 +50,7 @@ void Interpreter::visitIfStatement(IfStatement<>& stmt) {
     for(vector<unique_ptr<Statement<> > >::iterator it = stmt.falseStatements.begin();
         it != stmt.falseStatements.end();
         ++it) {
-      if (it != stmt.falseStatements.begin()) {
+      if (stack.size()) {
         stack.pop();
       }
       (*it)->accept(*this);
@@ -71,11 +71,10 @@ void Interpreter::visitForCondition(ForCondition<>& stmt) {
     for(vector<unique_ptr<Statement<> > >::iterator it = stmt.statements.begin();
         it != stmt.statements.end();
         ++it) {
-      if (!first) {
-        stack.pop();
-        first = true;
-      }
       (*it)->accept(*this);
+      if (stack.size()) {
+        stack.pop();
+      }
     }
   } while(true);
 }
@@ -87,13 +86,17 @@ void Interpreter::visitReturnStatement(ReturnStatement<>& stmt) {
 
 void Interpreter::visitVarDecl(VarDecl<>& varDecl) {
   varDecl.expr->accept(*this);
-  scope.put(varDecl.varname, stack.top());
-  stack.pop();
+  if (!scope.contains(varDecl.varname)) {
+    scope.put(varDecl.varname, stack.top());
+    stack.pop();
+  } else {
+    duplicateVar();
+  }
 }
 
 void Interpreter::visitFuncCallExpression(FuncCallExpression<>& expr) {
   if (funcs.funcs.find(expr.name) == funcs.funcs.end()) {
-    throw "func not known";
+    noSuchFunction();
   }
 
   // TODO check arg counts
@@ -169,8 +172,12 @@ void Interpreter::visitBlock(Block<>& block) {
 
 void Interpreter::visitAssignmentExpression(AssignmentExpression<>& expr) {
   expr.expr->accept(*this);
-  scope.replace(expr.varname, stack.top());
-  stack.pop();
+  if (scope.contains(expr.varname)) {
+    scope.replace(expr.varname, stack.top());
+    stack.pop();
+  } else {
+    noSuchVar();
+  }
 }
 
 void Interpreter::visitAdditionExpression(AdditionExpression<>& expr) {
@@ -179,7 +186,7 @@ void Interpreter::visitAdditionExpression(AdditionExpression<>& expr) {
   Value right = stack.top(); stack.pop();
   Value left = stack.top(); stack.pop();
   if (!right.isInt() || !left.isInt()) {
-    typeError();
+    expectedInt();
   }
   stack.push(left.getInt() + right.getInt());
 }
@@ -189,7 +196,7 @@ void Interpreter::visitSubtractionExpression(SubtractionExpression<>& expr) {
   Value right = stack.top(); stack.pop();
   Value left = stack.top(); stack.pop();
   if (!right.isInt() || !left.isInt()) {
-    typeError();
+    expectedInt();
   }
   stack.push(left.getInt() - right.getInt());
 }
@@ -199,7 +206,7 @@ void Interpreter::visitMultiplicationExpression(MultiplicationExpression<>& expr
   Value right = stack.top(); stack.pop();
   Value left = stack.top(); stack.pop();
   if (!right.isInt() || !left.isInt()) {
-    typeError();
+    expectedInt();
   }
   stack.push(left.getInt() * right.getInt());
 }
@@ -209,7 +216,7 @@ void Interpreter::visitDivisionExpression(DivisionExpression<>& expr) {
   Value right = stack.top(); stack.pop();
   Value left = stack.top(); stack.pop();
   if (!right.isInt() || !left.isInt()) {
-    typeError();
+    expectedInt();
   }
   stack.push(left.getInt() / right.getInt());
 }
@@ -217,8 +224,12 @@ void Interpreter::visitIntegerExpression(IntegerExpression<>& expr) {
   stack.push(Value(expr.value));
 }
 void Interpreter::visitVariableExpression(VariableExpression<>& expr) {
-  Value val = scope.get(expr.id);
-  stack.push(val);
+  if (scope.contains(expr.id)) {
+    Value val = scope.get(expr.id);
+    stack.push(val);
+  } else {
+    noSuchVar();
+  }
 }
 
 void Interpreter::visitBoolLiteral(BoolLiteral<>& expr) {
@@ -229,7 +240,7 @@ void Interpreter::visitNotExpression(NotExpression<>& expr) {
   expr.expr->accept(*this);
   Value val = stack.top(); stack.pop();
   if (!val.isBool()) {
-    typeError();
+    expectedBool();
   }
 
   stack.push(Value(!val.getBool()));
@@ -257,7 +268,7 @@ void Interpreter::visitGtExpression(GtExpression<>& expr) {
   Value right = stack.top(); stack.pop();
   Value left = stack.top(); stack.pop();
   if (!right.isInt() || !left.isInt()) {
-    typeError();
+    expectedInt();
   }
   stack.push(Value(left.getInt() > right.getInt()));
 }
@@ -268,7 +279,7 @@ void Interpreter::visitGteExpression(GteExpression<>& expr) {
   Value right = stack.top(); stack.pop();
   Value left = stack.top(); stack.pop();
   if (!right.isInt() || !left.isInt()) {
-    typeError();
+    expectedInt();
   }
   stack.push(Value(left.getInt() >= right.getInt()));
 }
@@ -279,7 +290,7 @@ void Interpreter::visitLtExpression(LtExpression<>& expr) {
   Value right = stack.top(); stack.pop();
   Value left = stack.top(); stack.pop();
   if (!right.isInt() || !left.isInt()) {
-    typeError();
+    expectedInt();
   }
   stack.push(Value(left.getInt() < right.getInt()));
 }
@@ -290,7 +301,7 @@ void Interpreter::visitLteExpression(LteExpression<>& expr) {
   Value right = stack.top(); stack.pop();
   Value left = stack.top(); stack.pop();
   if (!right.isInt() || !left.isInt()) {
-    typeError();
+    expectedInt();
   }
   stack.push(Value(left.getInt() <= right.getInt()));
 }

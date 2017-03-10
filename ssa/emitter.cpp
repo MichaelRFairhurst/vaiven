@@ -8,6 +8,26 @@ void Emitter::visitPhiInstr(PhiInstr& instr) {
 }
 
 void Emitter::visitArgInstr(ArgInstr& instr) {
+  X86Gp checkArg = cc.newInt64();
+  if (instr.type == VAIVEN_STATIC_TYPE_INT) {
+    cc.mov(checkArg, instr.out);
+    cc.shr(checkArg, VALUE_TAG_SHIFT);
+    cc.cmp(checkArg, INT_TAG_SHIFTED);
+    cc.jne(deoptimizeLabel);
+  } else if (instr.type == VAIVEN_STATIC_TYPE_BOOL) {
+    cc.mov(checkArg, instr.out);
+    cc.shr(checkArg, VALUE_TAG_SHIFT);
+    cc.cmp(checkArg, BOOL_TAG_SHIFTED);
+    cc.jne(deoptimizeLabel);
+  } else if (instr.type == VAIVEN_STATIC_TYPE_VOID) {
+    cc.mov(checkArg, VOID);
+    cc.cmp(instr.out, checkArg);
+    cc.jne(deoptimizeLabel);
+  } else if (instr.type == VAIVEN_STATIC_TYPE_POINTER) {
+    cc.mov(checkArg, MAX_PTR);
+    cc.cmp(instr.out, checkArg);
+    cc.jg(deoptimizeLabel);
+  }
 }
 
 void Emitter::visitConstantInstr(ConstantInstr& instr) {
@@ -23,7 +43,8 @@ void Emitter::visitConstantInstr(ConstantInstr& instr) {
 void Emitter::visitCallInstr(CallInstr& instr) {
   // TODO recursion
   if (funcs.funcs.find(instr.funcName) == funcs.funcs.end()) {
-    throw "func not known";
+    error.noFuncError();
+    return;
   }
   // TODO check arg counts
 
@@ -58,12 +79,14 @@ void Emitter::visitTypecheckInstr(TypecheckInstr& instr) {
     cc.mov(checkReg, instr.out);
     cc.shr(checkReg, VALUE_TAG_SHIFT);
     cc.cmp(checkReg, INT_TAG_SHIFTED);
-    cc.jne((unsigned long long) 0); // TODO jmp to throw error
+    cc.jne(error.intTypeErrorLabel);
+    error.hasIntTypeError = true;
   } else if (instr.type == VAIVEN_STATIC_TYPE_BOOL) {
     cc.mov(checkReg, instr.out);
     cc.shr(checkReg, VALUE_TAG_SHIFT);
     cc.cmp(checkReg, BOOL_TAG_SHIFTED);
-    cc.jne((unsigned long long) 0); // TODO jmp to throw error
+    cc.jne(error.boolTypeErrorLabel);
+    error.hasBoolTypeError = true;
   }
 }
 
@@ -259,6 +282,17 @@ void Emitter::doCmpLteInstr(CmpLteInstr& instr) {
 }
 
 void Emitter::visitErrInstr(ErrInstr& instr) {
+  if (instr.error == EXPECTED_INT) {
+    error.intTypeError();
+  } else if (instr.error == EXPECTED_BOOL) {
+    error.intTypeError();
+  } else if (instr.error == NO_SUCH_FUNCTION) {
+    error.noFuncError();
+  } else if (instr.error == NO_SUCH_VAR) {
+    error.noVarError();
+  } else if (instr.error == DUPLICATE_VAR) {
+    error.dupVarError();
+  }
 }
 
 void Emitter::visitRetInstr(RetInstr& instr) {

@@ -10,7 +10,7 @@ namespace vaiven { namespace ssa {
 class RegAlloc : public ForwardVisitor {
 
   public:
-  RegAlloc(asmjit::X86Compiler& cc) : cc(cc) {};
+  RegAlloc(asmjit::X86Compiler& cc, vector<asmjit::X86Gp> argRegs) : cc(cc), argRegs(argRegs) {};
 
   void visitPhiInstr(PhiInstr& instr);
   void visitArgInstr(ArgInstr& instr);
@@ -36,6 +36,7 @@ class RegAlloc : public ForwardVisitor {
   void visitBlock(Block& block);
 
   private:
+  vector<asmjit::X86Gp> argRegs;
   asmjit::X86Compiler& cc;
   void reuseInputRegIfPossible(Instruction& instr);
 };

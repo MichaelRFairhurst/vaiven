@@ -15,25 +15,6 @@ namespace vaiven {
 
 class Token;
 
-class Tokenizer {
-  public:
-    Tokenizer(istream& stream) : input(stream) {}
-
-    unique_ptr<Token> next();
-  private:
-    unique_ptr<Token> tokenizeIsOrIf();
-    unique_ptr<Token> tokenizeEndOrElse();
-    unique_ptr<Token> tokenizeRet();
-    unique_ptr<Token> tokenizeDo();
-    unique_ptr<Token> tokenizeFnOrFalseOrFor();
-    unique_ptr<Token> tokenizeTrue();
-    unique_ptr<Token> tokenizeOf();
-    unique_ptr<Token> tokenizeVar();
-    unique_ptr<Token> tokenizeId(vector<char>& buffer);
-    istream& input;
-  
-};
-
 enum TokenType {
   TOKEN_TYPE_ID,
   TOKEN_TYPE_FN,
@@ -69,6 +50,27 @@ enum TokenType {
   TOKEN_TYPE_SEMICOLON,
   TOKEN_TYPE_ERROR,
   TOKEN_TYPE_EOF
+};
+
+class Tokenizer {
+  public:
+    Tokenizer(istream& stream) : input(stream) {}
+
+    unique_ptr<Token> next();
+    unique_ptr<Token> nextNoEol();
+    unique_ptr<Token> nextOr(TokenType newlineType);
+  private:
+    unique_ptr<Token> tokenizeIsOrIf();
+    unique_ptr<Token> tokenizeEndOrElse();
+    unique_ptr<Token> tokenizeRet();
+    unique_ptr<Token> tokenizeDo();
+    unique_ptr<Token> tokenizeFnOrFalseOrFor();
+    unique_ptr<Token> tokenizeTrue();
+    unique_ptr<Token> tokenizeOf();
+    unique_ptr<Token> tokenizeVar();
+    unique_ptr<Token> tokenizeId(vector<char>& buffer);
+    istream& input;
+  
 };
 
 class Token {

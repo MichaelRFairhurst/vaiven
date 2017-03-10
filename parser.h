@@ -12,7 +12,8 @@ namespace vaiven {
 
 class Parser {
   public:
-  Parser(Tokenizer& tokenizer) : tokenizer(tokenizer), current(tokenizer.next()) {}
+  Parser(Tokenizer& tokenizer)
+    : tokenizer(tokenizer), current(tokenizer.next()), newlineReplacement(TOKEN_TYPE_SEMICOLON) {}
 
   unique_ptr<ast::Node<> > parseLogicalGroup();
 
@@ -38,9 +39,12 @@ class Parser {
 
   private:
   void next();
+  void nextNoEol();
+  void nextOr(TokenType newlineType);
 
   Tokenizer& tokenizer;
   unique_ptr<Token> current;
+  TokenType newlineReplacement;
 };
 
 }

@@ -33,32 +33,22 @@ void ReCompiler::visitFuncDecl(FuncDecl<TypedLocationInfo>& decl) {
   curFunc = cc.addFunc(sig);
   curFuncName = decl.name;
 
-  typeErrorLabel = cc.newLabel();
+  Label deoptimizeLabel = cc.newLabel();
+  X86Gp checkArg = cc.newInt64();
+  for (int i = 0; i < decl.args.size(); ++i) {
+    X86Gp arg = cc.newInt64();
+    cc.setArg(i, arg);
+    argRegs.push_back(arg);
 
-  //Label deoptimizeLabel = cc.newLabel();
-  //X86Gp checkArg = cc.newInt64();
-  //for (int i = 0; i < decl.args.size(); ++i) {
-  //  X86Gp arg = cc.newInt64();
-  //  cc.setArg(i, arg);
-  //  argRegs.push_back(arg);
-
-  //  if (usageInfo.argShapes[i].isPureInt()) {
-  //    cc.mov(checkArg, arg);
-  //    cc.shr(checkArg, VALUE_TAG_SHIFT);
-  //    cc.cmp(checkArg, INT_TAG_SHIFTED);
-  //    cc.jne(deoptimizeLabel);
-  //  }
-  //}
-
-  TypedLocationInfo endType;
-  SsaBuilder builder(usageInfo);
-  for(vector<unique_ptr<Statement<TypedLocationInfo> > >::iterator it = decl.statements.begin();
-      it != decl.statements.end();
-      ++it) {
-    //(*it)->accept(*this);
-    
-    endType = (*it)->resolvedData;
+    if (usageInfo.argShapes[i].isPureInt()) {
+      cc.mov(checkArg, arg);
+      cc.shr(checkArg, VALUE_TAG_SHIFT);
+      cc.cmp(checkArg, INT_TAG_SHIFTED);
+      cc.jne(deoptimizeLabel);
+    }
   }
+
+  SsaBuilder builder(usageInfo);
   decl.accept(builder);
 #ifdef SSA_DIAGNOSTICS
   ssa::PrintVisitor printer;
@@ -133,26 +123,26 @@ void ReCompiler::visitFuncDecl(FuncDecl<TypedLocationInfo>& decl) {
       break;
     }
   }
-  ssa::RegAlloc allocator(cc);
+  ssa::RegAlloc allocator(cc, argRegs);
   builder.head.accept(allocator);
-  ssa::Emitter emitter(cc, funcs, curFunc->getLabel(), decl.name);
+  ssa::Emitter emitter(cc, funcs, curFunc->getLabel(), decl.name, error, deoptimizeLabel);
   builder.head.accept(emitter);
 #ifdef SSA_DIAGNOSTICS
   std::cout << "final code" << std::endl;
   builder.head.accept(printer); printer.varIds.clear();
 #endif
 
-  //if (vRegs.size()) {
-  //  box(vRegs.top(), endType);
-  //  cc.ret(vRegs.top());
-  //} else {
-  //  X86Gp voidReg = cc.newInt64();
-  //  cc.mov(voidReg, Value().getRaw());
-  //  cc.ret(voidReg);
-  //}
-  //
-  //cc.bind(deoptimizeLabel);
-  generateTypeErrorProlog();
+  cc.bind(deoptimizeLabel);
+  CCFuncCall* deoptimizedCall = cc.call((unsigned long long) funcs.funcs[decl.name]->fptr, sig);
+  for (int i = 0; i < decl.args.size(); ++i) {
+    deoptimizedCall->setArg(i, argRegs[i]);
+  }
+  X86Gp deoptimizedRet = cc.newUInt64();
+  deoptimizedCall->setRet(0, deoptimizedRet);
+  
+  cc.ret(deoptimizedRet);
+
+  error.generateTypeErrorProlog();
   cc.endFunc();
   cc.finalize();
 
