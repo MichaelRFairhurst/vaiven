@@ -118,7 +118,7 @@ unique_ptr<ast::VarDecl<> > Parser::parseVarDecl() {
   string name = "";
   if(current->type == TOKEN_TYPE_ID) {
     unique_ptr<StringToken> nametok(static_cast<StringToken*>(current.release()));
-    string name = nametok->lexeme;
+    name = nametok->lexeme;
     nextNoEol();
   }
   if(current->type == TOKEN_TYPE_EQ) {
