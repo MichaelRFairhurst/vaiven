@@ -113,7 +113,7 @@ void AutoCompiler::visitFuncCallExpression(FuncCallExpression<TypedLocationInfo>
 
   // careful that this always handles self-optimization
   X86Gp lookup = cc.newUInt64();
-  cc.mov(lookup, (unsigned long long) &funcs.funcs[expr.name]->fptr);
+  cc.mov(lookup, (uint64_t) &funcs.funcs[expr.name]->fptr);
   CCFuncCall* call = cc.call(x86::ptr(lookup), sig);
 
   for (int i = 0; i < expr.parameters.size(); ++i) {

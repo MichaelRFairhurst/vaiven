@@ -66,6 +66,7 @@ ASMJIT_OBJECTS = \
 	asmjit/src/asmjit/base/func.o \
 	asmjit/src/asmjit/base/zone.o \
 	asmjit/src/asmjit/base/globals.o \
+	asmjit/src/asmjit/base/inst.o \
 	asmjit/src/asmjit/x86/x86assembler.o \
 	asmjit/src/asmjit/x86/x86logging.o \
 	asmjit/src/asmjit/x86/x86builder.o \
@@ -75,7 +76,7 @@ ASMJIT_OBJECTS = \
 	asmjit/src/asmjit/x86/x86inst.o \
 	asmjit/src/asmjit/x86/x86regalloc.o \
 	asmjit/src/asmjit/x86/x86internal.o \
-	asmjit/src/asmjit/x86/x86ssetoavxpass.o \
+	asmjit/src/asmjit/x86/x86instimpl.o \
 
 MAIN_OBJECTS = \
 	main.o \
@@ -87,7 +88,8 @@ MAIN_OBJECTS = \
 	functions.o \
 	error_compiler.o \
 
-DEBUGCXXFLAGS := -O0 -g -DSSA_DIAGNOSTICS -DDISASSEMBLY_DIAGNOSTICS -DOPTIMIZATION_DIAGNOSTICS
+#DEBUGCXXFLAGS := -O0 -g -DSSA_DIAGNOSTICS -DDISASSEMBLY_DIAGNOSTICS -DOPTIMIZATION_DIAGNOSTICS
+DEBUGCXXFLAGS := -O0 -g -DDISASSEMBLY_DIAGNOSTICS -DOPTIMIZATION_DIAGNOSTICS
 RELEASECXXFLAGS := -O3 -DNDEBUG
 PROFILECXXFLAGS := -O3 -g -DNDEBUG
 CXXFLAGS := -DASMJIT_EMBED -std=c++11 ${DEBUGCXXFLAGS}
