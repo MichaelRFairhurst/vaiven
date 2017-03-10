@@ -17,3 +17,4 @@ recurseOps(50000);
 recurseOps(50000);
 recurseOps(50000);
 recurseOps(50000);
+EOF
