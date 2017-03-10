@@ -23,27 +23,39 @@ unique_ptr<ast::Node<> > Parser::parseLogicalGroup() {
     return unique_ptr<ast::Node<> >((ast::Node<>*) NULL);
   }
 
-  if (current->type == TOKEN_TYPE_FN) {
-    lastLogicalGroupWasEvaluatable = false;
-    return parseFuncDecl();
-  }
+  try {
+    if (current->type == TOKEN_TYPE_FN) {
+      lastLogicalGroupWasEvaluatable = false;
+      return parseFuncDecl();
+    }
 
-  lastLogicalGroupWasEvaluatable = true;
-  unique_ptr<ast::Statement<> > expr = parseStatement();
-  return unique_ptr<ast::Node<> >(expr.release());
+    lastLogicalGroupWasEvaluatable = true;
+    unique_ptr<ast::Statement<> > expr = parseStatement();
+    return unique_ptr<ast::Node<> >(expr.release());
+  } catch(ParseError e) {
+    errors.push_back(e);
+    next();
+    return unique_ptr<ast::Node<> >((ast::Node<>*) NULL);
+  }
 }
 
 unique_ptr<ast::FuncDecl<> > Parser::parseFuncDecl() {
   if (current->type != TOKEN_TYPE_FN) {
+    // should never happen
     throw string("expected fn");
   }
   nextNoEol();
-  if(current->type != TOKEN_TYPE_ID) {
-    throw string("expected function name");
+
+  string name = "";
+  if(current->type == TOKEN_TYPE_ID) {
+    unique_ptr<StringToken> nametok(static_cast<StringToken*>(current.release()));
+    name = nametok->lexeme;
+    errorLocation = "function " + name;
+    nextOr(TOKEN_TYPE_IS);
+  } else {
+    errorLocation = "function without a name";
   }
-  unique_ptr<StringToken> nametok(static_cast<StringToken*>(current.release()));
-  string name = nametok->lexeme;
-  nextOr(TOKEN_TYPE_IS);
+
   vector<string> args;
   if (current->type == TOKEN_TYPE_OF) {
     nextNoEol();
@@ -58,22 +70,30 @@ unique_ptr<ast::FuncDecl<> > Parser::parseFuncDecl() {
     }
   }
 
-  if (current->type != TOKEN_TYPE_IS) {
-    throw string("expected is");
+  if (current->type == TOKEN_TYPE_IS) {
+    nextNoEol();
+  } else {
+    errors.push_back(ParseError("missing is at end of function", errorLocation));
   }
 
-  nextNoEol();
   vector<unique_ptr<ast::Statement<> > > stmts;
-  while (current->type != TOKEN_TYPE_EOF
-      && current->type != TOKEN_TYPE_END) {
-    stmts.push_back(parseStatement());
+  while (current->type != TOKEN_TYPE_END && current->type != TOKEN_TYPE_EOF) {
+    try {
+      stmts.push_back(parseStatement());
+    } catch(ParseError e) {
+      errors.push_back(e);
+    }
     nextNoEol(); // statements don't consume their final token
   }
 
-  if (current->type != TOKEN_TYPE_END) {
-    throw string("missing close brace");
+  if (current->type == TOKEN_TYPE_EOF) {
+    errors.push_back(ParseError("Unexpected EOF", errorLocation));
   }
 
+  errorLocation = "top level";
+  if (name == "") {
+    throw ParseError("missing function name", "function declaration");
+  }
   return unique_ptr<ast::FuncDecl<> >(new ast::FuncDecl<>(name, args, std::move(stmts)));
 }
 
@@ -95,21 +115,27 @@ unique_ptr<ast::Statement<> > Parser::parseStatement() {
 
 unique_ptr<ast::VarDecl<> > Parser::parseVarDecl() {
   nextNoEol();
-  if(current->type != TOKEN_TYPE_ID) {
-    throw string("expected var name");
+  string name = "";
+  if(current->type == TOKEN_TYPE_ID) {
+    unique_ptr<StringToken> nametok(static_cast<StringToken*>(current.release()));
+    string name = nametok->lexeme;
+    nextNoEol();
   }
-  unique_ptr<StringToken> nametok(static_cast<StringToken*>(current.release()));
-  string name = nametok->lexeme;
-  nextNoEol();
-  if(current->type != TOKEN_TYPE_EQ) {
-    throw string("expected =");
-  }
-  nextNoEol();
-  unique_ptr<ast::Expression<> > initializer = parseExpression();
-  if (current->type != TOKEN_TYPE_SEMICOLON) {
-    throw string("missing end semicolon");
+  if(current->type == TOKEN_TYPE_EQ) {
+    nextNoEol();
+  } else {
+    errors.push_back(ParseError("no '=' after var declaration", errorLocation));
   }
 
+  unique_ptr<ast::Expression<> > initializer = parseExpression();
+  if (current->type != TOKEN_TYPE_SEMICOLON) {
+    errors.push_back(ParseError("missing semicolon after var declaration", errorLocation));
+    ignoreNextNext = true; // the error token will be consumed by the container without this
+  }
+
+  if (name == "") {
+    throw ParseError("missing var name in declaration", errorLocation);
+  }
   return unique_ptr<ast::VarDecl<> >(new ast::VarDecl<>(name, std::move(initializer)));
 }
 
@@ -118,15 +144,18 @@ unique_ptr<ast::Block<> > Parser::parseBlock() {
   vector<unique_ptr<ast::Statement<> > > stmts;
   while (current->type != TOKEN_TYPE_EOF
       && current->type != TOKEN_TYPE_CLOSE_BRACE) {
-    stmts.push_back(parseStatement());
+    try {
+      stmts.push_back(parseStatement());
+    } catch(ParseError e) {
+      errors.push_back(e);
+    }
 
     nextNoEol(); // statements don't consume their final token
   }
 
   if (current->type != TOKEN_TYPE_CLOSE_BRACE) {
-    throw string("missing close brace");
+    errors.push_back(ParseError("missing 'end' at end of block", errorLocation));
   }
-
 
   return unique_ptr<ast::Block<> >(new ast::Block<>(std::move(stmts)));
 }
@@ -134,20 +163,31 @@ unique_ptr<ast::Block<> > Parser::parseBlock() {
 unique_ptr<ast::IfStatement<> > Parser::parseIfStatement() {
   next();
   newlineReplacement = TOKEN_TYPE_DO;
-  unique_ptr<ast::Expression<> > condition(parseExpression());
-  newlineReplacement = TOKEN_TYPE_SEMICOLON;
+  unique_ptr<ast::Expression<> > condition;
+  try {
+    condition = parseExpression();
+    newlineReplacement = TOKEN_TYPE_SEMICOLON;
+  } catch(ParseError e) {
+    newlineReplacement = TOKEN_TYPE_SEMICOLON;
+    throw e;
+  }
 
   if (current->type != TOKEN_TYPE_DO) {
-    throw string("missing end");
+    errors.push_back(ParseError("missing 'do' (or newline) at end of if condition", errorLocation));
+  } else {
+    nextNoEol();
   }
-  nextNoEol();
 
   vector<unique_ptr<ast::Statement<> > > trueStmts;
   vector<unique_ptr<ast::Statement<> > > falseStmts;
   while (current->type != TOKEN_TYPE_EOF
       && current->type != TOKEN_TYPE_ELSE
       && current->type != TOKEN_TYPE_END) {
-    trueStmts.push_back(parseStatement());
+    try {
+      trueStmts.push_back(parseStatement());
+    } catch(ParseError e) {
+      errors.push_back(e);
+    }
 
     nextNoEol(); // statements don't consume their final token
   }
@@ -155,21 +195,29 @@ unique_ptr<ast::IfStatement<> > Parser::parseIfStatement() {
   if (current->type == TOKEN_TYPE_ELSE) {
     nextOr(TOKEN_TYPE_DO);
     if (current->type != TOKEN_TYPE_DO) {
-      falseStmts.push_back(parseStatement());
+      try {
+        falseStmts.push_back(parseStatement());
+      } catch(ParseError e) {
+        errors.push_back(e);
+      }
     } else {
       nextNoEol();
       while (current->type != TOKEN_TYPE_EOF
           && current->type != TOKEN_TYPE_END) {
-        falseStmts.push_back(parseStatement());
+        try {
+          falseStmts.push_back(parseStatement());
+        } catch(ParseError e) {
+          errors.push_back(e);
+        }
 
         nextNoEol(); // statements don't consume their final token
       }
       if (current->type != TOKEN_TYPE_END) {
-        throw string("missing end");
+        errors.push_back(ParseError("missing 'end' at end of if", errorLocation));
       }
     }
   } else if (current->type != TOKEN_TYPE_END) {
-    throw string("missing end");
+    errors.push_back(ParseError("missing 'end' or 'else' at end of if", errorLocation));
   }
 
   return unique_ptr<ast::IfStatement<> >(new ast::IfStatement<>(
@@ -181,24 +229,35 @@ unique_ptr<ast::IfStatement<> > Parser::parseIfStatement() {
 unique_ptr<ast::ForCondition<> > Parser::parseForCondition() {
   next();
   newlineReplacement = TOKEN_TYPE_DO;
-  unique_ptr<ast::Expression<> > condition(parseExpression());
-  newlineReplacement = TOKEN_TYPE_SEMICOLON;
+  unique_ptr<ast::Expression<> > condition;
+  try {
+    condition = parseExpression();
+    newlineReplacement = TOKEN_TYPE_SEMICOLON;
+  } catch(ParseError e) {
+    newlineReplacement = TOKEN_TYPE_SEMICOLON;
+    throw e;
+  }
 
   if (current->type != TOKEN_TYPE_DO) {
-    throw string("missing end");
+    errors.push_back(ParseError("missing 'do' at end of for condition", errorLocation));
+  } else {
+    nextNoEol();
   }
-  nextNoEol();
 
   vector<unique_ptr<ast::Statement<> > > stmts;
   while (current->type != TOKEN_TYPE_EOF
       && current->type != TOKEN_TYPE_END) {
-    stmts.push_back(parseStatement());
+    try {
+      stmts.push_back(parseStatement());
+    } catch(ParseError e) {
+      errors.push_back(e);
+    }
 
     nextNoEol(); // statements don't consume their final token
   }
 
   if (current->type != TOKEN_TYPE_END) {
-    throw string("missing end");
+    errors.push_back(ParseError("missing 'end' at end of for block", errorLocation));
   }
 
   return unique_ptr<ast::ForCondition<> >(new ast::ForCondition<>(
@@ -211,7 +270,8 @@ unique_ptr<ast::ReturnStatement<> > Parser::parseReturnStatement() {
   unique_ptr<ast::ReturnStatement<> > stmt(new ast::ReturnStatement<>(parseExpression()));
 
   if (current->type != TOKEN_TYPE_SEMICOLON) {
-    throw string("missing end semicolon");
+    errors.push_back(ParseError("missing semicolon (or newline) at end of return", errorLocation));
+    ignoreNextNext = true; // the error token will be consumed by the container without this
   }
   
   return std::move(stmt);
@@ -221,7 +281,8 @@ unique_ptr<ast::ExpressionStatement<> > Parser::parseExpressionStatement() {
   unique_ptr<ast::ExpressionStatement<> > stmt(new ast::ExpressionStatement<>(parseExpression()));
 
   if (current->type != TOKEN_TYPE_SEMICOLON) {
-    throw string("missing end semicolon");
+    errors.push_back(ParseError("missing semicolon (or newline) at end of expression", errorLocation));
+    ignoreNextNext = true; // the error token will be consumed by the container without this
   }
   
   return std::move(stmt);
@@ -247,10 +308,13 @@ unique_ptr<ast::Expression<> > Parser::parseAssignmentExpression() {
       unique_ptr<ast::Expression<> > rhs = parseAssignmentExpression();
       AssignmentProducer assignmentProducer(std::move(rhs));
       lhs->accept(assignmentProducer);
+      if (assignmentProducer.result.get() == NULL) {
+        errors.push_back(ParseError("assignment to a nonassignable expression", errorLocation));
+        break;
+      }
       return std::move(assignmentProducer.result);
     } else {
-      // error
-      throw string("blah");
+      break;
     }
   }
 
@@ -276,8 +340,7 @@ unique_ptr<ast::Expression<> > Parser::parseEqualityExpression() {
       acc = unique_ptr<ast::Expression<> >(new ast::InequalityExpression<> (
           std::move(acc), parseComparisonExpression()));
     } else {
-      // error
-      throw string("blah");
+      break;
     }
   }
 
@@ -313,8 +376,7 @@ unique_ptr<ast::Expression<> > Parser::parseComparisonExpression() {
       acc = unique_ptr<ast::Expression<> >(new ast::LteExpression<> (
           std::move(acc), parseAddSubExpression()));
     } else {
-      // error
-      throw string("blah");
+      break;
     }
   }
 
@@ -346,8 +408,7 @@ unique_ptr<ast::Expression<> > Parser::parseAddSubExpression() {
       acc = unique_ptr<ast::Expression<> >(new ast::SubtractionExpression<> (
           std::move(acc), parseDivMulExpression()));
     } else {
-      // error
-      throw string("blah");
+      break;
     }
   }
 
@@ -383,8 +444,7 @@ unique_ptr<ast::Expression<> > Parser::parseDivMulExpression() {
       acc = unique_ptr<ast::Expression<> >(new ast::MultiplicationExpression<> (
           std::move(acc), parseValue()));
     } else {
-      // error
-      throw string("blah");
+      break;
     }
   }
 
@@ -402,12 +462,19 @@ unique_ptr<ast::Expression<> > Parser::parseValue() {
     TokenType prevNewlineReplacement = newlineReplacement;
     newlineReplacement = TOKEN_TYPE_ERROR; // no newline replacement
     nextNoEol();
-    unique_ptr<ast::Expression<> > expr(parseExpression());
-    if (current->type != TOKEN_TYPE_CLOSE_PAREN) {
-      throw "not closed";
+    unique_ptr<ast::Expression<> > expr;
+    try {
+      unique_ptr<ast::Expression<> > expr(parseExpression());
+      newlineReplacement = prevNewlineReplacement;
+    } catch(ParseError e) {
+      newlineReplacement = prevNewlineReplacement;
+      throw e;
     }
-    nextNoEol();
-    newlineReplacement = prevNewlineReplacement;
+    if (current->type != TOKEN_TYPE_CLOSE_PAREN) {
+      errors.push_back(ParseError("missing close paren for subexpression", errorLocation));
+    } else {
+      nextNoEol();
+    }
     return std::move(expr);
   }
 
@@ -421,8 +488,13 @@ unique_ptr<ast::Expression<> > Parser::parseValue() {
           && current->type != TOKEN_TYPE_CLOSE_PAREN) {
         TokenType prevNewlineReplacement = newlineReplacement;
         newlineReplacement = TOKEN_TYPE_COMMA;
-        params.push_back(parseExpression());
-        newlineReplacement = prevNewlineReplacement;
+        try {
+          params.push_back(parseExpression());
+          newlineReplacement = prevNewlineReplacement;
+        } catch(ParseError e) {
+          newlineReplacement = prevNewlineReplacement;
+          throw e;
+        }
 
         if (current->type != TOKEN_TYPE_COMMA) {
           break;
@@ -432,7 +504,7 @@ unique_ptr<ast::Expression<> > Parser::parseValue() {
       }
 
       if (current->type != TOKEN_TYPE_CLOSE_PAREN) {
-        throw string("missing close paren");
+        errors.push_back(ParseError("missing close paren for function call", errorLocation));
       }
 
       next();
@@ -457,10 +529,15 @@ unique_ptr<ast::Expression<> > Parser::parseValue() {
     return unique_ptr<ast::Expression<> >(new ast::NotExpression<> (parseExpression()));
   }
   
-  throw string("blah");
+  throw ParseError("tried to parse a value, but got an unknown token", errorLocation);
 }
 
 void Parser::next() {
+  if (ignoreNextNext) {
+    ignoreNextNext = false;
+    return;
+  }
+
   if (newlineReplacement == TOKEN_TYPE_ERROR) {
     current = tokenizer.next();
   } else {
@@ -469,10 +546,18 @@ void Parser::next() {
 }
 
 void Parser::nextNoEol() {
+  if (ignoreNextNext) {
+    ignoreNextNext = false;
+    return;
+  }
   current = tokenizer.nextNoEol();
 }
 
 void Parser::nextOr(TokenType newlineType) {
+  if (ignoreNextNext) {
+    ignoreNextNext = false;
+    return;
+  }
   current = tokenizer.nextOr(newlineType);
 }
 

@@ -332,7 +332,7 @@ void AutoCompiler::visitAdditionExpression(AdditionExpression<TypedLocationInfo>
       result = lhsReg;
     } else if (right_loc.type != LOCATION_TYPE_ARG && right_loc.type != LOCATION_TYPE_LOCAL) {
       result = rhsReg;
-      lhsReg = rhsReg;
+      rhsReg = lhsReg;
     } else {
       cc.mov(result, lhsReg);
     }
@@ -438,7 +438,7 @@ void AutoCompiler::visitMultiplicationExpression(MultiplicationExpression<TypedL
       result = lhsReg;
     } else if (right_loc.type != LOCATION_TYPE_ARG && right_loc.type != LOCATION_TYPE_LOCAL) {
       result = rhsReg;
-      lhsReg = rhsReg;
+      rhsReg = lhsReg;
     } else {
       cc.mov(result, lhsReg);
     }
@@ -533,6 +533,7 @@ void AutoCompiler::visitVariableExpression(VariableExpression<TypedLocationInfo>
     int argIndex = expr.resolvedData.location.data.argIndex;
     if (argIndex == -1) {
       error.noVarError();
+      vRegs.push(cc.newUInt64());
     } else {
       vRegs.push(argRegs[expr.resolvedData.location.data.argIndex]);
     }

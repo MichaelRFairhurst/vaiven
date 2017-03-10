@@ -49,10 +49,22 @@ void printExpressionStream(Parser& parser) {
   PrintErrorHandler eh;
   unique_ptr<ast::Node<> > cur = parser.parseLogicalGroup();
 
-  while (cur.get() != NULL) {
+  while (cur.get() != NULL || parser.errors.size() > 0) {
     //visitor::PrintVisitor printer;
     //cur->accept(printer);
     //cout << endl;
+
+    if (parser.errors.size() > 0) {
+      for (vector<ParseError>::iterator it = parser.errors.begin(); it != parser.errors.end(); ++it) {
+        cout << "Parse error: " << it->error << " at " << it->location << endl;
+      }
+      parser.errors.clear();
+
+      if (cur.get() == NULL) {
+        cur = parser.parseLogicalGroup();
+        continue;
+      }
+    }
 
     if (!parser.lastLogicalGroupWasEvaluatable) {
       visitor::LocationResolver locResolver;
