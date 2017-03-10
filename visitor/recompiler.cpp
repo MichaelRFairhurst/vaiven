@@ -34,18 +34,10 @@ void ReCompiler::visitFuncDecl(FuncDecl<TypedLocationInfo>& decl) {
   curFuncName = decl.name;
 
   Label deoptimizeLabel = cc.newLabel();
-  X86Gp checkArg = cc.newInt64();
   for (int i = 0; i < decl.args.size(); ++i) {
     X86Gp arg = cc.newInt64();
     cc.setArg(i, arg);
     argRegs.push_back(arg);
-
-    if (usageInfo.argShapes[i].isPureInt()) {
-      cc.mov(checkArg, arg);
-      cc.shr(checkArg, VALUE_TAG_SHIFT);
-      cc.cmp(checkArg, INT_TAG_SHIFTED);
-      cc.jne(deoptimizeLabel);
-    }
   }
 
   SsaBuilder builder(usageInfo);

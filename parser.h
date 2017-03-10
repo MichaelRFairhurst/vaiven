@@ -2,18 +2,23 @@
 #define VAIVEN_HEADER_PARSER
 
 #include <memory>
+#include <string>
 
 #include "tokenizer.h"
 #include "ast/all.h"
 
 using std::unique_ptr;
+using std::string;
 
 namespace vaiven {
+
+class ParseError;
 
 class Parser {
   public:
   Parser(Tokenizer& tokenizer)
-    : tokenizer(tokenizer), current(tokenizer.next()), newlineReplacement(TOKEN_TYPE_SEMICOLON) {}
+    : tokenizer(tokenizer), current(tokenizer.next()), newlineReplacement(TOKEN_TYPE_SEMICOLON),
+    errorLocation("top level"), ignoreNextNext(false) {}
 
   unique_ptr<ast::Node<> > parseLogicalGroup();
 
@@ -37,7 +42,10 @@ class Parser {
   // to keep interpreter workflow fast
   bool lastLogicalGroupWasEvaluatable;
 
+  vector<ParseError> errors;
+
   private:
+  bool ignoreNextNext;
   void next();
   void nextNoEol();
   void nextOr(TokenType newlineType);
@@ -45,6 +53,16 @@ class Parser {
   Tokenizer& tokenizer;
   unique_ptr<Token> current;
   TokenType newlineReplacement;
+
+  string errorLocation;
+};
+
+class ParseError {
+  public:
+  string error;
+  string location;
+
+  ParseError(string error, string location) : error(error), location(location) {}
 };
 
 }
