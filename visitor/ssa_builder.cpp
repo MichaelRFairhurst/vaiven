@@ -199,12 +199,29 @@ void SsaBuilder::visitVarDecl(VarDecl<TypedLocationInfo>& varDecl) {
 }
 
 void SsaBuilder::visitFuncCallExpression(FuncCallExpression<TypedLocationInfo>& expr) {
-  CallInstr* call = new CallInstr(expr.name);
-
+  vector<Instruction*> inputs;
   for (int i = 0; i < expr.parameters.size(); ++i) {
     expr.parameters[i]->accept(*this);
-    call->inputs.push_back(cur);
-    cur->usages.insert(call);
+    inputs.push_back(cur);
+  }
+
+  if (funcs.funcs.find(expr.name) == funcs.funcs.end()) {
+    emit(new ErrInstr(NO_SUCH_FUNCTION));
+    return;
+  }
+
+  int argc = funcs.funcs[expr.name]->argc;
+
+  // null excess params
+  for (int i = expr.parameters.size(); i < argc; ++i) {
+    inputs.push_back(new ConstantInstr(Value()));
+  }
+
+  CallInstr* call = new CallInstr(expr.name);
+
+  for (int i = 0; i < argc; ++i) {
+    call->inputs.push_back(inputs[i]);
+    inputs[i]->usages.insert(call);
   }
 
   emit(call);

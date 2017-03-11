@@ -44,12 +44,21 @@ class Function {
   asmjit::JitRuntime& runtime;
 };
 
+class DuplicateFunctionError {
+  public:
+  DuplicateFunctionError(string name) : name(name) {};
+  string name;
+};
+
 class Functions {
   public:
   asmjit::JitRuntime runtime;
 
   void prepareFunc(string name, int argc, unique_ptr<FunctionUsage> usage,
       ast::FuncDecl<TypedLocationInfo>* ast) {
+    if (funcs.find(name) != funcs.end()) {
+      throw DuplicateFunctionError(name);
+    }
     funcs[name] = unique_ptr<Function>(new Function(runtime, argc, std::move(usage), ast));
   }
 
@@ -62,9 +71,6 @@ class Functions {
   // private:
   map<string, unique_ptr<Function> > funcs;
 };
-
-// expose function for asm calls
-//OverkillFunc* lookupFunction(Functions& funcs, String& name);
 
 }
 

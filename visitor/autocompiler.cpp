@@ -95,28 +95,43 @@ void AutoCompiler::visitFuncCallExpression(FuncCallExpression<TypedLocationInfo>
     vRegs.push(cc.newUInt64());
     return;
   }
-  // TODO check arg counts
 
-  uint8_t sigArgs[expr.parameters.size()];
+  int argc = funcs.funcs[expr.name]->argc;
+  int paramc = expr.parameters.size();
+
+  uint8_t sigArgs[argc];
   vector<X86Gp> paramRegs;
 
-  for (int i = 0; i < expr.parameters.size(); ++i) {
-    sigArgs[i] = TypeIdOf<int64_t>::kTypeId;
+  for (int i = 0; i < paramc; ++i) {
     expr.parameters[i]->accept(*this);
     paramRegs.push_back(vRegs.top());
-    box(vRegs.top(), expr.parameters[i]->resolvedData);
+    if (i < argc) {
+      // box those that are actually passed in :)
+      box(vRegs.top(), expr.parameters[i]->resolvedData);
+    }
     vRegs.pop();
   }
 
+  // unspecified void values
+  for (int i = paramc; i < argc; ++i) {
+    X86Gp void_ = cc.newUInt64();
+    cc.mov(void_, VOID);
+    paramRegs.push_back(void_);
+  }
+
+  for (int i = 0; i < argc; ++i) {
+    sigArgs[i] = TypeIdOf<int64_t>::kTypeId;
+  }
+
   FuncSignature sig;
-  sig.init(CallConv::kIdHost, TypeIdOf<int64_t>::kTypeId, sigArgs, expr.parameters.size());
+  sig.init(CallConv::kIdHost, TypeIdOf<int64_t>::kTypeId, sigArgs, argc);
 
   // careful that this always handles self-optimization
   X86Gp lookup = cc.newUInt64();
   cc.mov(lookup, (uint64_t) &funcs.funcs[expr.name]->fptr);
   CCFuncCall* call = cc.call(x86::ptr(lookup), sig);
 
-  for (int i = 0; i < expr.parameters.size(); ++i) {
+  for (int i = 0; i < argc; ++i) {
     call->setArg(i, paramRegs[i]);
   }
 

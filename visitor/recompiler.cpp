@@ -40,7 +40,7 @@ void ReCompiler::visitFuncDecl(FuncDecl<TypedLocationInfo>& decl) {
     argRegs.push_back(arg);
   }
 
-  SsaBuilder builder(usageInfo);
+  SsaBuilder builder(usageInfo, funcs);
   decl.accept(builder);
 #ifdef SSA_DIAGNOSTICS
   ssa::PrintVisitor printer;

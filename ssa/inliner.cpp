@@ -97,7 +97,7 @@ void Inliner::visitCallInstr(CallInstr& instr) {
   PhiInstr* resultPhi = new PhiInstr();
 
   // note: usage is unused here...
-  visitor::SsaBuilder buildInlineCode(*funcs.funcs[instr.funcName]->usage);
+  visitor::SsaBuilder buildInlineCode(*funcs.funcs[instr.funcName]->usage, funcs);
 
   // TODO consolidate this better with SsaBuilder
   for (int i = 0; i < funcDecl.args.size(); ++i) {

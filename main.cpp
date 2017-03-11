@@ -80,11 +80,13 @@ void printExpressionStream(Parser& parser) {
       X86Assembler assembler(&codeHolder);
       X86Compiler cc(&codeHolder);
       //visitor::Compiler compiler(assembler, codeHolder, funcs);
-      visitor::AutoCompiler compiler(cc, codeHolder, funcs);
-      compiler.compile(*resolved);
-      resolved.release(); // compiler owns pointer now
-      //int64_t result = func(1, 2, 3, 4, 5, 6, 7, 8);
-      //cout << result << endl << endl;
+      try {
+        visitor::AutoCompiler compiler(cc, codeHolder, funcs);
+        compiler.compile(*resolved);
+        resolved.release(); // compiler owns pointer now
+      } catch (DuplicateFunctionError e) {
+        cout << "function " << e.name << " already defined" << endl;
+      }
       cur = parser.parseLogicalGroup();
       continue;
     }

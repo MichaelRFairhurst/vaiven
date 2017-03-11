@@ -46,15 +46,24 @@ void Emitter::visitCallInstr(CallInstr& instr) {
     error.noFuncError();
     return;
   }
-  // TODO check arg counts
 
-  uint8_t sigArgs[instr.inputs.size()];
-  for (int i = 0; i < instr.inputs.size(); ++i) {
+  int argc = funcs.funcs[instr.funcName]->argc;
+  int paramc = instr.inputs.size();
+  vector<X86Gp> voidRegs;
+
+  for (int i = paramc; i < argc; ++i) {
+    X86Gp void_ = cc.newUInt64();
+    cc.mov(void_, VOID);
+    voidRegs.push_back(void_);
+  }
+ 
+  uint8_t sigArgs[argc];
+  for (int i = 0; i < argc; ++i) {
     sigArgs[i] = TypeIdOf<int64_t>::kTypeId;
   }
 
   FuncSignature sig;
-  sig.init(CallConv::kIdHost, TypeIdOf<int64_t>::kTypeId, sigArgs, instr.inputs.size());
+  sig.init(CallConv::kIdHost, TypeIdOf<int64_t>::kTypeId, sigArgs, argc);
 
   CCFuncCall* call;
   if (instr.funcName == funcName) {
@@ -65,8 +74,12 @@ void Emitter::visitCallInstr(CallInstr& instr) {
     call = cc.call(x86::ptr(lookup), sig);
   }
 
-  for (int i = 0; i < instr.inputs.size(); ++i) {
+  for (int i = 0; i < paramc; ++i) {
     call->setArg(i, instr.inputs[i]->out);
+  }
+
+  for (int i = paramc; i < argc; ++i) {
+    call->setArg(i, voidRegs[i - paramc]);
   }
 
   call->setRet(0, instr.out);

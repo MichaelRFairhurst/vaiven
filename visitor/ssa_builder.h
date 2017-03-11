@@ -13,6 +13,7 @@
 #include "../ssa/ssa.h"
 #include "../ssa/cfg.h"
 #include "../function_usage.h"
+#include "../functions.h"
 
 namespace vaiven { namespace visitor {
 
@@ -25,8 +26,8 @@ using std::unordered_set;
 class SsaBuilder : public Visitor<TypedLocationInfo> {
 
   public:
-  SsaBuilder(FunctionUsage& usageInfo)
-      : usageInfo(usageInfo), curBlock(&head), cur(NULL), writePoint(NULL) {};
+  SsaBuilder(FunctionUsage& usageInfo, Functions& funcs)
+      : usageInfo(usageInfo), funcs(funcs), curBlock(&head), cur(NULL), writePoint(NULL) {};
 
   virtual void visitAssignmentExpression(AssignmentExpression<TypedLocationInfo>& expr);
   virtual void visitAdditionExpression(AdditionExpression<TypedLocationInfo>& expr);
@@ -61,6 +62,7 @@ class SsaBuilder : public Visitor<TypedLocationInfo> {
   Scope<ssa::Instruction*> scope;
 
   private:
+  Functions& funcs;
   FunctionUsage& usageInfo;
   unordered_set<string> varsToPhi;
 
