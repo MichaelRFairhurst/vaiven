@@ -62,8 +62,7 @@ void Emitter::visitCallInstr(CallInstr& instr) {
   } else {
     X86Gp lookup = cc.newUInt64();
     cc.mov(lookup, (uint64_t) &funcs.funcs[instr.funcName]->fptr);
-    cc.mov(lookup, x86::ptr(lookup));
-    call = cc.call(lookup, sig);
+    call = cc.call(x86::ptr(lookup), sig);
   }
 
   for (int i = 0; i < instr.inputs.size(); ++i) {

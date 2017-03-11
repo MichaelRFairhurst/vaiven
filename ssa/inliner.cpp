@@ -2,16 +2,19 @@
 #include "function_merge.h"
 #include "../visitor/ssa_builder.h"
 
+#include <iostream>
+
 using namespace vaiven::ssa;
 using namespace vaiven::ast;
 
 const int STOP_INLINING_AT_SIZE = 5096; // ?
 const int MAX_INLINE_SIZE = 512; // ?
-const int RECURSION_IDEAL_SIZE = 128; // ?
-const int BOX_COST = 2;
-const int TYPECHECK_COST = 3;
-const int SPILL_COST = 1;
-const int ARG_COST = 1; // every arg is a chance to optimize
+const int WORST_INSTRUCTION_SIZE = 15; // wowowow
+const int BOX_COST = WORST_INSTRUCTION_SIZE * 2;
+const int TYPECHECK_COST = WORST_INSTRUCTION_SIZE * 3;
+const int SPILL_COST = WORST_INSTRUCTION_SIZE * 2;
+const int FUNCTION_CALL_COST = WORST_INSTRUCTION_SIZE * 2;
+const int ARG_COST = WORST_INSTRUCTION_SIZE * 5; // every arg is a chance to optimize
 
 void Inliner::visitPhiInstr(PhiInstr& instr) {
 }
@@ -31,11 +34,20 @@ void Inliner::visitCallInstr(CallInstr& instr) {
   if (currentWorstSize > STOP_INLINING_AT_SIZE
       || funcs.funcs[instr.funcName]->worstSize > MAX_INLINE_SIZE
       || funcs.funcs[instr.funcName]->worstSize > MAX_INLINE_SIZE) {
+#ifdef INLINING_DIAGNOSTICS
+    std::cout << "not inlining " << instr.funcName << " because we've hit a limit" << std::endl;
+#endif
     return;
   }
 
+#ifdef INLINING_DIAGNOSTICS
+  std::cout << "considering inlining " << instr.funcName << std::endl;
+#endif
+
+  int callOverheadGuess = FUNCTION_CALL_COST;
+
   int argc = instr.inputs.size();
-  int callOverheadGuess = argc * SPILL_COST + argc * ARG_COST;
+  callOverheadGuess += argc * SPILL_COST + argc * ARG_COST;
   for (vector<Instruction*>::iterator it = instr.inputs.begin(); it != instr.inputs.end(); ++it) {
     if ((*it)->tag == INSTR_BOX) {
       callOverheadGuess += BOX_COST;
@@ -53,18 +65,31 @@ void Inliner::visitCallInstr(CallInstr& instr) {
     }
   }
 
-  // assume 40% reduction in code size from hot optimization (?) vs worst size
-  int afterOptimizeGuessSize = funcs.funcs[instr.funcName]->worstSize * 6 / 10;
+  // assume 70% reduction in code size from hot optimization (?) vs worst size
+  int afterOptimizeGuessSize = (funcs.funcs[instr.funcName]->worstSize - callOverheadGuess) * 3 / 10;
 
   // TODO count % of times executed rather than "is hot" (which doesn't even really matter)
   bool isHot = funcs.funcs[instr.funcName]->usage->count == HOT_COUNT;
 
+#ifdef INLINING_DIAGNOSTICS
+  std::cout << "estimated overhead of calling is " << callOverheadGuess << std::endl;
+  std::cout << "estimated size of inlining is " << afterOptimizeGuessSize << std::endl;
+  std::cout << instr.funcName << (isHot ? " is hot " : " is cold ") << std::endl;
+#endif
+
   // if the function isn't smaller than its overhead, and its not hot, don't inline
   if (afterOptimizeGuessSize > callOverheadGuess && !isHot) {
+#ifdef INLINING_DIAGNOSTICS
+    std::cout << "will not inline" << std::endl;
+#endif
     return;
   }
 
-  currentWorstSize += funcs.funcs[instr.funcName]->worstSize;
+#ifdef INLINING_DIAGNOSTICS
+  std::cout << "inlining will proceed" << std::endl;
+#endif
+
+  currentWorstSize += funcs.funcs[instr.funcName]->worstSize - callOverheadGuess;
 
   FuncDecl<TypedLocationInfo>& funcDecl = *funcs.funcs[instr.funcName]->ast;
 
