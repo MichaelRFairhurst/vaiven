@@ -41,13 +41,7 @@ void Emitter::visitConstantInstr(ConstantInstr& instr) {
 }
 
 void Emitter::visitCallInstr(CallInstr& instr) {
-  // TODO recursion
-  if (funcs.funcs.find(instr.funcName) == funcs.funcs.end()) {
-    error.noFuncError();
-    return;
-  }
-
-  int argc = funcs.funcs[instr.funcName]->argc;
+  int argc = instr.func.argc;
   int paramc = instr.inputs.size();
   vector<X86Gp> voidRegs;
 
@@ -68,9 +62,11 @@ void Emitter::visitCallInstr(CallInstr& instr) {
   CCFuncCall* call;
   if (instr.funcName == funcName) {
     call = cc.call(funcLabel, sig);
+  } else if (instr.func.isNative) {
+    call = cc.call((uint64_t) instr.func.fptr, sig);
   } else {
     X86Gp lookup = cc.newUInt64();
-    cc.mov(lookup, (uint64_t) &funcs.funcs[instr.funcName]->fptr);
+    cc.mov(lookup, (uint64_t) &instr.func.fptr);
     call = cc.call(x86::ptr(lookup), sig);
   }
 

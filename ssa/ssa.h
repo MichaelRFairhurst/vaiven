@@ -4,6 +4,7 @@
 #include "../asmjit/src/asmjit/asmjit.h"
 #include "../type_info.h"
 #include "../value.h"
+#include "../functions.h"
 #include "../runtime_error.h"
 
 #include <string>
@@ -159,10 +160,11 @@ class ConstantInstr : public Instruction {
 
 class CallInstr : public Instruction {
   public:
-  CallInstr(string funcName)
-      : funcName(funcName), Instruction(INSTR_CALL, VAIVEN_STATIC_TYPE_UNKNOWN, true) {};
+  CallInstr(string funcName, Function& func)
+      : funcName(funcName), func(func), Instruction(INSTR_CALL, VAIVEN_STATIC_TYPE_UNKNOWN, true) {};
 
   string funcName;
+  Function& func;
 
   void accept(SsaVisitor& visitor) {
     visitor.visitCallInstr(*this);

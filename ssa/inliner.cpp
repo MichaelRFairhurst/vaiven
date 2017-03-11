@@ -26,14 +26,14 @@ void Inliner::visitConstantInstr(ConstantInstr& instr) {
 }
 
 void Inliner::visitCallInstr(CallInstr& instr) {
-  if (funcs.funcs.find(instr.funcName) == funcs.funcs.end()) {
+  Function& func = instr.func;
+  if (func.isNative) {
     return;
   }
 
   // arbitrary max sizes to stop inlining
   if (currentWorstSize > STOP_INLINING_AT_SIZE
-      || funcs.funcs[instr.funcName]->worstSize > MAX_INLINE_SIZE
-      || funcs.funcs[instr.funcName]->worstSize > MAX_INLINE_SIZE) {
+      || func.worstSize > MAX_INLINE_SIZE) {
 #ifdef INLINING_DIAGNOSTICS
     std::cout << "not inlining " << instr.funcName << " because we've hit a limit" << std::endl;
 #endif
@@ -66,10 +66,10 @@ void Inliner::visitCallInstr(CallInstr& instr) {
   }
 
   // assume 70% reduction in code size from hot optimization (?) vs worst size
-  int afterOptimizeGuessSize = (funcs.funcs[instr.funcName]->worstSize - callOverheadGuess) * 3 / 10;
+  int afterOptimizeGuessSize = (func.worstSize - callOverheadGuess) * 3 / 10;
 
   // TODO count % of times executed rather than "is hot" (which doesn't even really matter)
-  bool isHot = funcs.funcs[instr.funcName]->usage->count == HOT_COUNT;
+  bool isHot = func.usage->count == HOT_COUNT;
 
 #ifdef INLINING_DIAGNOSTICS
   std::cout << "estimated overhead of calling is " << callOverheadGuess << std::endl;
@@ -89,15 +89,15 @@ void Inliner::visitCallInstr(CallInstr& instr) {
   std::cout << "inlining will proceed" << std::endl;
 #endif
 
-  currentWorstSize += funcs.funcs[instr.funcName]->worstSize - callOverheadGuess;
+  currentWorstSize += func.worstSize - callOverheadGuess;
 
-  FuncDecl<TypedLocationInfo>& funcDecl = *funcs.funcs[instr.funcName]->ast;
+  FuncDecl<TypedLocationInfo>& funcDecl = *func.ast;
 
   Block* returnPoint = new Block();
   PhiInstr* resultPhi = new PhiInstr();
 
   // note: usage is unused here...
-  visitor::SsaBuilder buildInlineCode(*funcs.funcs[instr.funcName]->usage, funcs);
+  visitor::SsaBuilder buildInlineCode(*func.usage, funcs);
 
   // TODO consolidate this better with SsaBuilder
   for (int i = 0; i < funcDecl.args.size(); ++i) {

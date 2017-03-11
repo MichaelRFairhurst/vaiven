@@ -23,25 +23,29 @@ typedef Value (*OverkillFunc)(Value rdi, Value rsi, Value rdx, Value rcx, Value 
 class Function {
   public: 
   Function(const Function& that) = delete;
-  Function(asmjit::JitRuntime& runtime,
+  Function(asmjit::JitRuntime* runtime,
       int argc,
       unique_ptr<FunctionUsage> usage,
       ast::FuncDecl<TypedLocationInfo>* ast)
-    : runtime(runtime), argc(argc), usage(std::move(usage)), ast(ast) {};
+    : runtime(runtime), argc(argc), usage(std::move(usage)), ast(ast), isPure(false) {};
 
   ~Function() {
-    runtime.release(fptr);
+    if (!isNative) {
+      runtime->release(fptr);
+    }
   }
 
+  bool isNative;
   int argc;
   int worstSize;
+  bool isPure; // for native functions
   OverkillFunc fptr;
   OverkillFunc slowfptr;
   unique_ptr<FunctionUsage> usage;
   unique_ptr<ast::FuncDecl<TypedLocationInfo> > ast;
 
   private:
-  asmjit::JitRuntime& runtime;
+  asmjit::JitRuntime* runtime;
 };
 
 class DuplicateFunctionError {
@@ -54,12 +58,19 @@ class Functions {
   public:
   asmjit::JitRuntime runtime;
 
+  void addNative(string name, int argc, void* fptr, bool isPure) {
+    funcs[name] = unique_ptr<Function>(new Function(NULL, argc, unique_ptr<FunctionUsage>(), NULL));
+    funcs[name]->isNative = true;
+    funcs[name]->fptr = (OverkillFunc) fptr;
+    funcs[name]->isPure = isPure;
+  }
+
   void prepareFunc(string name, int argc, unique_ptr<FunctionUsage> usage,
       ast::FuncDecl<TypedLocationInfo>* ast) {
     if (funcs.find(name) != funcs.end()) {
       throw DuplicateFunctionError(name);
     }
-    funcs[name] = unique_ptr<Function>(new Function(runtime, argc, std::move(usage), ast));
+    funcs[name] = unique_ptr<Function>(new Function(&runtime, argc, std::move(usage), ast));
   }
 
   void finalizeFunc(string name, asmjit::CodeHolder* holder) {

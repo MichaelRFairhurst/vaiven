@@ -53,6 +53,9 @@ void UnusedCodeEliminator::visitConstantInstr(ConstantInstr& instr) {
 }
 
 void UnusedCodeEliminator::visitCallInstr(CallInstr& instr) {
+  if (instr.func.isPure) {
+    visitPureInstr(instr);
+  }
 }
 
 void UnusedCodeEliminator::visitTypecheckInstr(TypecheckInstr& instr) {

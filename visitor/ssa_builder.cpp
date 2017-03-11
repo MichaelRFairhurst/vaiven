@@ -205,19 +205,22 @@ void SsaBuilder::visitFuncCallExpression(FuncCallExpression<TypedLocationInfo>& 
     inputs.push_back(cur);
   }
 
-  if (funcs.funcs.find(expr.name) == funcs.funcs.end()) {
+  auto finder = funcs.funcs.find(expr.name);
+  if (finder == funcs.funcs.end()) {
     emit(new ErrInstr(NO_SUCH_FUNCTION));
     return;
   }
 
-  int argc = funcs.funcs[expr.name]->argc;
+  Function& func = *finder->second;
+
+  int argc = func.argc;
 
   // null excess params
   for (int i = expr.parameters.size(); i < argc; ++i) {
     inputs.push_back(new ConstantInstr(Value()));
   }
 
-  CallInstr* call = new CallInstr(expr.name);
+  CallInstr* call = new CallInstr(expr.name, func);
 
   for (int i = 0; i < argc; ++i) {
     call->inputs.push_back(inputs[i]);

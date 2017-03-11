@@ -90,13 +90,16 @@ void AutoCompiler::visitVarDecl(VarDecl<TypedLocationInfo>& varDecl) {
 }
 
 void AutoCompiler::visitFuncCallExpression(FuncCallExpression<TypedLocationInfo>& expr) {
-  if (expr.name != curFuncName && funcs.funcs.find(expr.name) == funcs.funcs.end()) {
+  auto finder = funcs.funcs.find(expr.name);
+  if (finder == funcs.funcs.end()) {
     error.noFuncError();
     vRegs.push(cc.newUInt64());
     return;
   }
 
-  int argc = funcs.funcs[expr.name]->argc;
+  Function& func = *finder->second;
+
+  int argc = func.argc;
   int paramc = expr.parameters.size();
 
   uint8_t sigArgs[argc];
@@ -126,10 +129,15 @@ void AutoCompiler::visitFuncCallExpression(FuncCallExpression<TypedLocationInfo>
   FuncSignature sig;
   sig.init(CallConv::kIdHost, TypeIdOf<int64_t>::kTypeId, sigArgs, argc);
 
-  // careful that this always handles self-optimization
-  X86Gp lookup = cc.newUInt64();
-  cc.mov(lookup, (uint64_t) &funcs.funcs[expr.name]->fptr);
-  CCFuncCall* call = cc.call(x86::ptr(lookup), sig);
+  CCFuncCall* call;
+  if (func.isNative) {
+    call = cc.call((uint64_t) func.fptr, sig);
+  } else {
+    // careful that this always handles self-optimization
+    X86Gp lookup = cc.newUInt64();
+    cc.mov(lookup, (uint64_t) &func.fptr);
+    CCFuncCall* call = cc.call(x86::ptr(lookup), sig);
+  }
 
   for (int i = 0; i < argc; ++i) {
     call->setArg(i, paramRegs[i]);

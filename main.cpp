@@ -3,6 +3,7 @@
 #include "functions.h"
 #include "type_info.h"
 #include "runtime_error.h"
+#include "std.h"
 #include "visitor/print_visitor.h"
 #include "visitor/interpreter.h"
 #include "visitor/compiler.h"
@@ -44,6 +45,7 @@ public:
 
 void printExpressionStream(Parser& parser) {
   Functions funcs;
+  init_std(funcs);
   Scope<Value> globalScope;
   FileLogger logger(stdout);
   PrintErrorHandler eh;
