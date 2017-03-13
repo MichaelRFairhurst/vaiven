@@ -34,11 +34,13 @@ struct ValueAfterHeader {
   uint32_t header;
 };
 
+class Gcable;
+
 class Value {
   private:
 
   union {
-    void* asPtr;
+    Gcable* asPtr;
     double asDouble;
     uint64_t raw;
     ValueAfterHeader withHeader;
@@ -55,7 +57,7 @@ class Value {
     internals.raw = fromBool ? TRUE : FALSE;
   }
 
-  inline Value(void* fromPtr) {
+  inline Value(Gcable* fromPtr) {
     internals.asPtr = fromPtr;
   }
 
@@ -100,7 +102,7 @@ class Value {
     return internals.withHeader.asInt;
   }
 
-  inline void* getPtr() {
+  inline Gcable* getPtr() {
     return internals.asPtr;
   }
     

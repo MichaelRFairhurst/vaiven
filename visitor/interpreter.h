@@ -11,6 +11,8 @@
 #include "../functions.h"
 #include "../value.h"
 #include "../scope.h"
+#include "../util.h"
+#include "../heap.h"
 
 namespace vaiven { namespace visitor {
 
@@ -19,18 +21,14 @@ using std::stack;
 using std::string;
 using std::vector;
 
-template<typename T>
-class stack_with_container : public stack<T> {
-  public:
-    using std::stack<T>::c; // expose the container
-};
-
 using namespace vaiven::ast;
 
 class Interpreter : public Visitor<> {
 
   public:
-  Interpreter(Functions& funcs, Scope<Value>& scope) : funcs(funcs), scope(scope) {};
+  Interpreter(Functions& funcs) : funcs(funcs), heap(stack, scope) {
+    globalHeap = &heap;
+  };
   //int interpret(Node<>& root, vector<Value> args, map<string, int>* variablesMap);
   Value interpret(Node<>& root);
 
@@ -60,7 +58,8 @@ class Interpreter : public Visitor<> {
 
   stack_with_container<Value> stack;
   Functions& funcs;
-  Scope<Value>& scope;
+  Scope<Value> scope;
+  Heap heap;
 };
 
 }}

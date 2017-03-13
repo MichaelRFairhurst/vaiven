@@ -7,7 +7,8 @@ using namespace vaiven;
 // quick profiling revealed that a prereserved vector is faster than
 // a deque, char[] on the stack, or linked list. 32 should nearly
 // eliminate resizes, without using unexpectedly high mem.
-#define ID_BUFFER_RESERVE_SIZE 32
+const int ID_BUFFER_RESERVE_SIZE = 32;
+const int STRING_BUFFER_RESERVE_SIZE = 128;
 
 bool isNumChar(char c) {
   return c >= '0' && c <= '9';
@@ -435,6 +436,18 @@ unique_ptr<Token> Tokenizer::nextOr(TokenType newlineType) {
       return tokenizeTrue();
     case '\n':
       return unique_ptr<Token>(new Token(newlineType));
+    case '"':
+      {
+        c = input.peek();
+        vector<char> buffer;
+        buffer.reserve(STRING_BUFFER_RESERVE_SIZE);
+        while(c != '"' && c != EOF) {
+          buffer.push_back(c);
+          input.get();
+          c = input.peek();
+        }
+        return unique_ptr<Token>(new StringToken(TOKEN_TYPE_STRING, string(buffer.begin(), buffer.end())));
+      }
     case '\t':
     case ' ':
       return nextOr(newlineType);

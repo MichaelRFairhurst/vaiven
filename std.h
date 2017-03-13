@@ -8,6 +8,7 @@ namespace vaiven {
 void init_std(Functions& funcs);
 
 Value print(Value value);
+Value listWith(Value value);
 
 }
 

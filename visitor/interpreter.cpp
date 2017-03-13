@@ -24,6 +24,7 @@ Value Interpreter::interpret(Node<>& root) {
   } else {
     return Value();
   }
+
   //for(int i = 0; i < args.size(); ++i) {
   //  stack.pop();
   //}

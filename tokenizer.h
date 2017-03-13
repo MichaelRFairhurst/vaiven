@@ -17,6 +17,7 @@ class Token;
 
 enum TokenType {
   TOKEN_TYPE_ID,
+  TOKEN_TYPE_STRING,
   TOKEN_TYPE_FN,
   TOKEN_TYPE_END,
   TOKEN_TYPE_IS,

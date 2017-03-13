@@ -26,7 +26,7 @@ void printExpressionStream(Parser& tokenizer);
 
 int main() {
   Tokenizer tokenizer(cin);
-  Parser parser (tokenizer);
+  Parser parser(tokenizer);
 
   //printTokenStream(tokenizer);
   printExpressionStream(parser);
@@ -46,16 +46,12 @@ public:
 void printExpressionStream(Parser& parser) {
   Functions funcs;
   init_std(funcs);
-  Scope<Value> globalScope;
   FileLogger logger(stdout);
   PrintErrorHandler eh;
   unique_ptr<ast::Node<> > cur = parser.parseLogicalGroup();
+  visitor::Interpreter interpreter(funcs);
 
   while (cur.get() != NULL || parser.errors.size() > 0) {
-    //visitor::PrintVisitor printer;
-    //cur->accept(printer);
-    //cout << endl;
-
     if (parser.errors.size() > 0) {
       for (vector<ParseError>::iterator it = parser.errors.begin(); it != parser.errors.end(); ++it) {
         cout << "Parse error: " << it->error << " at " << it->location << endl;
@@ -93,12 +89,6 @@ void printExpressionStream(Parser& parser) {
       continue;
     }
 
-    cout << "=";
-    visitor::Interpreter interpreter(funcs, globalScope);
-    //std::vector<int> args;
-    //args.push_back(1); args.push_back(2); args.push_back(3);
-    //args.push_back(4); args.push_back(5); args.push_back(6);
-    //int result = interpreter.interpret(*cur /*, args, &locResolver.argIndexes*/);
 
     int error = setjmp(errorJmpBuf);
     if (error) {
@@ -108,26 +98,8 @@ void printExpressionStream(Parser& parser) {
     }
 
     Value result = interpreter.interpret(*cur);
-    if (result.isInt()) {
-      cout << "Int: " << result.getInt() << endl << endl;
-    } else if (result.isVoid()) {
-      cout << "void" << endl << endl;
-    } else if (result.isTrue()) {
-      cout << "true" << endl << endl;
-    } else if (result.isFalse()) {
-      cout << "false" << endl << endl;
-    } else if (result.isPtr()) {
-      cout << "Ptr: " << result.getPtr() << endl << endl;
-    } else if (result.isDouble()) {
-      cout << "Dbl: " << result.getDouble() << endl << endl;
-    } else {
-      cout << "error: " << result.getRaw();
-    }
+    print(result);
 
-    for (size_t i = 0; i < /*5*/00/*500000*/; ++i) {
-      interpreter.interpret(*cur);
-    }
-    
     cur = parser.parseLogicalGroup();
   }
 }

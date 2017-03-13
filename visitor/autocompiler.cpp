@@ -158,6 +158,7 @@ void AutoCompiler::visitFuncDecl(FuncDecl<TypedLocationInfo>& decl) {
   FuncSignature sig;
   sig.init(CallConv::kIdHost, TypeIdOf<int64_t>::kTypeId, sigArgs, decl.args.size());
   curFunc = cc.addFunc(sig);
+  curFunc->getFrameInfo().addAttributes(asmjit::FuncFrameInfo::kAttrPreserveFP);
   curFuncName = decl.name;
 
   // allocate a variably sized FunctionUsage with room for shapes
