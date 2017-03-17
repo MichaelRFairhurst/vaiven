@@ -23,7 +23,8 @@ void Emitter::visitArgInstr(ArgInstr& instr) {
     cc.mov(checkArg, VOID);
     cc.cmp(instr.out, checkArg);
     cc.jne(deoptimizeLabel);
-  } else if (instr.type == VAIVEN_STATIC_TYPE_POINTER) {
+  } else {
+    // TODO also check is list, is string, etc
     cc.mov(checkArg, MAX_PTR);
     cc.cmp(instr.out, checkArg);
     cc.jg(deoptimizeLabel);
@@ -340,12 +341,12 @@ void Emitter::visitConditionalBlockExit(ConditionalBlockExit& exit) {
       cc.jle(exit.toGoTo->label);
       break;
     case INSTR_NOT:
-      cc.test(exit.condition->inputs[0]->out, exit.condition->inputs[0]->out);
+      cc.test(exit.condition->inputs[0]->out.r32(), exit.condition->inputs[0]->out.r32());
       cc.jz(exit.toGoTo->label);
       break;
     default:
       exit.condition->accept(*this);
-      cc.test(exit.condition->out, exit.condition->out);
+      cc.test(exit.condition->out.r32(), exit.condition->out.r32());
       cc.jnz(exit.toGoTo->label);
   }
 }

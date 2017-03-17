@@ -45,9 +45,19 @@ baseline() {
   BASELINE="${!BASELINEVARNAME}"
 }
 
-run_cmd_bench fibjs "node fib_45.js"
+echo
+echo V8/dart comparison
+echo
+
 run_cmd_bench fibvvn "./fib_45.vvn.sh | ../vvn"
+run_cmd_bench fibjs "js fib_45.js"
+run_cmd_bench fibdart "dart fib_45.dart"
+compare fibvvn fibdart
 compare fibvvn fibjs
+
+echo
+echo interp/cc/hot comparison
+echo
 
 run_vvn_bench loop_empty_interp
 run_vvn_bench loop_empty_cc
@@ -71,11 +81,32 @@ run_vvn_bench loop_with_function_hot
 compare loop_with_function_hot loop_with_ops_hot
 compare loop_with_function_hot loop_with_ops_interp
 
+echo
+echo recursion comparison
+echo
+
 BASELINE=0
 run_vvn_bench recurse_with_ops
 compare recurse_with_ops loop_with_ops_interp
 compare recurse_with_ops loop_with_ops_cc
 compare recurse_with_ops loop_with_ops_hot
+
+echo
+echo garbage comparison
+echo
+
+baseline loop_empty_cc
+run_vvn_bench loop_with_garbagemem_cc
+compare loop_with_garbagemem_cc loop_empty_cc
+BASELINE=0
+run_cmd_bench loop_empty_js "js loop_empty.js"
+baseline loop_empty_js
+run_cmd_bench loop_with_garbagemem_js "js loop_with_garbagemem.js"
+compare loop_with_garbagemem_js loop_with_garbagemem_cc
+
+echo
+echo compilation comparison
+echo
 
 BASELINE=0
 run_vvn_bench repeat_functions

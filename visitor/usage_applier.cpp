@@ -89,8 +89,13 @@ void UsageApplier::visitDivisionExpression(DivisionExpression<TypedLocationInfo>
   expr.left->accept(*this);
   expr.right->accept(*this);
 }
+
 void UsageApplier::visitIntegerExpression(IntegerExpression<TypedLocationInfo>& expr) {
 }
+
+void UsageApplier::visitStringExpression(StringExpression<TypedLocationInfo>& expr) {
+}
+
 void UsageApplier::visitVariableExpression(VariableExpression<TypedLocationInfo>& expr) {
   if (argIndexes.find(expr.id) != argIndexes.end()) {
     int i = argIndexes[expr.id];

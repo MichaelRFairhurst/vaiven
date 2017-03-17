@@ -233,9 +233,18 @@ void LocationResolver::visitDivisionExpression(DivisionExpression<>& expr) {
   copy->resolvedData = loc;
   exprCopyStack.push(copy.release());
 }
+
 void LocationResolver::visitIntegerExpression(IntegerExpression<>& expr) {
   TypedLocationInfo immediate(Location::imm(expr.value), VAIVEN_STATIC_TYPE_INT, true);
   unique_ptr<Expression<TypedLocationInfo> > copy(new IntegerExpression<TypedLocationInfo>(expr.value));
+  copy->resolvedData = immediate;
+  exprCopyStack.push(copy.release());
+}
+
+void LocationResolver::visitStringExpression(StringExpression<>& expr) {
+  TypedLocationInfo immediate(Location::imm((uint64_t) &expr.value), VAIVEN_STATIC_TYPE_STRING, true);
+  // copy the string because at destruct it starts to be GCed
+  unique_ptr<Expression<TypedLocationInfo> > copy(new StringExpression<TypedLocationInfo>(new GcableString(expr.value->str)));
   copy->resolvedData = immediate;
   exprCopyStack.push(copy.release());
 }

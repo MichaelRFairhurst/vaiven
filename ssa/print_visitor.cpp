@@ -5,11 +5,16 @@
 using namespace vaiven::ssa;
 using namespace std;
 
-void PrintVisitor::printInstruction(string prefix, Instruction* instr) {
-  int id = varIds.size();
-  varIds[instr] = id;
+int PrintVisitor::varId(Instruction* instr) {
+  if (varIds.find(instr) == varIds.end()) {
+    varIds[instr] = varIds.size();
+  }
 
-  cout << id << ": " << prefix;
+  return varIds[instr];
+}
+
+void PrintVisitor::printInstruction(string prefix, Instruction* instr) {
+  cout << varId(instr) << ": " << prefix;
 
   for (vector<Instruction*>::iterator it = instr->inputs.begin();
       it != instr->inputs.end();
@@ -17,7 +22,7 @@ void PrintVisitor::printInstruction(string prefix, Instruction* instr) {
     if(it != instr->inputs.begin()) {
       cout << ",";
     }
-    cout << " " << varIds[*it];
+    cout << " " << varId(*it);
   }
 
   cout << endl;
@@ -28,17 +33,11 @@ void PrintVisitor::visitPhiInstr(PhiInstr& instr) {
 }
 
 void PrintVisitor::visitArgInstr(ArgInstr& instr) {
-  int id = varIds.size();
-  varIds[&instr] = id;
-
-  cout << id << ": arg" << instr.argi << endl;
+  cout << varId(&instr) << ": arg" << instr.argi << endl;
 }
 
 void PrintVisitor::visitConstantInstr(ConstantInstr& instr) {
-  int id = varIds.size();
-  varIds[&instr] = id;
-
-  cout << id << ": val" << instr.val.getRaw() << endl;
+  cout << varId(&instr) << ": val" << instr.val.getRaw() << endl;
 }
 
 void PrintVisitor::visitCallInstr(CallInstr& instr) {
@@ -120,5 +119,5 @@ void PrintVisitor::visitUnconditionalBlockExit(UnconditionalBlockExit& exit) {
 
 void PrintVisitor::visitConditionalBlockExit(ConditionalBlockExit& exit) {
   ForwardVisitor::visitConditionalBlockExit(exit);
-  cout << "if " << varIds[&*exit.condition] << " goto " << exit.toGoTo << endl;
+  cout << "if " << varId(&*exit.condition) << " goto " << exit.toGoTo << endl;
 }

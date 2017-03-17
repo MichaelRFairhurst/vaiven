@@ -38,7 +38,7 @@ class PrintErrorHandler : public asmjit::ErrorHandler {
 public:
   // Return `true` to set last error to `err`, return `false` to do nothing.
   bool handleError(asmjit::Error err, const char* message, asmjit::CodeEmitter* origin) override {
-    fprintf(stderr, "ERROR: %s\n", message);
+    fprintf(stderr, "Error: %s\n", message);
     return false;
   }
 };
@@ -54,7 +54,7 @@ void printExpressionStream(Parser& parser) {
   while (cur.get() != NULL || parser.errors.size() > 0) {
     if (parser.errors.size() > 0) {
       for (vector<ParseError>::iterator it = parser.errors.begin(); it != parser.errors.end(); ++it) {
-        cout << "Parse error: " << it->error << " at " << it->location << endl;
+        cout << "Parse Error: " << it->error << " at " << it->location << endl;
       }
       parser.errors.clear();
 
@@ -97,7 +97,12 @@ void printExpressionStream(Parser& parser) {
       continue;
     }
 
-    Value result = interpreter.interpret(*cur);
+    Value result;
+    try {
+      result = interpreter.interpret(*cur);
+    } catch(Value v) {
+      result = v;
+    }
     print(result);
 
     cur = parser.parseLogicalGroup();
@@ -172,7 +177,7 @@ void printTokenStream(Tokenizer& tokenizer) {
       case TOKEN_TYPE_ERROR:
 	{
 	  StringToken* strtok = static_cast<StringToken*>(cur.get());
-          cout << "error: " << strtok->lexeme << endl;
+          cout << "Error: " << strtok->lexeme << endl;
 	}
 	break;
       case TOKEN_TYPE_EOF:

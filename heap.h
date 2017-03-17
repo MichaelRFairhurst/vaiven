@@ -25,7 +25,7 @@ enum GcableType {
 
 const int GcableMarkBit = 4;
 const int HEAP_FACTOR = 2;
-const int MIN_HEAP_SIZE = 1024;
+const int MIN_HEAP_SIZE = 65536;
 
 struct Gcable {
   public:
@@ -49,6 +49,7 @@ struct GcableList : public Gcable {
 struct GcableString : public Gcable {
   public:
   GcableString() : Gcable(GCABLE_TYPE_STRING) {};
+  GcableString(string str) : Gcable(GCABLE_TYPE_STRING), str(str) {};
 
   string str;
 };

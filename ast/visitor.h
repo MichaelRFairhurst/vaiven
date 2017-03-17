@@ -18,6 +18,8 @@ class DivisionExpression;
 template<typename RD=void>
 class IntegerExpression;
 template<typename RD=void>
+class StringExpression;
+template<typename RD=void>
 class VariableExpression;
 template<typename RD=void>
 class BoolLiteral;
@@ -62,6 +64,7 @@ class Visitor {
   virtual void visitMultiplicationExpression(MultiplicationExpression<RD>& expr)=0;
   virtual void visitDivisionExpression(DivisionExpression<RD>& expr)=0;
   virtual void visitIntegerExpression(IntegerExpression<RD>& expr)=0;
+  virtual void visitStringExpression(StringExpression<RD>& expr)=0;
   virtual void visitVariableExpression(VariableExpression<RD>& expr)=0;
   virtual void visitBoolLiteral(BoolLiteral<RD>& expr)=0;
   virtual void visitNotExpression(NotExpression<RD>& expr)=0;

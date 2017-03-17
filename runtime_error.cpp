@@ -31,6 +31,7 @@ void vaiven::throwError(ErrorCode code) {
 }
 
 void vaiven::defaultHandle(ErrorCode code) {
+  cout << "Error: ";
   switch(code) {
     case EXPECTED_INT:
       cout << "Got a non-integer in an integer operation" << endl;

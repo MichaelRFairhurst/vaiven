@@ -1,0 +1,59 @@
+fn withis is
+end
+
+fn noargs
+end
+
+fn onelineempty is end
+
+fn onearg of x is
+end
+
+fn oneargonelineempty of x is end
+
+fn twoargs of x, y is
+end
+
+fn twoargsonelineempty of x, y is end
+
+fn multilineargs of
+  x
+  y
+is
+end
+
+fn multilineargscommas of
+  x,
+  y,
+is
+end
+
+fn trailingcomma of x, y, is
+end
+
+fn withexprstmt
+  "foo"
+end
+
+fn withifstmt
+  if true
+  end
+end
+
+fn withforcond
+  for true
+  end
+end
+
+fn withmultiplestmts
+  "foo"
+  "bar"
+  if true do end
+  for false do end
+end
+
+fn onelinewithstmt is "foo"; end
+
+fn onelinewithargstmt of x is "foo"; end
+
+fn onelinewithargsstmts of x, y is "foo"; "bar"; end

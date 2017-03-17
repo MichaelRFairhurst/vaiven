@@ -224,6 +224,11 @@ void Interpreter::visitDivisionExpression(DivisionExpression<>& expr) {
 void Interpreter::visitIntegerExpression(IntegerExpression<>& expr) {
   stack.push(Value(expr.value));
 }
+
+void Interpreter::visitStringExpression(StringExpression<>& expr) {
+  stack.push(Value(expr.value));
+}
+
 void Interpreter::visitVariableExpression(VariableExpression<>& expr) {
   if (scope.contains(expr.id)) {
     Value val = scope.get(expr.id);

@@ -288,6 +288,11 @@ void Compiler::visitIntegerExpression(IntegerExpression<TypedLocationInfo>& expr
   asm.mov(x86::rax, expr.value);
 }
 
+void Compiler::visitStringExpression(StringExpression<TypedLocationInfo>& expr) {
+  // should only happen when in a stmt by itself
+  asm.mov(x86::rax, (uint64_t) &expr.value);
+}
+
 void Compiler::visitVariableExpression(VariableExpression<TypedLocationInfo>& expr) {
   const X86Gp* reg = expr.resolvedData.location.getReg();
   if (reg != NULL) {

@@ -48,7 +48,7 @@ unique_ptr<ast::FuncDecl<> > Parser::parseFuncDecl() {
 
   string name = "";
   if(current->type == TOKEN_TYPE_ID) {
-    unique_ptr<StringToken> nametok(static_cast<StringToken*>(current.release()));
+    unique_ptr<StringToken> nametok(static_cast<StringToken*>(current->copy()));
     name = nametok->lexeme;
     errorLocation = "function " + name;
     nextOr(TOKEN_TYPE_IS);
@@ -60,7 +60,7 @@ unique_ptr<ast::FuncDecl<> > Parser::parseFuncDecl() {
   if (current->type == TOKEN_TYPE_OF) {
     nextNoEol();
     while(current->type == TOKEN_TYPE_ID) {
-      unique_ptr<StringToken> idtok(static_cast<StringToken*>(current.release()));
+      unique_ptr<StringToken> idtok(static_cast<StringToken*>(current->copy()));
       nextOr(TOKEN_TYPE_COMMA);
       args.push_back(idtok->lexeme);
       if (current->type != TOKEN_TYPE_COMMA) {
@@ -117,7 +117,7 @@ unique_ptr<ast::VarDecl<> > Parser::parseVarDecl() {
   nextNoEol();
   string name = "";
   if(current->type == TOKEN_TYPE_ID) {
-    unique_ptr<StringToken> nametok(static_cast<StringToken*>(current.release()));
+    unique_ptr<StringToken> nametok(static_cast<StringToken*>(current->copy()));
     name = nametok->lexeme;
     nextNoEol();
   }
@@ -239,7 +239,7 @@ unique_ptr<ast::ForCondition<> > Parser::parseForCondition() {
   }
 
   if (current->type != TOKEN_TYPE_DO) {
-    errors.push_back(ParseError("missing 'do' at end of for condition", errorLocation));
+    errors.push_back(ParseError("missing 'do' (or newline) at end of for condition", errorLocation));
   } else {
     nextNoEol();
   }
@@ -271,7 +271,9 @@ unique_ptr<ast::ReturnStatement<> > Parser::parseReturnStatement() {
 
   if (current->type != TOKEN_TYPE_SEMICOLON) {
     errors.push_back(ParseError("missing semicolon (or newline) at end of return", errorLocation));
-    ignoreNextNext = true; // the error token will be consumed by the container without this
+    if (current->type == TOKEN_TYPE_END) {
+      ignoreNextNext = true; // the error token will be consumed by the container without this
+    }
   }
   
   return std::move(stmt);
@@ -282,7 +284,9 @@ unique_ptr<ast::ExpressionStatement<> > Parser::parseExpressionStatement() {
 
   if (current->type != TOKEN_TYPE_SEMICOLON) {
     errors.push_back(ParseError("missing semicolon (or newline) at end of expression", errorLocation));
-    ignoreNextNext = true; // the error token will be consumed by the container without this
+    if (current->type == TOKEN_TYPE_END) {
+      ignoreNextNext = true; // the error token will be consumed by the container without this
+    }
   }
   
   return std::move(stmt);
@@ -290,6 +294,12 @@ unique_ptr<ast::ExpressionStatement<> > Parser::parseExpressionStatement() {
 
 
 unique_ptr<ast::Expression<> > Parser::parseExpression() {
+  // special case: ) as a value doesn't consume. Therefore we have to consume here
+  while (current->type == TOKEN_TYPE_CLOSE_PAREN) {
+    errors.push_back(ParseError("expected expression, got a close paren", errorLocation));
+    next();
+  }
+
   unique_ptr<ast::Expression<> > lhs(parseAssignmentExpression());
   return std::move(lhs);
 }
@@ -305,14 +315,19 @@ unique_ptr<ast::Expression<> > Parser::parseAssignmentExpression() {
 
     if (current->type == TOKEN_TYPE_EQ) {
       nextNoEol();
-      unique_ptr<ast::Expression<> > rhs = parseAssignmentExpression();
-      AssignmentProducer assignmentProducer(std::move(rhs));
-      lhs->accept(assignmentProducer);
-      if (assignmentProducer.result.get() == NULL) {
-        errors.push_back(ParseError("assignment to a nonassignable expression", errorLocation));
-        break;
+      try {
+        unique_ptr<ast::Expression<> > rhs = parseAssignmentExpression();
+        AssignmentProducer assignmentProducer(std::move(rhs));
+        lhs->accept(assignmentProducer);
+        if (assignmentProducer.result.get() == NULL) {
+          errors.push_back(ParseError("assignment to a nonassignable expression", errorLocation));
+          break;
+        }
+        return std::move(assignmentProducer.result);
+      } catch(ParseError e) {
+        errors.push_back(e);
+        return lhs;
       }
-      return std::move(assignmentProducer.result);
     } else {
       break;
     }
@@ -331,15 +346,22 @@ unique_ptr<ast::Expression<> > Parser::parseEqualityExpression() {
       && current->type != TOKEN_TYPE_EQ
       && current->type != TOKEN_TYPE_EOF) {
 
-    if (current->type == TOKEN_TYPE_EQEQ) {
-      nextNoEol();
-      acc = unique_ptr<ast::Expression<> >(new ast::EqualityExpression<> (
-          std::move(acc), parseComparisonExpression()));
-    } else if (current->type == TOKEN_TYPE_BANGEQ) {
-      nextNoEol();
-      acc = unique_ptr<ast::Expression<> >(new ast::InequalityExpression<> (
-          std::move(acc), parseComparisonExpression()));
-    } else {
+    try {
+      if (current->type == TOKEN_TYPE_EQEQ) {
+        nextNoEol();
+        unique_ptr<ast::Expression<> > rhs(parseComparisonExpression());
+        acc = unique_ptr<ast::Expression<> >(new ast::EqualityExpression<> (
+            std::move(acc), std::move(rhs)));
+      } else if (current->type == TOKEN_TYPE_BANGEQ) {
+        nextNoEol();
+        unique_ptr<ast::Expression<> > rhs(parseComparisonExpression());
+        acc = unique_ptr<ast::Expression<> >(new ast::InequalityExpression<> (
+            std::move(acc), std::move(rhs)));
+      } else {
+        break;
+      }
+    } catch(ParseError e) {
+      errors.push_back(e);
       break;
     }
   }
@@ -359,23 +381,32 @@ unique_ptr<ast::Expression<> > Parser::parseComparisonExpression() {
       && current->type != TOKEN_TYPE_BANGEQ
       && current->type != TOKEN_TYPE_EOF) {
 
-    if (current->type == TOKEN_TYPE_GT) {
-      nextNoEol();
-      acc = unique_ptr<ast::Expression<> >(new ast::GtExpression<> (
-          std::move(acc), parseAddSubExpression()));
-    } else if (current->type == TOKEN_TYPE_GTE) {
-      nextNoEol();
-      acc = unique_ptr<ast::Expression<> >(new ast::GteExpression<> (
-          std::move(acc), parseAddSubExpression()));
-    } else if (current->type == TOKEN_TYPE_LT) {
-      nextNoEol();
-      acc = unique_ptr<ast::Expression<> >(new ast::LtExpression<> (
-          std::move(acc), parseAddSubExpression()));
-    } else if (current->type == TOKEN_TYPE_LTE) {
-      nextNoEol();
-      acc = unique_ptr<ast::Expression<> >(new ast::LteExpression<> (
-          std::move(acc), parseAddSubExpression()));
-    } else {
+    try {
+      if (current->type == TOKEN_TYPE_GT) {
+        nextNoEol();
+        unique_ptr<ast::Expression<> > rhs(parseAddSubExpression());
+        acc = unique_ptr<ast::Expression<> >(new ast::GtExpression<> (
+            std::move(acc), std::move(rhs)));
+      } else if (current->type == TOKEN_TYPE_GTE) {
+        nextNoEol();
+        unique_ptr<ast::Expression<> > rhs(parseAddSubExpression());
+        acc = unique_ptr<ast::Expression<> >(new ast::GteExpression<> (
+            std::move(acc), std::move(rhs)));
+      } else if (current->type == TOKEN_TYPE_LT) {
+        nextNoEol();
+        unique_ptr<ast::Expression<> > rhs(parseAddSubExpression());
+        acc = unique_ptr<ast::Expression<> >(new ast::LtExpression<> (
+            std::move(acc), std::move(rhs)));
+      } else if (current->type == TOKEN_TYPE_LTE) {
+        nextNoEol();
+        unique_ptr<ast::Expression<> > rhs(parseAddSubExpression());
+        acc = unique_ptr<ast::Expression<> >(new ast::LteExpression<> (
+            std::move(acc), std::move(rhs)));
+      } else {
+        break;
+      }
+    } catch(ParseError e) {
+      errors.push_back(e);
       break;
     }
   }
@@ -399,16 +430,23 @@ unique_ptr<ast::Expression<> > Parser::parseAddSubExpression() {
       && current->type != TOKEN_TYPE_LTE
       && current->type != TOKEN_TYPE_EOF) {
 
-    if (current->type == TOKEN_TYPE_PLUS) {
-      nextNoEol();
-      acc = unique_ptr<ast::Expression<> >(new ast::AdditionExpression<> (
-          std::move(acc), parseDivMulExpression()));
-    } else if (current->type == TOKEN_TYPE_MINUS) {
-      nextNoEol();
-      acc = unique_ptr<ast::Expression<> >(new ast::SubtractionExpression<> (
-          std::move(acc), parseDivMulExpression()));
-    } else {
-      break;
+    try {
+      if (current->type == TOKEN_TYPE_PLUS) {
+        nextNoEol();
+        unique_ptr<ast::Expression<> > rhs(parseDivMulExpression());
+        acc = unique_ptr<ast::Expression<> >(new ast::AdditionExpression<> (
+            std::move(acc), std::move(rhs)));
+      } else if (current->type == TOKEN_TYPE_MINUS) {
+        nextNoEol();
+        unique_ptr<ast::Expression<> > rhs(parseDivMulExpression());
+        acc = unique_ptr<ast::Expression<> >(new ast::SubtractionExpression<> (
+            std::move(acc), std::move(rhs)));
+      } else {
+        break;
+      }
+    } catch(ParseError e) {
+      errors.push_back(e);
+      //break;
     }
   }
 
@@ -435,15 +473,22 @@ unique_ptr<ast::Expression<> > Parser::parseDivMulExpression() {
       && current->type != TOKEN_TYPE_LTE
       && current->type != TOKEN_TYPE_EOF) {
 
-    if (current->type == TOKEN_TYPE_DIVIDE) {
-      nextNoEol();
-      acc = unique_ptr<ast::Expression<> >(new ast::DivisionExpression<> (
-          std::move(acc), parseValue()));
-    } else if (current->type == TOKEN_TYPE_MULTIPLY) {
-      nextNoEol();
-      acc = unique_ptr<ast::Expression<> >(new ast::MultiplicationExpression<> (
-          std::move(acc), parseValue()));
-    } else {
+    try {
+      if (current->type == TOKEN_TYPE_DIVIDE) {
+        nextNoEol();
+        unique_ptr<ast::Expression<> > rhs(parseValue());
+        acc = unique_ptr<ast::Expression<> >(new ast::DivisionExpression<> (
+            std::move(acc), std::move(rhs)));
+      } else if (current->type == TOKEN_TYPE_MULTIPLY) {
+        nextNoEol();
+        unique_ptr<ast::Expression<> > rhs(parseValue());
+        acc = unique_ptr<ast::Expression<> >(new ast::MultiplicationExpression<> (
+            std::move(acc), std::move(rhs)));
+      } else {
+        break;
+      }
+    } catch(ParseError e) {
+      errors.push_back(e);
       break;
     }
   }
@@ -453,9 +498,15 @@ unique_ptr<ast::Expression<> > Parser::parseDivMulExpression() {
 
 unique_ptr<ast::Expression<> > Parser::parseValue() {
   if (current->type == TOKEN_TYPE_INTEGER) {
-    unique_ptr<IntegerToken> inttok(static_cast<IntegerToken*>(current.release()));
+    unique_ptr<IntegerToken> inttok(static_cast<IntegerToken*>(current->copy()));
     next();
-    return unique_ptr<ast::Expression<> >(new ast::IntegerExpression<> (inttok->value));
+    return unique_ptr<ast::Expression<> >(new ast::IntegerExpression<>(inttok->value));
+  }
+
+  if (current->type == TOKEN_TYPE_STRING) {
+    unique_ptr<StringToken> inttok(static_cast<StringToken*>(current->copy()));
+    next();
+    return unique_ptr<ast::Expression<> >(new ast::StringExpression<>(new GcableString(inttok->lexeme)));
   }
 
   if (current->type == TOKEN_TYPE_OPEN_PAREN) {
@@ -464,7 +515,7 @@ unique_ptr<ast::Expression<> > Parser::parseValue() {
     nextNoEol();
     unique_ptr<ast::Expression<> > expr;
     try {
-      unique_ptr<ast::Expression<> > expr(parseExpression());
+      expr = parseExpression();
       newlineReplacement = prevNewlineReplacement;
     } catch(ParseError e) {
       newlineReplacement = prevNewlineReplacement;
@@ -479,7 +530,7 @@ unique_ptr<ast::Expression<> > Parser::parseValue() {
   }
 
   if (current->type == TOKEN_TYPE_ID) {
-    unique_ptr<StringToken> idtok(static_cast<StringToken*>(current.release()));
+    unique_ptr<StringToken> idtok(static_cast<StringToken*>(current->copy()));
     next();
     if (current->type == TOKEN_TYPE_OPEN_PAREN) {
       nextNoEol();
@@ -529,6 +580,14 @@ unique_ptr<ast::Expression<> > Parser::parseValue() {
     return unique_ptr<ast::Expression<> >(new ast::NotExpression<> (parseExpression()));
   }
   
+  if (current->type == TOKEN_TYPE_END
+      || current->type == TOKEN_TYPE_IF
+      || current->type == TOKEN_TYPE_FOR
+      || current->type == TOKEN_TYPE_CLOSE_PAREN
+      || current->type == TOKEN_TYPE_ELSE) {
+    ignoreNextNext = true;
+  }
+
   throw ParseError("tried to parse a value, but got an unknown token", errorLocation);
 }
 

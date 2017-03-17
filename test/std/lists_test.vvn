@@ -1,0 +1,55 @@
+var list = list();
+
+fn getvoid is end
+var void = getvoid()
+
+assert(len(list) == 0)
+assert(get(list, 0) == void)
+assert(get(list, 1) == void)
+assert(cmp(list, list))
+
+assert(!cmp(list, void))
+assert(!cmp(list, true))
+assert(!cmp(list, false))
+assert(!cmp(list, 1))
+assert(!cmp(list, "foo"))
+assert(!cmp(list, list()))
+
+set(list, 0, true)
+
+assert(len(list) == 1)
+assert(get(list, 0) == true)
+
+set(list, 0, false)
+
+assert(len(list) == 1)
+assert(get(list, 0) == false)
+assert(get(list, 1) == void)
+
+set(list(), 0, false)
+
+assert(len(list) == 1)
+assert(get(list, 0) == false)
+assert(get(list, 1) == void)
+
+set(list, 3, 100)
+
+assert(len(list) == 4)
+assert(get(list, 0) == false)
+assert(get(list, 1) == void)
+assert(get(list, 2) == void)
+assert(get(list, 3) == 100)
+assert(get(list, 4) == void)
+
+append(list, 500)
+
+assert(len(list) == 5)
+assert(get(list, 0) == false)
+assert(get(list, 1) == void)
+assert(get(list, 2) == void)
+assert(get(list, 3) == 100)
+assert(get(list, 4) == 500)
+assert(get(list, 5) == void)
+
+append(list, list)
+assert(cmp(get(list, 5), list))

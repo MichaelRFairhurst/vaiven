@@ -27,6 +27,10 @@ void JumpingCompiler::visitIntegerExpression(IntegerExpression<TypedLocationInfo
   compiler.visitIntegerExpression(expr);
 }
 
+void JumpingCompiler::visitStringExpression(StringExpression<TypedLocationInfo>& expr) {
+  compiler.visitStringExpression(expr);
+}
+
 void JumpingCompiler::visitVariableExpression(VariableExpression<TypedLocationInfo>& expr) {
   compiler.visitVariableExpression(expr);
 }

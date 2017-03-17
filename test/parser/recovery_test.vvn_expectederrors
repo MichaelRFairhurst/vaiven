@@ -1,0 +1,54 @@
+Parse Error: missing semicolon (or newline) at end of expression at function missingEndSemi
+Parse Error: missing is at end of function at function missingIs
+Parse Error: missing function name at function declaration
+Parse Error: missing function name at function declaration
+Parse Error: missing is at end of function at function without a name
+Parse Error: missing function name at function declaration
+Parse Error: tried to parse a value, but got an unknown token at top level
+Error: Accessed a var that does not exist
+Parse Error: missing 'do' (or newline) at end of if condition at function ifNoDoNoSemi
+Parse Error: missing semicolon (or newline) at end of return at function ifNoDoNoSemi
+Parse Error: missing 'do' (or newline) at end of for condition at function forNoDoNoSemi
+Parse Error: missing semicolon (or newline) at end of return at function forNoDoNoSemi
+Parse Error: missing semicolon (or newline) at end of return at function danglingValueEvaluates
+Parse Error: tried to parse a value, but got an unknown token at function danglingOpEvaluates
+Parse Error: missing semicolon (or newline) at end of return at function danglingOpEvaluates
+Parse Error: tried to parse a value, but got an unknown token at function danglingOpEvaluates
+Parse Error: missing semicolon (or newline) at end of return at function danglingOpEvaluates
+Parse Error: tried to parse a value, but got an unknown token at function danglingOpEvaluates
+Parse Error: missing semicolon (or newline) at end of return at function danglingOpEvaluates
+Parse Error: tried to parse a value, but got an unknown token at function danglingOpEvaluates
+Parse Error: missing semicolon (or newline) at end of return at function danglingOpEvaluates
+Parse Error: tried to parse a value, but got an unknown token at function danglingOpEvaluates
+Parse Error: missing semicolon (or newline) at end of return at function danglingOpEvaluates
+Parse Error: tried to parse a value, but got an unknown token at function danglingOpEvaluates
+Parse Error: missing semicolon (or newline) at end of return at function danglingOpEvaluates
+Parse Error: tried to parse a value, but got an unknown token at function danglingOpEvaluates
+Parse Error: missing semicolon (or newline) at end of return at function danglingOpEvaluates
+Parse Error: tried to parse a value, but got an unknown token at function danglingOpEvaluates
+Parse Error: missing semicolon (or newline) at end of return at function danglingOpEvaluates
+Parse Error: tried to parse a value, but got an unknown token at function danglingOpEvaluates
+Parse Error: missing semicolon (or newline) at end of return at function danglingOpEvaluates
+Parse Error: tried to parse a value, but got an unknown token at function danglingOpEvaluates
+Parse Error: missing semicolon (or newline) at end of return at function danglingOpEvaluates
+Parse Error: tried to parse a value, but got an unknown token at function danglingOpEvaluates
+Parse Error: missing semicolon (or newline) at end of return at function danglingOpEvaluates
+Parse Error: tried to parse a value, but got an unknown token at top level
+Parse Error: tried to parse a value, but got an unknown token at top level
+Parse Error: missing close paren for function call at top level
+Parse Error: missing close paren for subexpression at top level
+Parse Error: missing close paren for function call at top level
+Parse Error: missing close paren for subexpression at top level
+Parse Error: missing close paren for subexpression at top level
+Parse Error: missing close paren for function call at top level
+Parse Error: missing close paren for subexpression at top level
+Parse Error: missing close paren for subexpression at top level
+Parse Error: missing close paren for function call at top level
+Parse Error: missing close paren for subexpression at top level
+Parse Error: missing semicolon (or newline) at end of expression at top level
+Parse Error: expected expression, got a close paren at top level
+Parse Error: tried to parse a value, but got an unknown token at top level
+Parse Error: missing semicolon (or newline) at end of expression at top level
+Parse Error: expected expression, got a close paren at top level
+Parse Error: expected expression, got a close paren at top level
+Parse Error: tried to parse a value, but got an unknown token at top level

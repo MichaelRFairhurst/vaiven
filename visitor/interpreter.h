@@ -29,6 +29,9 @@ class Interpreter : public Visitor<> {
   Interpreter(Functions& funcs) : funcs(funcs), heap(stack, scope) {
     globalHeap = &heap;
   };
+  ~Interpreter() {
+    globalHeap = NULL;
+  }
   //int interpret(Node<>& root, vector<Value> args, map<string, int>* variablesMap);
   Value interpret(Node<>& root);
 
@@ -38,6 +41,7 @@ class Interpreter : public Visitor<> {
   virtual void visitMultiplicationExpression(MultiplicationExpression<>& expr);
   virtual void visitDivisionExpression(DivisionExpression<>& expr);
   virtual void visitIntegerExpression(IntegerExpression<>& expr);
+  virtual void visitStringExpression(StringExpression<>& expr);
   virtual void visitVariableExpression(VariableExpression<>& expr);
   virtual void visitBoolLiteral(BoolLiteral<>& expr);
   virtual void visitNotExpression(NotExpression<>& expr);

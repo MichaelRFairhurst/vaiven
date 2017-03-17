@@ -35,6 +35,7 @@ class SsaBuilder : public Visitor<TypedLocationInfo> {
   virtual void visitMultiplicationExpression(MultiplicationExpression<TypedLocationInfo>& expr);
   virtual void visitDivisionExpression(DivisionExpression<TypedLocationInfo>& expr);
   virtual void visitIntegerExpression(IntegerExpression<TypedLocationInfo>& expr);
+  virtual void visitStringExpression(StringExpression<TypedLocationInfo>& expr);
   virtual void visitVariableExpression(VariableExpression<TypedLocationInfo>& expr);
   virtual void visitBoolLiteral(BoolLiteral<TypedLocationInfo>& expr);
   virtual void visitNotExpression(NotExpression<TypedLocationInfo>& expr);
@@ -65,6 +66,7 @@ class SsaBuilder : public Visitor<TypedLocationInfo> {
   Functions& funcs;
   FunctionUsage& usageInfo;
   unordered_set<string> varsToPhi;
+  bool isReturnable;
 
 };
 

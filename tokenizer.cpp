@@ -438,16 +438,16 @@ unique_ptr<Token> Tokenizer::nextOr(TokenType newlineType) {
       return unique_ptr<Token>(new Token(newlineType));
     case '"':
       {
-        c = input.peek();
+        c = input.get();
         vector<char> buffer;
         buffer.reserve(STRING_BUFFER_RESERVE_SIZE);
         while(c != '"' && c != EOF) {
           buffer.push_back(c);
-          input.get();
-          c = input.peek();
+          c = input.get();
         }
         return unique_ptr<Token>(new StringToken(TOKEN_TYPE_STRING, string(buffer.begin(), buffer.end())));
       }
+
     case '\t':
     case ' ':
       return nextOr(newlineType);
@@ -477,4 +477,16 @@ unique_ptr<Token> Tokenizer::nextOr(TokenType newlineType) {
   }
 
   return unique_ptr<Token>(new StringToken(TOKEN_TYPE_ERROR, string(1, c)));
+}
+
+Token* vaiven::Token::copy() {
+  return new Token(*this);
+}
+
+StringToken* vaiven::StringToken::copy() {
+  return new StringToken(*this);
+}
+
+IntegerToken* vaiven::IntegerToken::copy() {
+  return new IntegerToken(*this);
 }

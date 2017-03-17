@@ -1,4 +1,4 @@
-function fib(x) {
+int fib(int x) {
   if (x == 0) {
     return 0;
   } else if (x == 1) {
@@ -8,4 +8,6 @@ function fib(x) {
   }
 }
 
-console.log(fib(45));
+main() {
+  print(fib(45));
+}

@@ -1,0 +1,79 @@
+fn missingEndSemi is 5 end
+assert(missingEndSemi() == 5)
+
+fn missingIs 6; end
+assert(missingIs() == 6)
+
+fn is "missing name"; end
+fn of x is "missing name"; end
+fn "missing name and is"; end
+
+var wontBeDefined = ;
+wontBeDefined
+
+fn ifNoDoNoSemi is
+  if true ret true end
+  ret false
+end
+
+assert(ifNoDoNoSemi() == true);
+
+fn forNoDoNoSemi is
+  for true ret true end
+  ret false
+end
+
+assert(forNoDoNoSemi() == true);
+
+fn danglingValueEvaluates
+  ret true false
+end
+
+assert(danglingValueEvaluates() == true)
+
+fn danglingOpEvaluates of type is
+  if cmp(type, "+")
+    ret 1 +
+  else if cmp(type, "-")
+    ret 2 -
+  else if cmp(type, "*")
+    ret 3 *
+  else if cmp(type, "/")
+    ret 4 /
+  else if cmp(type, "==")
+    ret 5 ==
+  else if cmp(type, "=")
+    ret 6 =
+  else if cmp(type, "!=")
+    ret 7 !=
+  else if cmp(type, "<=")
+    ret 8 <=
+  else if cmp(type, ">=")
+    ret 9 >=
+  else if cmp(type, "<")
+    ret 10 <
+  else if cmp(type, ">")
+    ret 11 >
+  end
+end
+
+assert(danglingOpEvaluates("+") == 1)
+assert(danglingOpEvaluates("-") == 2)
+assert(danglingOpEvaluates("*") == 3)
+assert(danglingOpEvaluates("/") == 4)
+assert(danglingOpEvaluates("==") == 5)
+assert(danglingOpEvaluates("=") == 6)
+assert(danglingOpEvaluates("!=") == 7)
+assert(danglingOpEvaluates("<=") == 8)
+assert(danglingOpEvaluates(">=") == 9)
+assert(danglingOpEvaluates("<") == 10)
+assert(danglingOpEvaluates(">") == 11)
+
+assert(4 + + 4 == 8)
+assert(4 + - 4 == 0)
+assert(4 == 4;
+assert((4 == 4;
+assert(((4 == 4;
+(assert(((4 == 4;
+assert(4 == 4))
+assert(4 == 4)))

@@ -79,6 +79,7 @@ class Token {
   Token(TokenType type) : type(type) {}
   TokenType type;
   virtual ~Token() {};
+  virtual Token* copy();
 };
 
 class StringToken : public Token {
@@ -87,6 +88,7 @@ class StringToken : public Token {
   TokenType type;
   string lexeme;
   virtual ~StringToken() {};
+  StringToken* copy();
 };
 
 class IntegerToken : public Token {
@@ -95,6 +97,7 @@ class IntegerToken : public Token {
   TokenType type;
   int value;
   virtual ~IntegerToken() {};
+  IntegerToken* copy();
 };
 
 }

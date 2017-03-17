@@ -27,7 +27,7 @@ class Function {
       int argc,
       unique_ptr<FunctionUsage> usage,
       ast::FuncDecl<TypedLocationInfo>* ast)
-    : runtime(runtime), argc(argc), usage(std::move(usage)), ast(ast), isPure(false) {};
+    : runtime(runtime), argc(argc), usage(std::move(usage)), ast(ast), isPure(false), isNative(false) {};
 
   ~Function() {
     if (!isNative) {

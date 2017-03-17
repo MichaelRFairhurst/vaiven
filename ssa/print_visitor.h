@@ -8,6 +8,7 @@ namespace vaiven { namespace ssa {
 
 class PrintVisitor : public ForwardVisitor {
   public:
+  int varId(Instruction* instr);
   void visitPhiInstr(PhiInstr& instr);
   void visitArgInstr(ArgInstr& instr);
   void visitConstantInstr(ConstantInstr& instr);

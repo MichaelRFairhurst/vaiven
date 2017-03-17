@@ -16,14 +16,14 @@ enum LocationType {
 
 typedef union {
     asmjit::X86Gp* reg;
-    int imm;
+    uint64_t imm;
     int argIndex;
 } LocationDataUnion;
 
 class Location {
 
   public:
-  static Location imm(int val);
+  static Location imm(uint64_t val);
   static Location arg(int val);
   static Location local();
   static Location void_();

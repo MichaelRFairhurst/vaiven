@@ -33,6 +33,9 @@ void AutoCompiler::visitIfStatement(IfStatement<TypedLocationInfo>& stmt) {
       it != stmt.trueStatements.end();
       ++it) {
     (*it)->accept(*this);
+    if (vRegs.size()) {
+      vRegs.pop();
+    }
   }
   cc.jmp(lafter);
   cc.bind(lfalse);
@@ -40,6 +43,9 @@ void AutoCompiler::visitIfStatement(IfStatement<TypedLocationInfo>& stmt) {
       it != stmt.falseStatements.end();
       ++it) {
     (*it)->accept(*this);
+    if (vRegs.size()) {
+      vRegs.pop();
+    }
   }
   cc.bind(lafter);
 }
@@ -63,6 +69,9 @@ void AutoCompiler::visitForCondition(ForCondition<TypedLocationInfo>& stmt) {
       it != stmt.statements.end();
       ++it) {
     (*it)->accept(*this);
+    if (vRegs.size()) {
+      vRegs.pop();
+    }
   }
   cc.jmp(lcheck);
   cc.bind(lafter);
@@ -136,7 +145,7 @@ void AutoCompiler::visitFuncCallExpression(FuncCallExpression<TypedLocationInfo>
     // careful that this always handles self-optimization
     X86Gp lookup = cc.newUInt64();
     cc.mov(lookup, (uint64_t) &func.fptr);
-    CCFuncCall* call = cc.call(x86::ptr(lookup), sig);
+    call = cc.call(x86::ptr(lookup), sig);
   }
 
   for (int i = 0; i < argc; ++i) {
@@ -264,16 +273,16 @@ void AutoCompiler::generateOptimizeProlog(FuncDecl<TypedLocationInfo>& decl, Fun
   recompileCall->setRet(0, optimizedAddr);
 
   // hack bugfix workaround
-  vector<X86Gp> argWorkarounds;
-  for (int i = 0; i < decl.args.size(); ++i) {
-    X86Gp argRegWorkaround = cc.newUInt64();
-    cc.mov(argRegWorkaround, argRegs[i]);
-    argWorkarounds.push_back(argRegWorkaround);
-  }
+  //vector<X86Gp> argWorkarounds;
+  //for (int i = 0; i < decl.args.size(); ++i) {
+  //  X86Gp argRegWorkaround = cc.newUInt64();
+  //  cc.mov(argRegWorkaround, argRegs[i]);
+  //  argWorkarounds.push_back(argRegWorkaround);
+  //}
   CCFuncCall* optimizedCall = cc.call(optimizedAddr, sig);
   for (int i = 0; i < decl.args.size(); ++i) {
-    optimizedCall->setArg(i, argWorkarounds[i]);
-    //optimizedCall->setArg(i, argRegs[i]);
+    //optimizedCall->setArg(i, argWorkarounds[i]);
+    optimizedCall->setArg(i, argRegs[i]);
   }
   X86Gp optimizedRet = cc.newUInt64();
   optimizedCall->setRet(0, optimizedRet);
@@ -547,6 +556,13 @@ void AutoCompiler::visitIntegerExpression(IntegerExpression<TypedLocationInfo>& 
   // should only happen when in a stmt by itself
   X86Gp var = cc.newInt64();
   cc.mov(var, Value(expr.value).getRaw());
+  vRegs.push(var);
+}
+
+void AutoCompiler::visitStringExpression(StringExpression<TypedLocationInfo>& expr) {
+  // should only happen when in a stmt by itself
+  X86Gp var = cc.newInt64();
+  cc.mov(var, (uint64_t) expr.value);
   vRegs.push(var);
 }
 

@@ -17,7 +17,7 @@ GcableType vaiven::Gcable::getType() {
 }
 
 bool vaiven::Gcable::isMarked() {
-  return this->type & GcableMarkBit == GcableMarkBit;
+  return (this->type & GcableMarkBit) == GcableMarkBit;
 }
 
 bool vaiven::Gcable::mark() {
@@ -25,7 +25,7 @@ bool vaiven::Gcable::mark() {
     return false;
   }
 
-  this->type = (GcableType) (((GcableType) this->type) & GcableMarkBit);
+  this->type = (GcableType) (((GcableType) this->type) | GcableMarkBit);
   return true;
 }
 
@@ -120,12 +120,13 @@ void vaiven::Heap::sweep() {
   while (it != owned_ptrs.end()) {
     Gcable* gcable = (Gcable*) *it;
     if (!gcable->isMarked()) {
-      if (gcable->getType() == GCABLE_TYPE_LIST) {
-        delete (GcableList*) gcable;
-      } else if (gcable->getType() == GCABLE_TYPE_STRING) {
-        delete (GcableString*) gcable;
-      } else if (gcable->getType() == GCABLE_TYPE_OBJECT) {
-        delete (GcableObject*) gcable;
+      switch (gcable->getType()) {
+        case GCABLE_TYPE_LIST:
+          delete static_cast<GcableList*>(gcable); break;
+        case GCABLE_TYPE_STRING:
+          delete static_cast<GcableString*>(gcable); break;
+        case GCABLE_TYPE_OBJECT:
+          delete static_cast<GcableObject*>(gcable); break;
       }
       it = owned_ptrs.erase(it);
     } else {

@@ -20,6 +20,7 @@ void RegAlloc::visitPhiInstr(PhiInstr& instr) {
   for (vector<Instruction*>::iterator it = instr.inputs.begin(); it != instr.inputs.end(); ++it) {
     if ((*it)->usages.size() == 1) {
       instr.out = (*it)->out;
+      break;
     }
   }
 

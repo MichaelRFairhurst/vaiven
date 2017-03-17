@@ -15,7 +15,7 @@ class PrintErrorHandler2 : public asmjit::ErrorHandler {
 public:
   // Return `true` to set last error to `err`, return `false` to do nothing.
   bool handleError(asmjit::Error err, const char* message, asmjit::CodeEmitter* origin) override {
-    fprintf(stderr, "ERROR: %s\n", message);
+    fprintf(stderr, "Error: %s\n", message);
     return false;
   }
 };

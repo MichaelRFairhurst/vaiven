@@ -1,0 +1,22 @@
+var foo = "foo"
+var bar = "bar"
+assert(cmp(foo, foo))
+assert(cmp("foo", "foo"))
+assert(cmp(foo, "foo"))
+assert(cmp("foo", foo))
+
+assert(!cmp(foo, bar))
+assert(!cmp("foo", "bar"))
+assert(!cmp(foo, "bar"))
+assert(!cmp("foo", bar))
+
+assert(cmp(append(foo, bar), "foobar"))
+
+assert(len(foo) == 3)
+assert(len(bar) == 3)
+assert(len("foobar") == 6)
+
+assert(cmp(toString(foo), foo))
+assert(cmp(toString("foo"), "foo"))
+assert(cmp(toString(foo), "foo"))
+assert(cmp(toString("foo"), foo))

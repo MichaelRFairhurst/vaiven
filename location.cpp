@@ -3,7 +3,7 @@
 using namespace vaiven;
 using namespace vaiven;
 
-Location Location::imm(int val) {
+Location Location::imm(uint64_t val) {
   LocationDataUnion data;
   data.imm = val;
   return Location(LOCATION_TYPE_IMM, data);

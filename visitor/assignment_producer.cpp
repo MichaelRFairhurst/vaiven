@@ -50,6 +50,9 @@ void AssignmentProducer::visitDivisionExpression(DivisionExpression<>& expr) {
 void AssignmentProducer::visitIntegerExpression(IntegerExpression<>& expr) {
 }
 
+void AssignmentProducer::visitStringExpression(StringExpression<>& expr) {
+}
+
 void AssignmentProducer::visitVariableExpression(VariableExpression<>& expr) {
   result.reset(new AssignmentExpression<>(expr.id, std::move(rhs)));
 }

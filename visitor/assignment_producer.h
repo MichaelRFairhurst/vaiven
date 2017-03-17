@@ -22,6 +22,7 @@ class AssignmentProducer : public Visitor<> {
   virtual void visitMultiplicationExpression(MultiplicationExpression<>& expr);
   virtual void visitDivisionExpression(DivisionExpression<>& expr);
   virtual void visitIntegerExpression(IntegerExpression<>& expr);
+  virtual void visitStringExpression(StringExpression<>& expr);
   virtual void visitVariableExpression(VariableExpression<>& expr);
   virtual void visitBoolLiteral(BoolLiteral<>& expr);
   virtual void visitNotExpression(NotExpression<>& expr);

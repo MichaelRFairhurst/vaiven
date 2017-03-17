@@ -23,9 +23,7 @@ void SsaBuilder::visitIfStatement(IfStatement<TypedLocationInfo>& stmt) {
   ssa::Block* trueBlock = new ssa::Block();
   curBlock->next.reset(trueBlock);
   ssa::Block* falseBlock = new ssa::Block();
-  trueBlock->next.reset(falseBlock);
   ssa::Block* followBlock = new ssa::Block();
-  falseBlock->next.reset(followBlock);
 
   ConditionalBlockExit* jmpToFalse = new ConditionalBlockExit(jmp, falseBlock);
   curBlock->exits.push_back(unique_ptr<BlockExit>(jmpToFalse));
@@ -49,6 +47,7 @@ void SsaBuilder::visitIfStatement(IfStatement<TypedLocationInfo>& stmt) {
     // curBlock is now trueBlock or some block after it
     UnconditionalBlockExit* jmpFromTrue = new UnconditionalBlockExit(followBlock);
     curBlock->exits.push_back(unique_ptr<BlockExit>(jmpFromTrue));
+    curBlock->next.reset(falseBlock);
 
     for (unordered_set<string>::iterator it = varsToPhi.begin(); it != varsToPhi.end(); ++it) {
       modifiedTrue[*it] = scope.get(*it);
@@ -71,6 +70,7 @@ void SsaBuilder::visitIfStatement(IfStatement<TypedLocationInfo>& stmt) {
     // curBlock is now falseBlock or some block after it
     UnconditionalBlockExit* jmpFromFalse = new UnconditionalBlockExit(followBlock);
     curBlock->exits.push_back(unique_ptr<BlockExit>(jmpFromFalse));
+    curBlock->next.reset(followBlock);
 
     // phis have to be in the follow block
     curBlock = followBlock;
@@ -111,6 +111,8 @@ void SsaBuilder::visitIfStatement(IfStatement<TypedLocationInfo>& stmt) {
       ++it;
     }
   }
+
+  isReturnable = false;
 }
 
 void SsaBuilder::visitForCondition(ForCondition<TypedLocationInfo>& stmt) {
@@ -181,12 +183,15 @@ void SsaBuilder::visitForCondition(ForCondition<TypedLocationInfo>& stmt) {
       ++it;
     }
   }
+
+  isReturnable = false;
 }
 
 void SsaBuilder::visitReturnStatement(ReturnStatement<TypedLocationInfo>& stmt) {
   stmt.expr->accept(*this);
   Instruction* retVal = cur;
   emit(new RetInstr(retVal));
+  isReturnable = false;
 }
 
 void SsaBuilder::visitVarDecl(VarDecl<TypedLocationInfo>& varDecl) {
@@ -196,6 +201,7 @@ void SsaBuilder::visitVarDecl(VarDecl<TypedLocationInfo>& varDecl) {
   } else {
     scope.put(varDecl.varname, cur);
   }
+  isReturnable = false;
 }
 
 void SsaBuilder::visitFuncCallExpression(FuncCallExpression<TypedLocationInfo>& expr) {
@@ -237,20 +243,27 @@ void SsaBuilder::visitFuncDecl(FuncDecl<TypedLocationInfo>& decl) {
     scope.put(decl.args[i], arg);
   }
 
+  // if we have no statements, we must ret void
+  isReturnable = false;
+
   for(vector<unique_ptr<Statement<TypedLocationInfo> > >::iterator it = decl.statements.begin();
       it != decl.statements.end();
       ++it) {
     (*it)->accept(*this);
   }
 
-  // TODO proper logic to force return
-  if (cur != NULL && cur->tag != INSTR_RET) {
+  if (isReturnable) {
     emit(new RetInstr(cur));
+  } else {
+    Instruction* void_ = new ConstantInstr(Value());
+    emit(void_);
+    emit(new RetInstr(void_));
   }
 }
 
 void SsaBuilder::visitExpressionStatement(ExpressionStatement<TypedLocationInfo>& stmt) {
   stmt.expr->accept(*this);
+  isReturnable = true;
 }
 
 void SsaBuilder::visitBlock(Block<TypedLocationInfo>& block) {
@@ -305,6 +318,10 @@ void SsaBuilder::visitDivisionExpression(DivisionExpression<TypedLocationInfo>& 
 }
 
 void SsaBuilder::visitIntegerExpression(IntegerExpression<TypedLocationInfo>& expr) {
+  emit(new ConstantInstr(Value(expr.value)));
+}
+
+void SsaBuilder::visitStringExpression(StringExpression<TypedLocationInfo>& expr) {
   emit(new ConstantInstr(Value(expr.value)));
 }
 

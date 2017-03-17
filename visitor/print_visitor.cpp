@@ -132,9 +132,15 @@ void PrintVisitor::visitDivisionExpression(DivisionExpression<>& expr) {
   expr.right->accept(*this);
   cout << ")";
 }
+
 void PrintVisitor::visitIntegerExpression(IntegerExpression<>& expr) {
   cout << expr.value;
 }
+
+void PrintVisitor::visitStringExpression(StringExpression<>& expr) {
+  cout << expr.value->str;
+}
+
 void PrintVisitor::visitVariableExpression(VariableExpression<>& expr) {
   cout << expr.id;
 }
