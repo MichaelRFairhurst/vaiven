@@ -1,0 +1,62 @@
+fn isFoo of str is
+  "foo" == str
+end
+
+fn isFour of str is
+  str == 4
+end
+
+fn isTrue of str is
+  str == true
+end
+
+fn isFalse of str is
+  str == false
+end
+
+fn isList of str is
+  str == list()
+end
+
+fn isObject of str is
+  str == object()
+end
+
+fn basicStrOps of varSoItCanOptimze is
+  assert("foo" == "foo")
+  assert("foo" != "fo")
+  assert("foo" == "fo" + "o")
+  assert(!isFour("foo"))
+  assert(!isTrue("foo"))
+  assert(!isFalse("foo"))
+  assert(!isList("foo"))
+  assert(!isObject("foo"))
+  assert("foo" != 4)
+  assert("foo" != true)
+  assert("foo" != false)
+  assert("foo" != list())
+  assert("foo" != object())
+  assert(isFoo("foo"))
+  assert(isFoo("fo" + "o"))
+  assert(isFoo("f" + "o" + "o"))
+  assert(!isFoo("fo"))
+  assert(!isFoo(4))
+  assert(!isFoo(true))
+  assert(!isFoo(false))
+  assert(!isFoo(list()))
+  assert(!isFoo(object()))
+end
+
+"make it hot"
+basicStrOps()
+basicStrOps()
+basicStrOps()
+basicStrOps()
+basicStrOps()
+basicStrOps()
+basicStrOps()
+basicStrOps()
+basicStrOps()
+basicStrOps()
+basicStrOps()
+basicStrOps()

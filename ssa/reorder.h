@@ -12,6 +12,8 @@ class UnusedCodeEliminator : public SsaVisitor {
   void visitConstantInstr(ConstantInstr& instr);
   void visitCallInstr(CallInstr& instr);
   void visitAddInstr(AddInstr& instr);
+  void visitIntAddInstr(IntAddInstr& instr);
+  void visitStrAddInstr(StrAddInstr& instr);
   void visitSubInstr(SubInstr& instr);
   void visitMulInstr(MulInstr& instr);
   void visitDivInstr(DivInstr& instr);

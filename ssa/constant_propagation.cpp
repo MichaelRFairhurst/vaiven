@@ -1,5 +1,7 @@
 #include "constant_propagation.h"
 
+#include "../std.h"
+
 using namespace vaiven::ssa;
 using namespace std;
 using namespace asmjit;
@@ -54,6 +56,25 @@ bool ConstantPropagator::isConstantBinIntInstruction(Instruction& instr) {
 }
 
 void ConstantPropagator::visitAddInstr(AddInstr& instr) {
+  // TODO can this have constant values?
+}
+
+void ConstantPropagator::visitStrAddInstr(StrAddInstr& instr) {
+  if (instr.inputs[0]->tag == INSTR_CONSTANT
+      && instr.inputs[1]->tag == INSTR_CONSTANT
+      && instr.inputs[0]->type == VAIVEN_STATIC_TYPE_STRING
+      && instr.inputs[1]->type == VAIVEN_STATIC_TYPE_STRING) {
+    Value valA = static_cast<ConstantInstr*>(instr.inputs[0])->val;
+    Value valB = static_cast<ConstantInstr*>(instr.inputs[1])->val;
+    string strA = ((GcableString*) valA.getPtr())->str;
+    string strB = ((GcableString*) valB.getPtr())->str;
+
+    // TODO generate a constant that's collected properly
+    replaceWithConstant(instr, Value(new GcableString(strA + strB)));
+  }
+}
+
+void ConstantPropagator::visitIntAddInstr(IntAddInstr& instr) {
   if (isConstantBinIntInstruction(instr)) {
     int newval = static_cast<ConstantInstr*>(instr.inputs[0])->val.getInt()
         + static_cast<ConstantInstr*>(instr.inputs[1])->val.getInt();
@@ -99,8 +120,8 @@ void ConstantPropagator::visitNotInstr(NotInstr& instr) {
 
 void ConstantPropagator::visitCmpEqInstr(CmpEqInstr& instr) {
   if (isConstantBinIntInstruction(instr)) {
-    bool newval = static_cast<ConstantInstr*>(instr.inputs[0])->val.getRaw()
-        == static_cast<ConstantInstr*>(instr.inputs[1])->val.getRaw();
+    bool newval = cmpUnboxed(static_cast<ConstantInstr*>(instr.inputs[0])->val,
+        static_cast<ConstantInstr*>(instr.inputs[1])->val);
 
     replaceWithConstant(instr, Value(newval));
   }
@@ -108,8 +129,8 @@ void ConstantPropagator::visitCmpEqInstr(CmpEqInstr& instr) {
 
 void ConstantPropagator::visitCmpIneqInstr(CmpIneqInstr& instr) {
   if (isConstantBinIntInstruction(instr)) {
-    bool newval = static_cast<ConstantInstr*>(instr.inputs[0])->val.getRaw()
-        != static_cast<ConstantInstr*>(instr.inputs[1])->val.getRaw();
+    bool newval = inverseCmpUnboxed(static_cast<ConstantInstr*>(instr.inputs[0])->val,
+        static_cast<ConstantInstr*>(instr.inputs[1])->val);
 
     replaceWithConstant(instr, Value(newval));
   }

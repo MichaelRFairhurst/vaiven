@@ -45,7 +45,9 @@ void JumpingCompiler::visitNotExpression(NotExpression<TypedLocationInfo>& expr)
 }
 
 void JumpingCompiler::visitEqualityExpression(EqualityExpression<TypedLocationInfo>& expr) {
-  compiler.doCmpEqualityExpression(*expr.left, *expr.right);
+  if (!compiler.doCmpEqualityExpression(*expr.left, *expr.right, true)) {
+    return;
+  }
   if (jmpFalse) {
     cc.jne(label);
   } else {
@@ -55,7 +57,9 @@ void JumpingCompiler::visitEqualityExpression(EqualityExpression<TypedLocationIn
 }
 
 void JumpingCompiler::visitInequalityExpression(InequalityExpression<TypedLocationInfo>& expr) {
-  compiler.doCmpEqualityExpression(*expr.left, *expr.right);
+  if (!compiler.doCmpEqualityExpression(*expr.left, *expr.right, false)) {
+    return;
+  }
   if (jmpFalse) {
     cc.je(label);
   } else {

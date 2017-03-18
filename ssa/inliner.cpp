@@ -154,6 +154,12 @@ void Inliner::visitBoxInstr(BoxInstr& instr) {
 void Inliner::visitAddInstr(AddInstr& instr) {
 }
 
+void Inliner::visitStrAddInstr(StrAddInstr& instr) {
+}
+
+void Inliner::visitIntAddInstr(IntAddInstr& instr) {
+}
+
 void Inliner::visitSubInstr(SubInstr& instr) {
 }
 

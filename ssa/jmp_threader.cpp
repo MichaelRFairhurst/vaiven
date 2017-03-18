@@ -23,6 +23,12 @@ void JmpThreader::visitBoxInstr(BoxInstr& instr) {
 void JmpThreader::visitAddInstr(AddInstr& instr) {
 }
 
+void JmpThreader::visitIntAddInstr(IntAddInstr& instr) {
+}
+
+void JmpThreader::visitStrAddInstr(StrAddInstr& instr) {
+}
+
 void JmpThreader::visitSubInstr(SubInstr& instr) {
 }
 
@@ -105,6 +111,14 @@ void JmpThreader::visitConditionalBlockExit(ConditionalBlockExit& exit) {
       if (conditionEq->hasConstRhs) {
         replacementInstr = new CmpEqInstr(condition->inputs[0], conditionEq->constI32Rhs);
       } else {
+        if (condition->inputs[0]->type == VAIVEN_STATIC_TYPE_STRING
+            || condition->inputs[0]->type == VAIVEN_STATIC_TYPE_UNKNOWN
+            || condition->inputs[1]->type == VAIVEN_STATIC_TYPE_STRING
+            || condition->inputs[1]->type == VAIVEN_STATIC_TYPE_UNKNOWN) {
+          // will be compiled as a call, test rax so we can do strcmp
+          // TODO check where exact type is unknown but can't be a string
+          return;
+        }
         replacementInstr = new CmpEqInstr(condition->inputs[0], condition->inputs[1]);
       }
       break;
@@ -115,6 +129,14 @@ void JmpThreader::visitConditionalBlockExit(ConditionalBlockExit& exit) {
       if (conditionIneq->hasConstRhs) {
         replacementInstr = new CmpIneqInstr(condition->inputs[0], conditionIneq->constI32Rhs);
       } else {
+        if (condition->inputs[0]->type == VAIVEN_STATIC_TYPE_STRING
+            || condition->inputs[0]->type == VAIVEN_STATIC_TYPE_UNKNOWN
+            || condition->inputs[1]->type == VAIVEN_STATIC_TYPE_STRING
+            || condition->inputs[1]->type == VAIVEN_STATIC_TYPE_UNKNOWN) {
+          // will be compiled as a call, test rax so we can do strcmp
+          // TODO check where exact type is unknown but can't be a string
+          return;
+        }
         replacementInstr = new CmpIneqInstr(condition->inputs[0], condition->inputs[1]);
       }
       break;

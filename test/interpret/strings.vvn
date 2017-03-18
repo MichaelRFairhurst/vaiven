@@ -1,0 +1,2 @@
+assert("foo" == "foo")
+assert("foo" + "bar" == "foobar")

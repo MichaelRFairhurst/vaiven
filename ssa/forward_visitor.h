@@ -16,6 +16,8 @@ class ForwardVisitor : public SsaVisitor {
   virtual void visitTypecheckInstr(TypecheckInstr& instr)=0;
   virtual void visitBoxInstr(BoxInstr& instr)=0;
   virtual void visitAddInstr(AddInstr& instr)=0;
+  virtual void visitIntAddInstr(IntAddInstr& instr)=0;
+  virtual void visitStrAddInstr(StrAddInstr& instr)=0;
   virtual void visitSubInstr(SubInstr& instr)=0;
   virtual void visitMulInstr(MulInstr& instr)=0;
   virtual void visitDivInstr(DivInstr& instr)=0;

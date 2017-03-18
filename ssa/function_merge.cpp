@@ -23,6 +23,12 @@ void FunctionMerger::visitBoxInstr(BoxInstr& instr) {
 void FunctionMerger::visitAddInstr(AddInstr& instr) {
 }
 
+void FunctionMerger::visitStrAddInstr(StrAddInstr& instr) {
+}
+
+void FunctionMerger::visitIntAddInstr(IntAddInstr& instr) {
+}
+
 void FunctionMerger::visitSubInstr(SubInstr& instr) {
 }
 

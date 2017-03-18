@@ -17,6 +17,7 @@ assert(obj != object())
 
 assert(cmp(obj, obj))
 assert(obj == obj)
+assert(cmp(toString(obj), "{}"))
 
 assert(len(keys(obj)) == 0)
 assert(get(obj, "foo") == void)
@@ -27,6 +28,8 @@ assert(len(keys(obj)) == 1)
 assert(cmp(get(keys(obj), 0), "foo"))
 assert(cmp(get(obj, "foo"), "bar"))
 assert(get(obj, "bar") == void)
+assert(cmp(toString(obj), "{foo:bar}"))
+toString(obj)
 
 set(obj, "foo", "foo")
 
@@ -34,6 +37,8 @@ assert(len(keys(obj)) == 1)
 assert(cmp(get(keys(obj), 0), "foo"))
 assert(cmp(get(obj, "foo"), "foo"))
 assert(get(obj, "bar") == void)
+assert(cmp(toString(obj), "{foo:foo}"))
+toString(obj)
 
 set(obj, "bar", "foo")
 
@@ -43,6 +48,8 @@ assert(cmp(get(keys(obj), 0), "bar"))
 assert(cmp(get(obj, "foo"), "foo"))
 assert(cmp(get(obj, "bar"), "foo"))
 assert(get(obj, "baz") == void)
+assert(cmp(toString(obj), "{bar:foo, foo:foo}"))
+toString(obj)
 
 set(obj, "foo", "bar")
 
@@ -52,4 +59,6 @@ assert(cmp(get(keys(obj), 0), "bar"))
 assert(cmp(get(obj, "foo"), "bar"))
 assert(cmp(get(obj, "bar"), "foo"))
 assert(get(obj, "baz") == void)
+assert(cmp(toString(obj), "{bar:foo, foo:bar}"))
+toString(obj)
 

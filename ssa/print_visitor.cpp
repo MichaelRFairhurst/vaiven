@@ -56,6 +56,14 @@ void PrintVisitor::visitAddInstr(AddInstr& instr) {
   printInstruction("add", &instr);
 }
 
+void PrintVisitor::visitIntAddInstr(IntAddInstr& instr) {
+  printInstruction("int add", &instr);
+}
+
+void PrintVisitor::visitStrAddInstr(StrAddInstr& instr) {
+  printInstruction("str add", &instr);
+}
+
 void PrintVisitor::visitSubInstr(SubInstr& instr) {
   printInstruction("sub", &instr);
 }

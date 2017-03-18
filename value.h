@@ -120,19 +120,7 @@ class Value {
     return internals.raw;
   }
 
-  inline VaivenStaticType getStaticType() {
-    return isInt()
-        ? VAIVEN_STATIC_TYPE_INT
-        : isBool()
-        ? VAIVEN_STATIC_TYPE_BOOL
-        : isVoid()
-        ? VAIVEN_STATIC_TYPE_VOID
-        : isDouble()
-        ? VAIVEN_STATIC_TYPE_DOUBLE
-        //: isPtr()
-        //? VAIVEN_STATIC_TYPE_OBJECT
-        : VAIVEN_STATIC_TYPE_UNKNOWN;
-  }
+  VaivenStaticType getStaticType();
 };
 
 }

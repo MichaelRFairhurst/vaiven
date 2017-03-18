@@ -13,6 +13,11 @@ void vaiven::ErrorCompiler::boolTypeError() {
   hasBoolTypeError = true;
 }
 
+void vaiven::ErrorCompiler::stringTypeError() {
+  cc.jmp(stringTypeErrorLabel);
+  hasStringTypeError = true;
+}
+
 void vaiven::ErrorCompiler::noFuncError() {
   cc.jmp(noFuncErrorLabel);
   hasNoFuncError = true;
@@ -37,6 +42,11 @@ void vaiven::ErrorCompiler::generateTypeErrorProlog() {
   if (hasBoolTypeError) {
     cc.bind(boolTypeErrorLabel);
     cc.call((size_t) &expectedBool, FuncSignature0<void>());
+  }
+
+  if (hasStringTypeError) {
+    cc.bind(stringTypeErrorLabel);
+    cc.call((size_t) &expectedStr, FuncSignature0<void>());
   }
 
   if (hasNoFuncError) {

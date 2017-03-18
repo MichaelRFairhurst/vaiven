@@ -192,7 +192,16 @@ void LocationResolver::visitAdditionExpression(AdditionExpression<>& expr) {
   exprCopyStack.pop();
   unique_ptr<Expression<TypedLocationInfo> > lhs(move(exprCopyStack.top()));
   exprCopyStack.pop();
-  TypedLocationInfo loc(Location::spilled(), VAIVEN_STATIC_TYPE_INT, false);
+  TypedLocationInfo loc;
+  if (lhs->resolvedData.type == VAIVEN_STATIC_TYPE_INT
+      && rhs->resolvedData.type == VAIVEN_STATIC_TYPE_INT) {
+    loc = TypedLocationInfo(Location::spilled(), VAIVEN_STATIC_TYPE_INT, false);
+  } else if (lhs->resolvedData.type == VAIVEN_STATIC_TYPE_STRING
+      && rhs->resolvedData.type == VAIVEN_STATIC_TYPE_STRING) {
+    loc = TypedLocationInfo(Location::spilled(), VAIVEN_STATIC_TYPE_STRING, true);
+  } else {
+    loc = TypedLocationInfo(Location::spilled(), VAIVEN_STATIC_TYPE_UNKNOWN, true);
+  }
   unique_ptr<Expression<TypedLocationInfo> > copy(new AdditionExpression<TypedLocationInfo>(move(lhs), move(rhs)));
   copy->resolvedData = loc;
   exprCopyStack.push(copy.release());

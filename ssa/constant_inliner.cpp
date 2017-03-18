@@ -26,9 +26,39 @@ void ConstantInliner::visitBoxInstr(BoxInstr& instr) {
     instr.append(boxed);
     instr.replaceUsagesWith(boxed);
   }
+
+  // these can also be generated in boxed formats
+  if (instr.inputs[0]->tag == INSTR_CONSTANT
+      || instr.inputs[0]->tag == INSTR_NOT
+      || instr.inputs[0]->tag == INSTR_CMPGT
+      || instr.inputs[0]->tag == INSTR_CMPGTE
+      || instr.inputs[0]->tag == INSTR_CMPLT
+      || instr.inputs[0]->tag == INSTR_CMPLTE) {
+    instr.inputs[0]->isBoxed = true;
+    instr.replaceUsagesWith(instr.inputs[0]);
+    return;
+  }
+  
+  // these can be generated in boxed formats if we know neither is a string
+  if ((instr.inputs[0]->tag == INSTR_CMPEQ || instr.inputs[0]->tag == INSTR_CMPINEQ)
+      && (instr.inputs[0]->inputs[0]->type != VAIVEN_STATIC_TYPE_STRING
+      && instr.inputs[0]->inputs[1]->type != VAIVEN_STATIC_TYPE_STRING
+      && instr.inputs[0]->inputs[0]->type != VAIVEN_STATIC_TYPE_UNKNOWN
+      && instr.inputs[0]->inputs[1]->type != VAIVEN_STATIC_TYPE_UNKNOWN)) {
+    instr.inputs[0]->isBoxed = true;
+    instr.replaceUsagesWith(instr.inputs[0]);
+    return;
+  }
+
 }
 
 void ConstantInliner::visitAddInstr(AddInstr& instr) {
+}
+
+void ConstantInliner::visitStrAddInstr(StrAddInstr& instr) {
+}
+
+void ConstantInliner::visitIntAddInstr(IntAddInstr& instr) {
   if (instr.inputs[1]->tag == INSTR_CONSTANT) {
     int val = static_cast<ConstantInstr*>(instr.inputs[1])->val.getInt();
     instr.hasConstRhs = true;

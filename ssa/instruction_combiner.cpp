@@ -5,6 +5,7 @@ using namespace std;
 using namespace asmjit;
 
 #include "print_visitor.h"
+#include "../heap.h"
 
 #define MATCH_INPUTS(guards, action) \
 { \
@@ -58,6 +59,11 @@ using namespace asmjit;
   INSTR(CONSTANT) \
   CAPTURE_TYPE(ConstantInstr, name ## _instr); \
   bool name = name ## _instr->val.getBool();
+
+#define STRING_CONSTANT(name) \
+  INSTR(CONSTANT) \
+  CAPTURE_TYPE(ConstantInstr, name ## _instr); \
+  string name = ((GcableString*) name ## _instr->val.getPtr())->str;
 
 void InstructionCombiner::visitPhiInstr(PhiInstr& instr) {
   // breaking apart nested phis ie phi(x, phi(y, z)) into phi(x, y, z) improves DCE
@@ -126,15 +132,29 @@ void InstructionCombiner::replaceReferencingNewConstant(Instruction& instr, Inst
 }
 
 void InstructionCombiner::visitAddInstr(AddInstr& instr) {
+  // TODO anything we can do here?
+}
+
+void InstructionCombiner::visitStrAddInstr(StrAddInstr& instr) {
+  // x + "foo" + "bar" == x + "foobar"
+  MATCH_INPUTS(
+    INSTR(STR_ADD) OF(SOME(lift) THEN STRING_CONSTANT(a))
+    THEN STRING_CONSTANT(b),
+    // TODO don't leak this gcable string
+    replaceReferencingNewConstant(instr, new StrAddInstr(lift, new ConstantInstr(new GcableString(a + b))));
+  )
+}
+
+void InstructionCombiner::visitIntAddInstr(IntAddInstr& instr) {
   if (instr.inputs[0]->tag == INSTR_CONSTANT) {
     std::swap(instr.inputs[0], instr.inputs[1]);
   }
 
   // x + 2 + 4 == x + 6
   MATCH_INPUTS(
-    INSTR(ADD) OF(SOME(lift) THEN INT_CONSTANT(a))
+    INSTR(INT_ADD) OF(SOME(lift) THEN INT_CONSTANT(a))
     THEN INT_CONSTANT(b),
-    replaceReferencingNewConstant(instr, new AddInstr(lift, new ConstantInstr(a + b)));
+    replaceReferencingNewConstant(instr, new IntAddInstr(lift, new ConstantInstr(a + b)));
   )
 
   // x + 0 == x
@@ -172,13 +192,13 @@ void InstructionCombiner::visitAddInstr(AddInstr& instr) {
 }
 
 void InstructionCombiner::visitSubInstr(SubInstr& instr) {
-  // turn x - 4 into x + -4 so that visitAddInstr can do most of the heavy lifting
+  // turn x - 4 into x + -4 so that visitIntAddInstr can do most of the heavy lifting
   if (instr.inputs[1]->tag == INSTR_CONSTANT) {
     ConstantInstr* myConstant = static_cast<ConstantInstr*>(instr.inputs[1]);
     int newval = -myConstant->val.getInt();
 
     ConstantInstr* newConstant = new ConstantInstr(newval);
-    AddInstr* addInstr = new AddInstr(instr.inputs[0], newConstant);
+    IntAddInstr* addInstr = new IntAddInstr(instr.inputs[0], newConstant);
     instr.append(newConstant);
     newConstant->append(addInstr);
     instr.replaceUsagesWith(addInstr);
@@ -201,14 +221,14 @@ void InstructionCombiner::visitSubInstr(SubInstr& instr) {
 
   // (z + x) - x == z
   MATCH_INPUTS(
-    INSTR(ADD) OF(SOME(identity) THEN SOME(a))
+    INSTR(INT_ADD) OF(SOME(identity) THEN SOME(a))
     THEN SOME(b) WHERE(a == b),
     instr.replaceUsagesWith(identity);
   );
 
   // (x + z) - x == z
   MATCH_INPUTS(
-    INSTR(ADD) OF(SOME(a) THEN SOME(identity))
+    INSTR(INT_ADD) OF(SOME(a) THEN SOME(identity))
     THEN SOME(b) WHERE(a == b),
     instr.replaceUsagesWith(identity);
   );
@@ -216,7 +236,7 @@ void InstructionCombiner::visitSubInstr(SubInstr& instr) {
   // x - (z + x) == z
   MATCH_INPUTS(
     SOME(a) THEN
-    INSTR(ADD) OF(SOME(identity) THEN SOME(b))
+    INSTR(INT_ADD) OF(SOME(identity) THEN SOME(b))
     WHERE(a == b),
     instr.replaceUsagesWith(identity);
   );
@@ -224,7 +244,7 @@ void InstructionCombiner::visitSubInstr(SubInstr& instr) {
   // x - (x + z) == z
   MATCH_INPUTS(
     SOME(a) THEN
-    INSTR(ADD) OF(SOME(b) THEN SOME(identity))
+    INSTR(INT_ADD) OF(SOME(b) THEN SOME(identity))
     WHERE(a == b),
     instr.replaceUsagesWith(identity);
   );
@@ -234,14 +254,14 @@ void InstructionCombiner::visitSubInstr(SubInstr& instr) {
   MATCH_INPUTS(
     INT_CONSTANT(a) THEN
     INSTR(SUB) OF(INT_CONSTANT(b) THEN SOME(lift)),
-    replaceReferencingNewConstant(instr, new AddInstr(lift, new ConstantInstr(a - b)));
+    replaceReferencingNewConstant(instr, new IntAddInstr(lift, new ConstantInstr(a - b)));
   );
 
   // 4 - (x + 2) == 4 -(2 + x) == 4 + (-2 - x) == 2 - x == x + -2
   MATCH_INPUTS(
     INT_CONSTANT(a) THEN
-    INSTR(ADD) OF(SOME(lift) THEN INT_CONSTANT(b)),
-    replaceReferencingNewConstant(instr, new AddInstr(lift, new ConstantInstr(a - b)));
+    INSTR(INT_ADD) OF(SOME(lift) THEN INT_CONSTANT(b)),
+    replaceReferencingNewConstant(instr, new IntAddInstr(lift, new ConstantInstr(a - b)));
   );
 }
 
@@ -391,7 +411,7 @@ void InstructionCombiner::visitCmpEqInstr(CmpEqInstr& instr) {
 
   // (x + 1) == 3 can be x == 2
   MATCH_INPUTS(
-    INSTR(ADD) OF(SOME(lift) THEN INT_CONSTANT(a))
+    INSTR(INT_ADD) OF(SOME(lift) THEN INT_CONSTANT(a))
     THEN INT_CONSTANT(b),
     replaceReferencingNewConstant(instr, new CmpEqInstr(lift, new ConstantInstr(b - a)));
   );
@@ -459,7 +479,7 @@ void InstructionCombiner::visitCmpIneqInstr(CmpIneqInstr& instr) {
 
   // (x + 1) != 3 can be x != 2
   MATCH_INPUTS(
-    INSTR(ADD) OF(SOME(lift) THEN INT_CONSTANT(a))
+    INSTR(INT_ADD) OF(SOME(lift) THEN INT_CONSTANT(a))
     THEN INT_CONSTANT(b),
     replaceReferencingNewConstant(instr, new CmpIneqInstr(lift, new ConstantInstr(b - a)));
   );

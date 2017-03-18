@@ -13,9 +13,10 @@ class ErrorCompiler {
 
   public:
   ErrorCompiler(X86Compiler& cc) : cc(cc),
-    hasIntTypeError(false), hasBoolTypeError(false), hasNoFuncError(false),
-    hasNoVarError(false), hasDupVarError(false), intTypeErrorLabel(cc.newLabel()),
-    boolTypeErrorLabel(cc.newLabel()), noFuncErrorLabel(cc.newLabel()),
+    hasIntTypeError(false), hasBoolTypeError(false), hasStringTypeError(false),
+    hasNoFuncError(false), hasNoVarError(false), hasDupVarError(false),
+    intTypeErrorLabel(cc.newLabel()), boolTypeErrorLabel(cc.newLabel()),
+    stringTypeErrorLabel(cc.newLabel()), noFuncErrorLabel(cc.newLabel()),
     noVarErrorLabel(cc.newLabel()), dupVarErrorLabel(cc.newLabel()) {}
 
   void generateTypeErrorProlog();
@@ -27,6 +28,7 @@ class ErrorCompiler {
 
   void intTypeError();
   void boolTypeError();
+  void stringTypeError();
   void noFuncError();
   void noVarError();
   void dupVarError();
@@ -36,6 +38,9 @@ class ErrorCompiler {
 
   asmjit::Label boolTypeErrorLabel;
   bool hasBoolTypeError;
+
+  asmjit::Label stringTypeErrorLabel;
+  bool hasStringTypeError;
 
   asmjit::Label noFuncErrorLabel;
   bool hasNoFuncError;

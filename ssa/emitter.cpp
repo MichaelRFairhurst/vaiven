@@ -1,4 +1,6 @@
 #include "emitter.h"
+#include "../std.h"
+#include "../heap.h"
 
 using namespace vaiven::ssa;
 using namespace std;
@@ -23,11 +25,27 @@ void Emitter::visitArgInstr(ArgInstr& instr) {
     cc.mov(checkArg, VOID);
     cc.cmp(instr.out, checkArg);
     cc.jne(deoptimizeLabel);
-  } else {
-    // TODO also check is list, is string, etc
+  } else if (instr.type == VAIVEN_STATIC_TYPE_STRING) {
     cc.mov(checkArg, MAX_PTR);
     cc.cmp(instr.out, checkArg);
     cc.jg(deoptimizeLabel);
+    cc.mov(checkArg, x86::qword_ptr(instr.out));
+    cc.cmp(checkArg, GCABLE_TYPE_STRING);
+    cc.jne(deoptimizeLabel);
+  } else if (instr.type == VAIVEN_STATIC_TYPE_LIST) {
+    cc.mov(checkArg, MAX_PTR);
+    cc.cmp(instr.out, checkArg);
+    cc.jg(deoptimizeLabel);
+    cc.mov(checkArg, x86::qword_ptr(instr.out));
+    cc.cmp(checkArg, GCABLE_TYPE_LIST);
+    cc.jne(deoptimizeLabel);
+  } else if (instr.type == VAIVEN_STATIC_TYPE_OBJECT) {
+    cc.mov(checkArg, MAX_PTR);
+    cc.cmp(instr.out, checkArg);
+    cc.jg(deoptimizeLabel);
+    cc.mov(checkArg, x86::qword_ptr(instr.out));
+    cc.cmp(checkArg, GCABLE_TYPE_OBJECT);
+    cc.jne(deoptimizeLabel);
   }
 }
 
@@ -96,6 +114,14 @@ void Emitter::visitTypecheckInstr(TypecheckInstr& instr) {
     cc.cmp(checkReg, BOOL_TAG_SHIFTED);
     cc.jne(error.boolTypeErrorLabel);
     error.hasBoolTypeError = true;
+  } else if (instr.type == VAIVEN_STATIC_TYPE_STRING) {
+    cc.mov(checkReg, MAX_PTR);
+    cc.cmp(instr.out, checkReg);
+    cc.jg(deoptimizeLabel);
+    cc.mov(checkReg, x86::qword_ptr(instr.out));
+    cc.cmp(checkReg, GCABLE_TYPE_STRING);
+    cc.jne(error.stringTypeErrorLabel);
+    error.hasStringTypeError = true;
   }
 }
 
@@ -115,6 +141,20 @@ void Emitter::visitBoxInstr(BoxInstr& instr) {
 }
 
 void Emitter::visitAddInstr(AddInstr& instr) {
+  CCFuncCall* call = cc.call((uint64_t) vaiven::add, FuncSignature2<uint64_t, uint64_t, uint64_t>());
+  call->setArg(0, instr.inputs[0]->out);
+  call->setArg(1, instr.inputs[1]->out);
+  call->setRet(0, instr.out);
+}
+
+void Emitter::visitStrAddInstr(StrAddInstr& instr) {
+  CCFuncCall* call = cc.call((uint64_t) vaiven::addStrUnchecked, FuncSignature2<uint64_t, uint64_t, uint64_t>());
+  call->setArg(0, instr.inputs[0]->out);
+  call->setArg(1, instr.inputs[1]->out);
+  call->setRet(0, instr.out);
+}
+
+void Emitter::visitIntAddInstr(IntAddInstr& instr) {
   if (instr.out != instr.inputs[0]->out) {
     cc.mov(instr.out.r32(), instr.inputs[0]->out.r32());
   }
@@ -177,6 +217,24 @@ void Emitter::visitNotInstr(NotInstr& instr) {
 }
 
 void Emitter::visitCmpEqInstr(CmpEqInstr& instr) {
+  if (instr.inputs[0]->type == VAIVEN_STATIC_TYPE_STRING
+    || instr.inputs[1]->type == VAIVEN_STATIC_TYPE_STRING) {
+    CCFuncCall* call = cc.call((uint64_t) vaiven::cmpStrUnchecked, FuncSignature2<uint64_t, uint64_t, uint64_t>());
+    call->setArg(0, instr.inputs[0]->out);
+    call->setArg(1, instr.inputs[1]->out);
+    call->setRet(0, instr.out);
+    return;
+  } else if (instr.inputs[0]->type == VAIVEN_STATIC_TYPE_STRING
+    || instr.inputs[1]->type == VAIVEN_STATIC_TYPE_STRING
+    || instr.inputs[0]->type == VAIVEN_STATIC_TYPE_UNKNOWN
+    || instr.inputs[1]->type == VAIVEN_STATIC_TYPE_UNKNOWN) {
+    CCFuncCall* call = cc.call((uint64_t) vaiven::cmpUnboxed, FuncSignature2<uint64_t, uint64_t, uint64_t>());
+    call->setArg(0, instr.inputs[0]->out);
+    call->setArg(1, instr.inputs[1]->out);
+    call->setRet(0, instr.out);
+    return;
+  }
+
   if (instr.isBoxed) {
     cc.mov(instr.out, BOOL_TAG);
   } else {
@@ -188,6 +246,24 @@ void Emitter::visitCmpEqInstr(CmpEqInstr& instr) {
 }
 
 void Emitter::visitCmpIneqInstr(CmpIneqInstr& instr) {
+  if (instr.inputs[0]->type == VAIVEN_STATIC_TYPE_STRING
+    || instr.inputs[1]->type == VAIVEN_STATIC_TYPE_STRING) {
+    CCFuncCall* call = cc.call((uint64_t) vaiven::inverseCmpStrUnchecked, FuncSignature2<uint64_t, uint64_t, uint64_t>());
+    call->setArg(0, instr.inputs[0]->out);
+    call->setArg(1, instr.inputs[1]->out);
+    call->setRet(0, instr.out);
+    return;
+  } else if (instr.inputs[0]->type == VAIVEN_STATIC_TYPE_STRING
+    || instr.inputs[1]->type == VAIVEN_STATIC_TYPE_STRING
+    || instr.inputs[0]->type == VAIVEN_STATIC_TYPE_UNKNOWN
+    || instr.inputs[1]->type == VAIVEN_STATIC_TYPE_UNKNOWN) {
+    CCFuncCall* call = cc.call((uint64_t) vaiven::inverseCmpUnboxed, FuncSignature2<uint64_t, uint64_t, uint64_t>());
+    call->setArg(0, instr.inputs[0]->out);
+    call->setArg(1, instr.inputs[1]->out);
+    call->setRet(0, instr.out);
+    return;
+  }
+
   if (instr.isBoxed) {
     cc.mov(instr.out, BOOL_TAG);
   } else {
@@ -359,7 +435,7 @@ void Emitter::visitBlock(Block& block) {
   while (next != NULL) {
     next->accept(*this);
     // handle PHIs
-    for (set<Instruction*>::iterator it = next->usages.begin(); it != next->usages.end(); ++it) {
+    for (std::set<Instruction*>::iterator it = next->usages.begin(); it != next->usages.end(); ++it) {
       if ((*it)->tag == INSTR_PHI && (*it)->out != next->out) {
         cc.mov((*it)->out, next->out);
       }

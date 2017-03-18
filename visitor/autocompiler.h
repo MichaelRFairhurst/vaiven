@@ -57,7 +57,8 @@ class AutoCompiler : public Visitor<TypedLocationInfo> {
 
   void doCmpIntExpression(Expression<TypedLocationInfo>& left, Expression<TypedLocationInfo>& right);
   void doCmpNotExpression(NotExpression<TypedLocationInfo>& expr);
-  void doCmpEqualityExpression(Expression<TypedLocationInfo>& left, Expression<TypedLocationInfo>& right);
+  // returns if ended in jmp or vreg
+  bool doCmpEqualityExpression(Expression<TypedLocationInfo>& left, Expression<TypedLocationInfo>& right, bool checkTrue);
 
   protected:
   void generateTypeShapePrelog(FuncDecl<TypedLocationInfo>& funcDecl, FunctionUsage* usage);

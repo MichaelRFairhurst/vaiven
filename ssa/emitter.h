@@ -19,6 +19,8 @@ class Emitter : public ForwardVisitor {
   void visitTypecheckInstr(TypecheckInstr& instr);
   void visitBoxInstr(BoxInstr& instr);
   void visitAddInstr(AddInstr& instr);
+  void visitIntAddInstr(IntAddInstr& instr);
+  void visitStrAddInstr(StrAddInstr& instr);
   void visitSubInstr(SubInstr& instr);
   void visitMulInstr(MulInstr& instr);
   void visitDivInstr(DivInstr& instr);

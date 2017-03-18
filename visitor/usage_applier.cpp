@@ -106,7 +106,7 @@ void UsageApplier::visitVariableExpression(VariableExpression<TypedLocationInfo>
     } else if (usageInfo.argShapes[i].isPureDouble()) {
       expr.resolvedData.type = VAIVEN_STATIC_TYPE_DOUBLE;
     } else if (usageInfo.argShapes[i].isPureObject()) {
-      expr.resolvedData.type = VAIVEN_STATIC_TYPE_DOUBLE;
+      expr.resolvedData.type = VAIVEN_STATIC_TYPE_STRING;
     } else if (usageInfo.argShapes[i].isPureBool()) {
       expr.resolvedData.type = VAIVEN_STATIC_TYPE_BOOL;
     }

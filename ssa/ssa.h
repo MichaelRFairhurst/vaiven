@@ -25,6 +25,8 @@ enum InstructionType {
   INSTR_TYPECHECK,
   INSTR_BOX,
   INSTR_ADD,
+  INSTR_INT_ADD,
+  INSTR_STR_ADD,
   INSTR_SUB,
   INSTR_MUL,
   INSTR_DIV,
@@ -71,6 +73,8 @@ class CallInstr;
 class TypecheckInstr;
 class BoxInstr;
 class AddInstr;
+class IntAddInstr;
+class StrAddInstr;
 class SubInstr;
 class MulInstr;
 class DivInstr;
@@ -99,6 +103,8 @@ class SsaVisitor {
   virtual void visitTypecheckInstr(TypecheckInstr& instr)=0;
   virtual void visitBoxInstr(BoxInstr& instr)=0;
   virtual void visitAddInstr(AddInstr& instr)=0;
+  virtual void visitIntAddInstr(IntAddInstr& instr)=0;
+  virtual void visitStrAddInstr(StrAddInstr& instr)=0;
   virtual void visitSubInstr(SubInstr& instr)=0;
   virtual void visitMulInstr(MulInstr& instr)=0;
   virtual void visitDivInstr(DivInstr& instr)=0;
@@ -199,7 +205,22 @@ class BoxInstr : public Instruction {
 class AddInstr : public Instruction {
   public:
   AddInstr(Instruction* lhs, Instruction* rhs)
-      : Instruction(INSTR_ADD, VAIVEN_STATIC_TYPE_INT, false), hasConstRhs(false) {
+      : Instruction(INSTR_ADD, VAIVEN_STATIC_TYPE_UNKNOWN, false) {
+    inputs.push_back(lhs);
+    inputs.push_back(rhs);
+    lhs->usages.insert(this);
+    rhs->usages.insert(this);
+  };
+
+  void accept(SsaVisitor& visitor) {
+    visitor.visitAddInstr(*this);
+  }
+};
+
+class IntAddInstr : public Instruction {
+  public:
+  IntAddInstr(Instruction* lhs, Instruction* rhs)
+      : Instruction(INSTR_INT_ADD, VAIVEN_STATIC_TYPE_INT, false), hasConstRhs(false) {
     inputs.push_back(lhs);
     inputs.push_back(rhs);
     lhs->usages.insert(this);
@@ -210,7 +231,22 @@ class AddInstr : public Instruction {
   int constRhs;
 
   void accept(SsaVisitor& visitor) {
-    visitor.visitAddInstr(*this);
+    visitor.visitIntAddInstr(*this);
+  }
+};
+
+class StrAddInstr : public Instruction {
+  public:
+  StrAddInstr(Instruction* lhs, Instruction* rhs)
+      : Instruction(INSTR_STR_ADD, VAIVEN_STATIC_TYPE_STRING, false) {
+    inputs.push_back(lhs);
+    inputs.push_back(rhs);
+    lhs->usages.insert(this);
+    rhs->usages.insert(this);
+  };
+
+  void accept(SsaVisitor& visitor) {
+    visitor.visitStrAddInstr(*this);
   }
 };
 

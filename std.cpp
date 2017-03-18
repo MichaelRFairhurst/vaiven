@@ -25,29 +25,8 @@ void vaiven::init_std(Functions& funcs) {
 Value vaiven::print(Value value) {
   if (value.isInt()) {
     cout << "Int: " << value.getInt() << endl << endl;
-  } else if (value.isVoid()) {
-    cout << "void" << endl << endl;
-  } else if (value.isTrue()) {
-    cout << "true" << endl << endl;
-  } else if (value.isFalse()) {
-    cout << "false" << endl << endl;
-  } else if (value.isPtr()) {
-    if (value.getPtr()->getType() == GCABLE_TYPE_LIST) {
-      GcableList* list = (GcableList*) value.getPtr();
-      cout << "[";
-      for (vector<Value>::iterator it = list->list.begin(); it != list->list.end(); ++it) {
-        print(*it);
-        cout << ",";
-      }
-      cout << "]";
-    } else if (value.getPtr()->getType() == GCABLE_TYPE_STRING) {
-      cout << ((GcableString*) value.getPtr())->str;
-    }
-    cout << endl << endl;
-  } else if (value.isDouble()) {
-    cout << "Dbl: " << value.getDouble() << endl << endl;
   } else {
-    cout << "Error: unexpected value " << value.getRaw();
+    cout << toStringCpp(value) << endl << endl;
   }
 
   return Value();
@@ -58,26 +37,45 @@ Value vaiven::newList() {
   return Value(list);
 }
 
+Value vaiven::add(Value lhs, Value rhs) {
+  if (lhs.isInt() && rhs.isInt()) {
+    return Value(lhs.getInt() + rhs.getInt());
+  } else if (lhs.isPtr() && lhs.getPtr()->getType() == GCABLE_TYPE_STRING) {
+    if (rhs.isPtr() && rhs.getPtr()->getType() == GCABLE_TYPE_STRING) {
+      GcableString* strleft = (GcableString*) lhs.getPtr();
+      GcableString* strright = (GcableString*) rhs.getPtr();
+      return addStrUnchecked(strleft, strright);
+    }
+  }
+  expectedStrOrInt();
+}
+
+Value vaiven::addStrUnchecked(GcableString* lhs, GcableString* rhs) {
+  GcableString* result = globalHeap->newString();
+  result->str = lhs->str + rhs->str;
+  return Value(result);
+}
+
 Value vaiven::append(Value lhs, Value rhs) {
   if (!lhs.isPtr()) {
-    expectedInt();
+    expectedListOrStr();
   }
 
   if (lhs.getPtr()->getType() == GCABLE_TYPE_LIST) {
     GcableList* list = (GcableList*) lhs.getPtr();
     list->list.push_back(rhs);
-  } else if (rhs.isPtr() && lhs.getPtr()->getType() == GCABLE_TYPE_STRING) {
-    if (rhs.getPtr()->getType() == GCABLE_TYPE_STRING) {
+  } else if (lhs.isPtr() && lhs.getPtr()->getType() == GCABLE_TYPE_STRING) {
+    if (rhs.isPtr() && rhs.getPtr()->getType() == GCABLE_TYPE_STRING) {
       GcableString* strleft = (GcableString*) lhs.getPtr();
       GcableString* strright = (GcableString*) rhs.getPtr();
       GcableString* result = globalHeap->newString();
       result->str = strleft->str + strright->str;
       return Value(result);
     } else {
-      expectedInt();
+      expectedStr();
     }
   } else {
-    expectedInt();
+    expectedListOrStr();
   }
 
   return Value();
@@ -85,7 +83,7 @@ Value vaiven::append(Value lhs, Value rhs) {
 
 Value vaiven::len(Value subject) {
   if (!subject.isPtr()) {
-    expectedInt();
+    expectedListOrStr();
   }
 
   if (subject.getPtr()->getType() == GCABLE_TYPE_LIST) {
@@ -95,7 +93,7 @@ Value vaiven::len(Value subject) {
     GcableString* str = (GcableString*) subject.getPtr();
     return Value((int) str->str.size());
   } else {
-    expectedInt();
+    expectedListOrStr();
   }
 }
 
@@ -105,7 +103,8 @@ Value vaiven::assert(Value expectation) {
   }
 
   if (!expectation.getBool()) {
-    expectedBool();
+    // TODO custom message
+    errString("assertion failed");
   }
 
   return Value();
@@ -117,7 +116,7 @@ Value vaiven::object() {
 
 Value vaiven::keys(Value subject) {
   if (!subject.isPtr()) {
-    expectedInt();
+    expectedObj();
   }
 
   if (subject.getPtr()->getType() != GCABLE_TYPE_OBJECT) {
@@ -206,37 +205,87 @@ Value vaiven::get(Value subject, Value propOrIndex) {
 }
 
 Value vaiven::cmp(Value a, Value b) {
+  return Value(cmpUnboxed(a, b));
+}
+
+Value vaiven::inverseCmp(Value a, Value b) {
+  return Value(inverseCmpUnboxed(a, b));
+}
+
+bool vaiven::cmpUnboxed(Value a, Value b) {
   if (a.isPtr() && b.isPtr()
       && a.getPtr()->getType() == GCABLE_TYPE_STRING
       && b.getPtr()->getType() == GCABLE_TYPE_STRING) {
-    return Value(
-        ((GcableString*) a.getPtr())->str == ((GcableString*) b.getPtr())->str);
+    return cmpStrUnchecked((GcableString*) a.getPtr(), (GcableString*) b.getPtr());
   }
-  return Value(a.getRaw() == b.getRaw());
+  return a.getRaw() == b.getRaw();
+}
+
+bool vaiven::cmpStrUnchecked(GcableString* a, GcableString* b) {
+  return a->str == b->str;
+}
+
+bool vaiven::inverseCmpUnboxed(Value a, Value b) {
+  return !cmpUnboxed(a, b);
+}
+
+bool vaiven::inverseCmpStrUnchecked(GcableString* a, GcableString* b) {
+  return !cmpStrUnchecked(a, b);
 }
 
 Value vaiven::toString(Value subject) {
   if (subject.isPtr() && subject.getPtr()->getType() == GCABLE_TYPE_STRING) {
     return subject;
   }
+
+  GcableString* str = globalHeap->newString();
+  str->str = toStringCpp(subject);
+  return Value(str);
+}
+
+string vaiven::toStringCpp(Value subject) {
+  if (subject.isPtr() && subject.getPtr()->getType() == GCABLE_TYPE_STRING) {
+    return ((GcableString*) subject.getPtr())->str;
+  }
+  
+  if (subject.isPtr() && subject.getPtr()->getType() == GCABLE_TYPE_LIST) {
+    GcableList* list = (GcableList*) subject.getPtr();
+    string result = "[";
+    for (vector<Value>::iterator it = list->list.begin(); it != list->list.end(); ++it) {
+      if (it != list->list.begin()) {
+        result += ", ";
+      }
+      result += toStringCpp(*it);
+    }
+    result += "]";
+    return result;
+  }
+  
+  if (subject.isPtr() && subject.getPtr()->getType() == GCABLE_TYPE_OBJECT) {
+    GcableObject* object = (GcableObject*) subject.getPtr();
+    string result = "{";
+    for (unordered_map<string, Value>::iterator it = object->properties.begin(); it != object->properties.end(); ++it) {
+      if (it != object->properties.begin()) {
+        result += ", ";
+      }
+      Value val = it->second;
+      result += it->first + ":" + toStringCpp(val);
+    }
+    result += "}";
+    return result;
+  }
   
   if (subject.isBool() && subject.getBool()) {
-    GcableString* str = globalHeap->newString();
-    str->str = "true";
-    return Value(str);
+    return "true";
   }
   
   if (subject.isBool() && !subject.getBool()) {
-    GcableString* str = globalHeap->newString();
-    str->str = "false";
-    return Value(str);
+    return "false";
   }
   
   if (subject.isVoid()) {
-    GcableString* str = globalHeap->newString();
-    str->str = "void";
-    return Value(str);
+    return "void";
   }
 
-  return Value(4);
+  return std::to_string(subject.getInt());
 }

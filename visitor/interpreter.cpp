@@ -4,6 +4,7 @@
 
 #include "../ast/all.h"
 #include "../runtime_error.h"
+#include "../std.h"
 
 using std::cout;
 
@@ -186,10 +187,7 @@ void Interpreter::visitAdditionExpression(AdditionExpression<>& expr) {
   expr.right->accept(*this);
   Value right = stack.top(); stack.pop();
   Value left = stack.top(); stack.pop();
-  if (!right.isInt() || !left.isInt()) {
-    expectedInt();
-  }
-  stack.push(left.getInt() + right.getInt());
+  stack.push(add(left, right));
 }
 void Interpreter::visitSubtractionExpression(SubtractionExpression<>& expr) {
   expr.left->accept(*this);
@@ -257,7 +255,7 @@ void Interpreter::visitInequalityExpression(InequalityExpression<>& expr) {
   expr.right->accept(*this);
   Value right = stack.top(); stack.pop();
   Value left = stack.top(); stack.pop();
-  stack.push(Value(left.getRaw() != right.getRaw()));
+  stack.push(Value(!cmp(left, right).getBool()));
 }
 
 void Interpreter::visitEqualityExpression(EqualityExpression<>& expr) {
@@ -265,7 +263,7 @@ void Interpreter::visitEqualityExpression(EqualityExpression<>& expr) {
   expr.right->accept(*this);
   Value right = stack.top(); stack.pop();
   Value left = stack.top(); stack.pop();
-  stack.push(Value(left.getRaw() == right.getRaw()));
+  stack.push(cmp(left, right));
 }
 
 void Interpreter::visitGtExpression(GtExpression<>& expr) {

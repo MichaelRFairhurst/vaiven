@@ -4,6 +4,7 @@
 #include "../value.h"
 #include "../runtime_error.h"
 #include "../optimize.h"
+#include "../std.h"
 #include "jumping_compiler.h"
 
 #include <iostream>
@@ -328,6 +329,23 @@ void AutoCompiler::visitAdditionExpression(AdditionExpression<TypedLocationInfo>
   bool leftImm = left_loc.type == LOCATION_TYPE_IMM;
   bool rightImm = right_loc.type == LOCATION_TYPE_IMM;
 
+  if (expr.left->resolvedData.type != VAIVEN_STATIC_TYPE_INT
+      || expr.right->resolvedData.type != VAIVEN_STATIC_TYPE_INT) {
+    expr.left->accept(*this);
+    X86Gp lhsReg = vRegs.top(); vRegs.pop();
+    expr.right->accept(*this);
+    X86Gp rhsReg = vRegs.top(); vRegs.pop();
+    box(lhsReg, expr.left->resolvedData);
+    box(rhsReg, expr.right->resolvedData);
+    CCFuncCall* call = cc.call((uint64_t) vaiven::add, FuncSignature2<uint64_t, uint64_t, uint64_t>());
+    X86Gp result = cc.newUInt64();
+    call->setArg(0, lhsReg);
+    call->setArg(1, rhsReg);
+    call->setRet(0, result);
+    vRegs.push(result);
+    return;
+  }
+
   X86Gp result = cc.newInt64();
   if (leftImm && rightImm) {
     // mov rax, lhsImm or exact reg
@@ -613,17 +631,39 @@ void AutoCompiler::visitNotExpression(NotExpression<TypedLocationInfo>& expr) {
 
 void AutoCompiler::visitInequalityExpression(InequalityExpression<TypedLocationInfo>& expr) {
   X86Gp result = cc.newInt64();
+  // TODO only xor this when we use setne
   cc.xor_(result, result);
-  doCmpEqualityExpression(*expr.left, *expr.right);
-  cc.setne(result);
-  vRegs.push(result);
+  if (doCmpEqualityExpression(*expr.left, *expr.right, false)) {
+    cc.setne(result);
+    vRegs.push(result);
+  }
 }
 
-void AutoCompiler::doCmpEqualityExpression(Expression<TypedLocationInfo>& left, Expression<TypedLocationInfo>& right) {
+bool AutoCompiler::doCmpEqualityExpression(Expression<TypedLocationInfo>& left, Expression<TypedLocationInfo>& right, bool checkTrue) {
   Location& left_loc = left.resolvedData.location;
   Location& right_loc = right.resolvedData.location;
   bool leftImm = left_loc.type == LOCATION_TYPE_IMM;
   bool rightImm = right_loc.type == LOCATION_TYPE_IMM;
+
+  if (left.resolvedData.type == VAIVEN_STATIC_TYPE_STRING
+      || left.resolvedData.type == VAIVEN_STATIC_TYPE_UNKNOWN
+      || right.resolvedData.type == VAIVEN_STATIC_TYPE_STRING
+      || right.resolvedData.type == VAIVEN_STATIC_TYPE_UNKNOWN) {
+    left.accept(*this);
+    X86Gp lhsReg = vRegs.top(); vRegs.pop();
+    right.accept(*this);
+    X86Gp rhsReg = vRegs.top(); vRegs.pop();
+    box(lhsReg, left.resolvedData);
+    box(rhsReg, right.resolvedData);
+    uint64_t funcaddr = (uint64_t) (checkTrue ? vaiven::cmp : vaiven::inverseCmp);
+    CCFuncCall* call = cc.call(funcaddr, FuncSignature2<uint64_t, uint64_t, uint64_t>());
+    X86Gp result = cc.newUInt64();
+    call->setArg(0, lhsReg);
+    call->setArg(1, rhsReg);
+    call->setRet(0, result);
+    vRegs.push(result);
+    return false; // ended as vReg, not cmp
+  }
 
   if (leftImm && rightImm) {
     // mov rax, lhsImm or exact reg
@@ -654,14 +694,18 @@ void AutoCompiler::doCmpEqualityExpression(Expression<TypedLocationInfo>& left, 
     X86Gp rhsReg = vRegs.top(); vRegs.pop();
     cc.cmp(lhsReg, rhsReg);
   }
+
+  return true; // ended in cmp
 }
 
 void AutoCompiler::visitEqualityExpression(EqualityExpression<TypedLocationInfo>& expr) {
   X86Gp result = cc.newInt64();
+  // TODO only xor when we use sete
   cc.xor_(result, result);
-  doCmpEqualityExpression(*expr.left, *expr.right);
-  cc.sete(result);
-  vRegs.push(result);
+  if (doCmpEqualityExpression(*expr.left, *expr.right, true)) {
+    cc.sete(result);
+    vRegs.push(result);
+  }
 }
 
 void AutoCompiler::visitGtExpression(GtExpression<TypedLocationInfo>& expr) {

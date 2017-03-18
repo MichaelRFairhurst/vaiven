@@ -12,20 +12,9 @@ void TypeAnalysis::emit(Instruction* instr) {
 }
 
 void TypeAnalysis::box(Instruction** input, Instruction* instr) {
-  // these can be generated in boxed formats
+  // Always generate a box instruction now, though it may be optimized out
+  // later if it isn't needed or if the instruction can be assembled boxed.
   Instruction* curInput = *input;
-  if (curInput->tag == INSTR_CONSTANT
-      || curInput->tag == INSTR_NOT
-      || curInput->tag == INSTR_CMPEQ
-      || curInput->tag == INSTR_CMPINEQ
-      || curInput->tag == INSTR_CMPGT
-      || curInput->tag == INSTR_CMPGTE
-      || curInput->tag == INSTR_CMPLT
-      || curInput->tag == INSTR_CMPLTE) {
-    curInput->isBoxed = true;
-    return;
-  }
-
   BoxInstr* boxInstr = new BoxInstr(curInput);
   emit(boxInstr);
   curInput->usages.erase(instr);
@@ -96,6 +85,8 @@ void TypeAnalysis::typecheckInput(Instruction& instr, VaivenStaticType expectedT
       emit(new ErrInstr(EXPECTED_INT));
     } else if (expectedType == VAIVEN_STATIC_TYPE_BOOL) {
       emit(new ErrInstr(EXPECTED_BOOL));
+    } else if (expectedType == VAIVEN_STATIC_TYPE_STRING) {
+      emit(new ErrInstr(EXPECTED_STR));
     }
   }
 }
@@ -106,7 +97,28 @@ void TypeAnalysis::visitBinIntInstruction(Instruction& instr) {
 }
 
 void TypeAnalysis::visitAddInstr(AddInstr& instr) {
+  if (instr.inputs[0]->type == VAIVEN_STATIC_TYPE_INT) {
+    instr.append(new IntAddInstr(instr.inputs[0], instr.inputs[1]));
+    instr.replaceUsagesWith(instr.next);
+  } else if (instr.inputs[0]->type == VAIVEN_STATIC_TYPE_STRING) {
+    instr.append(new StrAddInstr(instr.inputs[0], instr.inputs[1]));
+    instr.replaceUsagesWith(instr.next);
+  } else if (instr.inputs[1]->type == VAIVEN_STATIC_TYPE_INT) {
+    instr.append(new IntAddInstr(instr.inputs[0], instr.inputs[1]));
+    instr.replaceUsagesWith(instr.next);
+  } else if (instr.inputs[1]->type == VAIVEN_STATIC_TYPE_STRING) {
+    instr.append(new StrAddInstr(instr.inputs[0], instr.inputs[1]));
+    instr.replaceUsagesWith(instr.next);
+  }
+}
+
+void TypeAnalysis::visitIntAddInstr(IntAddInstr& instr) {
   visitBinIntInstruction(instr);
+}
+
+void TypeAnalysis::visitStrAddInstr(StrAddInstr& instr) {
+  typecheckInput(instr, VAIVEN_STATIC_TYPE_STRING, 0);
+  typecheckInput(instr, VAIVEN_STATIC_TYPE_STRING, 1);
 }
 
 void TypeAnalysis::visitSubInstr(SubInstr& instr) {

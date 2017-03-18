@@ -55,7 +55,7 @@ class ArgumentShape {
     } else if (isPureDouble()) {
       return VAIVEN_STATIC_TYPE_DOUBLE;
     } else if (isPureObject()) {
-      return VAIVEN_STATIC_TYPE_OBJECT;
+      return VAIVEN_STATIC_TYPE_STRING;
     }
 
     return VAIVEN_STATIC_TYPE_UNKNOWN;

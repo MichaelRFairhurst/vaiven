@@ -54,6 +54,16 @@ void RegAlloc::visitBoxInstr(BoxInstr& instr) {
 }
 
 void RegAlloc::visitAddInstr(AddInstr& instr) {
+  // is a func call, can't reuse a register, it will be in rax no matter what
+  instr.out = cc.newUInt64();
+}
+
+void RegAlloc::visitStrAddInstr(StrAddInstr& instr) {
+  // is a func call, can't reuse a register, it will be in rax no matter what
+  instr.out = cc.newUInt64();
+}
+
+void RegAlloc::visitIntAddInstr(IntAddInstr& instr) {
   // swap reg inputs if the lhs isn't reusable. Better chance of
   // avoiding a mov between virtual registers
   if (!instr.hasConstRhs && instr.inputs[0]->usages.size() > 1) {

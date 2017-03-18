@@ -79,6 +79,14 @@ void UnusedCodeEliminator::visitAddInstr(AddInstr& instr) {
   visitPureInstr(instr);
 }
 
+void UnusedCodeEliminator::visitIntAddInstr(IntAddInstr& instr) {
+  visitPureInstr(instr);
+}
+
+void UnusedCodeEliminator::visitStrAddInstr(StrAddInstr& instr) {
+  visitPureInstr(instr);
+}
+
 void UnusedCodeEliminator::visitSubInstr(SubInstr& instr) {
   visitPureInstr(instr);
 }
