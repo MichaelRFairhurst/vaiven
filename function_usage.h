@@ -12,7 +12,11 @@ const short INT_SHAPE = INT_TAG >> 48;
 const short BOOL_SHAPE = BOOL_TAG >> 48;
 const short VOID_SHAPE = VOID >> 48;
 const short DOUBLE_SHAPE = 0x08;
-const short OBJECT_SHAPE = 0x10;
+const short LIST_SHAPE = 0x10;
+const short STRING_SHAPE = 0x20;
+const short OBJECT_SHAPE = 0x40;
+const short PRIMITIVE_TAG_SHIFT = 48;
+const short POINTER_TAG_SHIFT = 4;
 
 const int HOT_COUNT = 2;
 
@@ -45,6 +49,14 @@ class ArgumentShape {
     return (raw & ~OBJECT_SHAPE) == 0;
   }
 
+  inline bool isPureList() {
+    return (raw & ~LIST_SHAPE) == 0;
+  }
+
+  inline bool isPureString() {
+    return (raw & ~STRING_SHAPE) == 0;
+  }
+
   inline VaivenStaticType getStaticType() {
     if (!isPure()) {
       return VAIVEN_STATIC_TYPE_UNKNOWN;
@@ -55,6 +67,10 @@ class ArgumentShape {
     } else if (isPureDouble()) {
       return VAIVEN_STATIC_TYPE_DOUBLE;
     } else if (isPureObject()) {
+      return VAIVEN_STATIC_TYPE_OBJECT;
+    } else if (isPureList()) {
+      return VAIVEN_STATIC_TYPE_LIST;
+    } else if (isPureString()) {
       return VAIVEN_STATIC_TYPE_STRING;
     }
 

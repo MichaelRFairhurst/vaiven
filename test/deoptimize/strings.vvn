@@ -1,0 +1,48 @@
+fn strOp of x is
+  x + "foo"
+end
+
+"make hot"
+strOp("foo")
+strOp("foo")
+strOp("foo")
+strOp("foo")
+
+strOp(4)
+strOp(true)
+strOp(false)
+strOp()
+strOp(list())
+strOp(object())
+
+fn strAdd of x is
+  x + x
+end
+
+"make hot"
+strAdd("foo")
+strAdd("foo")
+strAdd("foo")
+strAdd("foo")
+
+assert(strAdd(4) == 8)
+
+strAdd(true)
+strAdd(false)
+strAdd()
+strAdd(list())
+strAdd(object())
+
+fn strCmp of x, y is
+  x == y
+end
+
+"make hot"
+strCmp("foo", "foo")
+strCmp("foo", "foo")
+strCmp("foo", "foo")
+strCmp("foo", "foo")
+
+"these will segfault if they run strcmp"
+assert(strCmp(0, 0) == true)
+assert(strCmp(true, false) == false)

@@ -235,11 +235,18 @@ void AutoCompiler::generateTypeShapePrelog(FuncDecl<TypedLocationInfo>& decl, Fu
     X86Gp arg = argRegs[i];
 
     Label afterCheck = cc.newLabel();
+    Label noPointerCheck = cc.newLabel();
 
     cc.mov(checkReg, MAX_PTR);
-    cc.mov(orReg, OBJECT_SHAPE);
     cc.cmp(arg, checkReg);
-    cc.jl(afterCheck);
+    // can't derefence if it isn't a pointer
+    cc.jge(noPointerCheck);
+    // now we can dereference it
+    cc.mov(orReg, x86::ptr(arg));
+    cc.shl(orReg, POINTER_TAG_SHIFT);
+    cc.jmp(afterCheck);
+
+    cc.bind(noPointerCheck);
 
     cc.mov(checkReg, MIN_DBL);
     cc.mov(orReg, DOUBLE_SHAPE);
@@ -247,7 +254,7 @@ void AutoCompiler::generateTypeShapePrelog(FuncDecl<TypedLocationInfo>& decl, Fu
     cc.jg(afterCheck);
 
     cc.mov(orReg, arg);
-    cc.shr(orReg, 48);
+    cc.shr(orReg, PRIMITIVE_TAG_SHIFT);
     // creates a tag for ints, bools, and void
 
     cc.bind(afterCheck);

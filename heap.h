@@ -17,13 +17,14 @@ using std::vector;
 
 namespace vaiven {
 
+// make these bits so they can be stored in shapes bitmaps
 enum GcableType {
-  GCABLE_TYPE_LIST,
-  GCABLE_TYPE_STRING,
-  GCABLE_TYPE_OBJECT,
+  GCABLE_TYPE_LIST = 1,
+  GCABLE_TYPE_STRING = 2,
+  GCABLE_TYPE_OBJECT = 4,
 };
 
-const int GcableMarkBit = 4;
+const int GcableMarkBit = 8;
 const int HEAP_FACTOR = 2;
 const int MIN_HEAP_SIZE = 65536;
 

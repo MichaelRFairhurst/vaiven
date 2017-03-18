@@ -1,0 +1,46 @@
+fn intOp of x is
+  x * 10
+end
+
+"make hot"
+intOp(1)
+intOp(1)
+intOp(1)
+intOp(1)
+
+intOp(true)
+intOp(false)
+intOp()
+intOp("foo")
+intOp(list())
+intOp(object())
+
+fn intAdd of x is
+  x + x
+end
+
+"make hot"
+intAdd(1)
+intAdd(1)
+intAdd(1)
+intAdd(1)
+
+intAdd(true)
+intAdd(false)
+intAdd()
+intAdd(list())
+intAdd(object())
+
+assert(intAdd("foo") == "foofoo")
+
+fn intCmp of x, y is
+  x == y
+end
+
+"make hot"
+intCmp(1, 1)
+intCmp(1, 1)
+intCmp(1, 1)
+intCmp(1, 1)
+
+assert(intCmp("foo", "foo") == true)
