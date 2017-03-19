@@ -236,6 +236,14 @@ void SsaBuilder::visitFuncCallExpression(FuncCallExpression<TypedLocationInfo>& 
   emit(call);
 }
 
+void SsaBuilder::visitListLiteralExpression(ListLiteralExpression<TypedLocationInfo>& expr) {
+  for (int i = 0; i < expr.items.size(); ++i) {
+    expr.items[i]->accept(*this);
+  }
+
+  throw "not supported";
+}
+
 void SsaBuilder::visitFuncDecl(FuncDecl<TypedLocationInfo>& decl) {
   for (int i = 0; i < decl.args.size(); ++i) {
     ArgInstr* arg = new ArgInstr(i, usageInfo.argShapes[i].getStaticType());

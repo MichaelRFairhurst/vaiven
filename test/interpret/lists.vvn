@@ -1,0 +1,17 @@
+assert(toString([]) == "[]")
+assert(toString([1]) == "[1]")
+assert(toString([1, 2]) == "[1, 2]")
+assert(toString([1, [], 2]) == "[1, [], 2]")
+var list = [1, 2]
+assert(toString(list) == "[1, 2]")
+assert(toString([list]) == "[[1, 2]]")
+
+var i = 0
+var shouldBeNew = [];
+for i < 10
+  shouldBeNew = [1, 2]
+  assert(toString(shouldBeNew) == "[1, 2]")
+  append(shouldBeNew, 3)
+  assert(toString(shouldBeNew) == "[1, 2, 3]")
+  i = i + 1
+end

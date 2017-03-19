@@ -77,3 +77,13 @@ assert(((4 == 4;
 (assert(((4 == 4;
 assert(4 == 4))
 assert(4 == 4)))
+
+["unbalanced")
+("unbalanced"]
+
+fn identity of x is x; end
+
+assert(identity(3] == 3)
+assert(identity(3] != 3)
+
+assert(3 == len([1, 2, 3;

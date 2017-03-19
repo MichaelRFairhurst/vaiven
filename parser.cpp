@@ -295,9 +295,16 @@ unique_ptr<ast::ExpressionStatement<> > Parser::parseExpressionStatement() {
 
 unique_ptr<ast::Expression<> > Parser::parseExpression() {
   // special case: ) as a value doesn't consume. Therefore we have to consume here
-  while (current->type == TOKEN_TYPE_CLOSE_PAREN) {
-    errors.push_back(ParseError("expected expression, got a close paren", errorLocation));
-    next();
+  while (true) {
+    if (current->type == TOKEN_TYPE_CLOSE_PAREN) {
+      errors.push_back(ParseError("expected expression, got a close paren", errorLocation));
+      next();
+    } else if (current->type == TOKEN_TYPE_CLOSE_BRACKET) {
+      errors.push_back(ParseError("expected expression, got a close bracket", errorLocation));
+      next();
+    } else {
+      break;
+    }
   }
 
   unique_ptr<ast::Expression<> > lhs(parseAssignmentExpression());
@@ -309,6 +316,7 @@ unique_ptr<ast::Expression<> > Parser::parseAssignmentExpression() {
 
   while (current->type != TOKEN_TYPE_SEMICOLON
       && current->type != TOKEN_TYPE_CLOSE_PAREN
+      && current->type != TOKEN_TYPE_CLOSE_BRACKET
       && current->type != TOKEN_TYPE_COMMA
       && current->type != TOKEN_TYPE_DO
       && current->type != TOKEN_TYPE_EOF) {
@@ -341,6 +349,7 @@ unique_ptr<ast::Expression<> > Parser::parseEqualityExpression() {
 
   while (current->type != TOKEN_TYPE_SEMICOLON
       && current->type != TOKEN_TYPE_CLOSE_PAREN
+      && current->type != TOKEN_TYPE_CLOSE_BRACKET
       && current->type != TOKEN_TYPE_COMMA
       && current->type != TOKEN_TYPE_DO
       && current->type != TOKEN_TYPE_EQ
@@ -374,6 +383,7 @@ unique_ptr<ast::Expression<> > Parser::parseComparisonExpression() {
 
   while (current->type != TOKEN_TYPE_SEMICOLON
       && current->type != TOKEN_TYPE_CLOSE_PAREN
+      && current->type != TOKEN_TYPE_CLOSE_BRACKET
       && current->type != TOKEN_TYPE_COMMA
       && current->type != TOKEN_TYPE_DO
       && current->type != TOKEN_TYPE_EQ
@@ -419,6 +429,7 @@ unique_ptr<ast::Expression<> > Parser::parseAddSubExpression() {
 
   while (current->type != TOKEN_TYPE_SEMICOLON
       && current->type != TOKEN_TYPE_CLOSE_PAREN
+      && current->type != TOKEN_TYPE_CLOSE_BRACKET
       && current->type != TOKEN_TYPE_COMMA
       && current->type != TOKEN_TYPE_DO
       && current->type != TOKEN_TYPE_EQ
@@ -463,6 +474,7 @@ unique_ptr<ast::Expression<> > Parser::parseDivMulExpression() {
       && current->type != TOKEN_TYPE_MINUS
       && current->type != TOKEN_TYPE_COMMA
       && current->type != TOKEN_TYPE_CLOSE_PAREN
+      && current->type != TOKEN_TYPE_CLOSE_BRACKET
       && current->type != TOKEN_TYPE_DO
       && current->type != TOKEN_TYPE_EQ
       && current->type != TOKEN_TYPE_EQEQ
@@ -565,6 +577,36 @@ unique_ptr<ast::Expression<> > Parser::parseValue() {
     }
   }
 
+  if (current->type == TOKEN_TYPE_OPEN_BRACKET) {
+    nextNoEol();
+    vector<unique_ptr<ast::Expression<> > > items;
+    while (current->type != TOKEN_TYPE_EOF
+        && current->type != TOKEN_TYPE_CLOSE_BRACKET) {
+      TokenType prevNewlineReplacement = newlineReplacement;
+      newlineReplacement = TOKEN_TYPE_COMMA;
+      try {
+        items.push_back(parseExpression());
+        newlineReplacement = prevNewlineReplacement;
+      } catch(ParseError e) {
+        newlineReplacement = prevNewlineReplacement;
+        throw e;
+      }
+
+      if (current->type != TOKEN_TYPE_COMMA) {
+        break;
+      }
+
+      nextNoEol();
+    }
+
+    if (current->type != TOKEN_TYPE_CLOSE_BRACKET) {
+      errors.push_back(ParseError("missing close bracket for list literal", errorLocation));
+    }
+
+    next();
+    return unique_ptr<ast::Expression<> >(new ast::ListLiteralExpression<> (move(items)));
+  }
+
   if (current->type == TOKEN_TYPE_TRUE) {
     next();
     return unique_ptr<ast::Expression<> >(new ast::BoolLiteral<> (true));
@@ -584,6 +626,7 @@ unique_ptr<ast::Expression<> > Parser::parseValue() {
       || current->type == TOKEN_TYPE_IF
       || current->type == TOKEN_TYPE_FOR
       || current->type == TOKEN_TYPE_CLOSE_PAREN
+      || current->type == TOKEN_TYPE_CLOSE_BRACKET
       || current->type == TOKEN_TYPE_ELSE) {
     ignoreNextNext = true;
   }

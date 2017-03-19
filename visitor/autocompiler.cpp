@@ -99,6 +99,9 @@ void AutoCompiler::visitVarDecl(VarDecl<TypedLocationInfo>& varDecl) {
   vRegs.pop();
 }
 
+void AutoCompiler::visitListLiteralExpression(ListLiteralExpression<TypedLocationInfo>& expr) {
+}
+
 void AutoCompiler::visitFuncCallExpression(FuncCallExpression<TypedLocationInfo>& expr) {
   auto finder = funcs.funcs.find(expr.name);
   if (finder == funcs.funcs.end()) {

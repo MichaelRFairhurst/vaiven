@@ -152,6 +152,10 @@ void JumpingCompiler::visitLteExpression(LteExpression<TypedLocationInfo>& expr)
   didJmp = true;
 }
 
+void JumpingCompiler::visitListLiteralExpression(ListLiteralExpression<TypedLocationInfo>& expr) {
+  compiler.visitListLiteralExpression(expr);
+}
+
 void JumpingCompiler::visitFuncCallExpression(FuncCallExpression<TypedLocationInfo>& expr) {
   compiler.visitFuncCallExpression(expr);
 }

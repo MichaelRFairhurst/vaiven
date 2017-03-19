@@ -20,6 +20,7 @@
 #include "block.h"
 #include "funcdecl.h"
 #include "func_call_expression.h"
+#include "list_literal_expression.h"
 #include "var_decl.h"
 #include "if_statement.h"
 #include "for_cond.h"

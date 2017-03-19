@@ -380,6 +380,10 @@ unique_ptr<Token> Tokenizer::nextOr(TokenType newlineType) {
       return unique_ptr<Token>(new Token(TOKEN_TYPE_OPEN_PAREN));
     case ')':
       return unique_ptr<Token>(new Token(TOKEN_TYPE_CLOSE_PAREN));
+    case '[':
+      return unique_ptr<Token>(new Token(TOKEN_TYPE_OPEN_BRACKET));
+    case ']':
+      return unique_ptr<Token>(new Token(TOKEN_TYPE_CLOSE_BRACKET));
     case '{':
       return unique_ptr<Token>(new Token(TOKEN_TYPE_OPEN_BRACE));
     case '}':

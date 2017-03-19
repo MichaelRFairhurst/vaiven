@@ -45,6 +45,14 @@ void UsageApplier::visitFuncCallExpression(FuncCallExpression<TypedLocationInfo>
   }
 }
 
+void UsageApplier::visitListLiteralExpression(ListLiteralExpression<TypedLocationInfo>& expr) {
+  for(vector<unique_ptr<Expression<TypedLocationInfo> > >::iterator it = expr.items.begin();
+      it != expr.items.end();
+      ++it) {
+    (*it)->accept(*this);
+  }
+}
+
 void UsageApplier::visitFuncDecl(FuncDecl<TypedLocationInfo>& decl) {
   for(int i = 0; i < decl.args.size(); ++i) {
     argIndexes[decl.args[i]] = i;

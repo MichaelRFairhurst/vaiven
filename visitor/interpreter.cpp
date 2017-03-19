@@ -96,6 +96,20 @@ void Interpreter::visitVarDecl(VarDecl<>& varDecl) {
   }
 }
 
+void Interpreter::visitListLiteralExpression(ListLiteralExpression<>& expr) {
+  GcableList* list = heap.newList();
+  list->list.reserve(expr.items.size());
+  for(vector<unique_ptr<Expression<> > >::iterator it = expr.items.begin();
+      it != expr.items.end();
+      ++it) {
+    (*it)->accept(*this);
+    list->list.push_back(stack.top());
+    stack.pop();
+  }
+
+  stack.push(list);
+}
+
 void Interpreter::visitFuncCallExpression(FuncCallExpression<>& expr) {
   if (funcs.funcs.find(expr.name) == funcs.funcs.end()) {
     noSuchFunction();

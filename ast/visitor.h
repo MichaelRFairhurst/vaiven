@@ -46,6 +46,8 @@ class FuncDecl;
 template<typename RD=void>
 class FuncCallExpression;
 template<typename RD=void>
+class ListLiteralExpression;
+template<typename RD=void>
 class VarDecl;
 template<typename RD=void>
 class IfStatement;
@@ -75,6 +77,7 @@ class Visitor {
   virtual void visitLtExpression(LtExpression<RD>& expr)=0;
   virtual void visitLteExpression(LteExpression<RD>& expr)=0;
   virtual void visitFuncCallExpression(FuncCallExpression<RD>& expr)=0;
+  virtual void visitListLiteralExpression(ListLiteralExpression<RD>& expr)=0;
   virtual void visitExpressionStatement(ExpressionStatement<RD>& stmt)=0;
   virtual void visitIfStatement(IfStatement<RD>& stmt)=0;
   virtual void visitForCondition(ForCondition<RD>& stmt)=0;

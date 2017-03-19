@@ -111,6 +111,23 @@ void LocationResolver::visitFuncCallExpression(FuncCallExpression<>& expr) {
   exprCopyStack.push(copy.release());
 }
 
+void LocationResolver::visitListLiteralExpression(ListLiteralExpression<>& expr) {
+  vector<unique_ptr<Expression<TypedLocationInfo> > > newItems;
+  for(vector<unique_ptr<Expression<> > >::iterator it = expr.items.begin();
+      it != expr.items.end();
+      ++it) {
+    (*it)->accept(*this);
+    unique_ptr<Expression<TypedLocationInfo> > newItem(move(exprCopyStack.top()));
+    exprCopyStack.pop();
+    newItems.push_back(move(newItem));
+  }
+
+  TypedLocationInfo void_(Location::void_(), VAIVEN_STATIC_TYPE_LIST, true);
+  unique_ptr<Expression<TypedLocationInfo> > copy(new ListLiteralExpression<TypedLocationInfo>(move(newItems)));
+  copy->resolvedData = void_;
+  exprCopyStack.push(copy.release());
+}
+
 void LocationResolver::visitFuncDecl(FuncDecl<>& decl) {
   int i = 0;
   for (vector<string>::iterator it = decl.args.begin();

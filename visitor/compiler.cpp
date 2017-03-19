@@ -46,6 +46,10 @@ void Compiler::visitVarDecl(VarDecl<TypedLocationInfo>& varDecl) {
   throw "not supported";
 }
 
+void Compiler::visitListLiteralExpression(ListLiteralExpression<TypedLocationInfo>& expr) {
+  throw "not yet supported";
+}
+
 void Compiler::visitFuncCallExpression(FuncCallExpression<TypedLocationInfo>& expr) {
   throw "not yet supported";
 }

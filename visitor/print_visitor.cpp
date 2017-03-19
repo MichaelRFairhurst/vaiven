@@ -68,6 +68,17 @@ void PrintVisitor::visitFuncCallExpression(FuncCallExpression<>& expr) {
   cout << ")";
 }
 
+void PrintVisitor::visitListLiteralExpression(ListLiteralExpression<>& expr) {
+  cout << "[";
+  for(vector<unique_ptr<Expression<> > >::iterator it = expr.items.begin();
+      it != expr.items.end();
+      ++it) {
+    (*it)->accept(*this);
+    cout << ", ";
+  }
+  cout << "]";
+}
+
 void PrintVisitor::visitFuncDecl(FuncDecl<>& decl) {
   cout << "fn " << decl.name << " of ";
   for (vector<string>::iterator it = decl.args.begin();

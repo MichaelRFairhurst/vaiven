@@ -20,6 +20,9 @@ void AssignmentProducer::visitReturnStatement(ReturnStatement<>& stmt) {
 void AssignmentProducer::visitVarDecl(VarDecl<>& varDecl) {
 }
 
+void AssignmentProducer::visitListLiteralExpression(ListLiteralExpression<>& expr) {
+}
+
 void AssignmentProducer::visitFuncCallExpression(FuncCallExpression<>& expr) {
 }
 

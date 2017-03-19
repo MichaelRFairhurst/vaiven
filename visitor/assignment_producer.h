@@ -33,6 +33,7 @@ class AssignmentProducer : public Visitor<> {
   virtual void visitLtExpression(LtExpression<>& expr);
   virtual void visitLteExpression(LteExpression<>& expr);
   virtual void visitFuncCallExpression(FuncCallExpression<>& expr);
+  virtual void visitListLiteralExpression(ListLiteralExpression<>& expr);
   virtual void visitExpressionStatement(ExpressionStatement<>& stmt);
   virtual void visitIfStatement(IfStatement<>& stmt);
   virtual void visitForCondition(ForCondition<>& stmt);
