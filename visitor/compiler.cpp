@@ -50,6 +50,14 @@ void Compiler::visitListLiteralExpression(ListLiteralExpression<TypedLocationInf
   throw "not yet supported";
 }
 
+void Compiler::visitDynamicAccessExpression(DynamicAccessExpression<TypedLocationInfo>& expr) {
+  throw "not yet supported";
+}
+
+void Compiler::visitDynamicStoreExpression(DynamicStoreExpression<TypedLocationInfo>& expr) {
+  throw "not yet supported";
+}
+
 void Compiler::visitFuncCallExpression(FuncCallExpression<TypedLocationInfo>& expr) {
   throw "not yet supported";
 }

@@ -48,6 +48,8 @@ class AutoCompiler : public Visitor<TypedLocationInfo> {
   virtual void visitLteExpression(LteExpression<TypedLocationInfo>& expr);
   virtual void visitFuncCallExpression(FuncCallExpression<TypedLocationInfo>& expr);
   virtual void visitListLiteralExpression(ListLiteralExpression<TypedLocationInfo>& expr);
+  virtual void visitDynamicAccessExpression(DynamicAccessExpression<TypedLocationInfo>& expr);
+  virtual void visitDynamicStoreExpression(DynamicStoreExpression<TypedLocationInfo>& expr);
   virtual void visitExpressionStatement(ExpressionStatement<TypedLocationInfo>& stmt);
   virtual void visitIfStatement(IfStatement<TypedLocationInfo>& stmt);
   virtual void visitForCondition(ForCondition<TypedLocationInfo>& stmt);

@@ -79,6 +79,21 @@ void PrintVisitor::visitListLiteralExpression(ListLiteralExpression<>& expr) {
   cout << "]";
 }
 
+void PrintVisitor::visitDynamicAccessExpression(DynamicAccessExpression<>& expr) {
+  expr.subject->accept(*this);
+  cout << "[";
+  expr.property->accept(*this);
+  cout << "]";
+}
+
+void PrintVisitor::visitDynamicStoreExpression(DynamicStoreExpression<>& expr) {
+  expr.subject->accept(*this);
+  cout << "[";
+  expr.property->accept(*this);
+  cout << "] = ";
+  expr.rhs->accept(*this);
+}
+
 void PrintVisitor::visitFuncDecl(FuncDecl<>& decl) {
   cout << "fn " << decl.name << " of ";
   for (vector<string>::iterator it = decl.args.begin();

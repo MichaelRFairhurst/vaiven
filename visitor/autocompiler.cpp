@@ -102,6 +102,12 @@ void AutoCompiler::visitVarDecl(VarDecl<TypedLocationInfo>& varDecl) {
 void AutoCompiler::visitListLiteralExpression(ListLiteralExpression<TypedLocationInfo>& expr) {
 }
 
+void AutoCompiler::visitDynamicAccessExpression(DynamicAccessExpression<TypedLocationInfo>& expr) {
+}
+
+void AutoCompiler::visitDynamicStoreExpression(DynamicStoreExpression<TypedLocationInfo>& expr) {
+}
+
 void AutoCompiler::visitFuncCallExpression(FuncCallExpression<TypedLocationInfo>& expr) {
   auto finder = funcs.funcs.find(expr.name);
   if (finder == funcs.funcs.end()) {

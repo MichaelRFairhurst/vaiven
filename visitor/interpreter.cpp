@@ -110,6 +110,26 @@ void Interpreter::visitListLiteralExpression(ListLiteralExpression<>& expr) {
   stack.push(list);
 }
 
+void Interpreter::visitDynamicAccessExpression(DynamicAccessExpression<>& expr) {
+  expr.subject->accept(*this);
+  expr.property->accept(*this);
+  Value property = stack.top(); stack.pop();
+  Value subject = stack.top(); stack.pop();
+
+  stack.push(vaiven::get(subject, property));
+}
+
+void Interpreter::visitDynamicStoreExpression(DynamicStoreExpression<>& expr) {
+  expr.subject->accept(*this);
+  expr.property->accept(*this);
+  expr.rhs->accept(*this);
+  Value rhs = stack.top(); stack.pop();
+  Value property = stack.top(); stack.pop();
+  Value subject = stack.top(); stack.pop();
+
+  stack.push(vaiven::set(subject, property, rhs));
+}
+
 void Interpreter::visitFuncCallExpression(FuncCallExpression<>& expr) {
   if (funcs.funcs.find(expr.name) == funcs.funcs.end()) {
     noSuchFunction();

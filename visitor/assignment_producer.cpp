@@ -23,6 +23,13 @@ void AssignmentProducer::visitVarDecl(VarDecl<>& varDecl) {
 void AssignmentProducer::visitListLiteralExpression(ListLiteralExpression<>& expr) {
 }
 
+void AssignmentProducer::visitDynamicAccessExpression(DynamicAccessExpression<>& expr) {
+  result.reset(new DynamicStoreExpression<>(std::move(expr.subject), std::move(expr.property), std::move(rhs)));
+}
+
+void AssignmentProducer::visitDynamicStoreExpression(DynamicStoreExpression<>& expr) {
+}
+
 void AssignmentProducer::visitFuncCallExpression(FuncCallExpression<>& expr) {
 }
 

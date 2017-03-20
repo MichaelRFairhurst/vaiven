@@ -244,6 +244,14 @@ void SsaBuilder::visitListLiteralExpression(ListLiteralExpression<TypedLocationI
   throw "not supported";
 }
 
+void SsaBuilder::visitDynamicAccessExpression(DynamicAccessExpression<TypedLocationInfo>& expr) {
+  throw "not supported";
+}
+
+void SsaBuilder::visitDynamicStoreExpression(DynamicStoreExpression<TypedLocationInfo>& expr) {
+  throw "not supported";
+}
+
 void SsaBuilder::visitFuncDecl(FuncDecl<TypedLocationInfo>& decl) {
   for (int i = 0; i < decl.args.size(); ++i) {
     ArgInstr* arg = new ArgInstr(i, usageInfo.argShapes[i].getStaticType());

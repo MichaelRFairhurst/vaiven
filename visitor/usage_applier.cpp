@@ -53,6 +53,17 @@ void UsageApplier::visitListLiteralExpression(ListLiteralExpression<TypedLocatio
   }
 }
 
+void UsageApplier::visitDynamicAccessExpression(DynamicAccessExpression<TypedLocationInfo>& expr) {
+  expr.subject->accept(*this);
+  expr.property->accept(*this);
+}
+
+void UsageApplier::visitDynamicStoreExpression(DynamicStoreExpression<TypedLocationInfo>& expr) {
+  expr.subject->accept(*this);
+  expr.property->accept(*this);
+  expr.rhs->accept(*this);
+}
+
 void UsageApplier::visitFuncDecl(FuncDecl<TypedLocationInfo>& decl) {
   for(int i = 0; i < decl.args.size(); ++i) {
     argIndexes[decl.args[i]] = i;

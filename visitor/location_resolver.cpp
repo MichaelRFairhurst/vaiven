@@ -128,6 +128,35 @@ void LocationResolver::visitListLiteralExpression(ListLiteralExpression<>& expr)
   exprCopyStack.push(copy.release());
 }
 
+void LocationResolver::visitDynamicAccessExpression(DynamicAccessExpression<>& expr) {
+  expr.property->accept(*this);
+  expr.subject->accept(*this);
+  unique_ptr<Expression<TypedLocationInfo> > subject(move(exprCopyStack.top()));
+  exprCopyStack.pop();
+  unique_ptr<Expression<TypedLocationInfo> > property(move(exprCopyStack.top()));
+  exprCopyStack.pop();
+  TypedLocationInfo loc(Location::spilled(), VAIVEN_STATIC_TYPE_UNKNOWN, true);
+  unique_ptr<Expression<TypedLocationInfo> > copy(new DynamicAccessExpression<TypedLocationInfo>(move(subject), move(property)));
+  copy->resolvedData = loc;
+  exprCopyStack.push(copy.release());
+}
+
+void LocationResolver::visitDynamicStoreExpression(DynamicStoreExpression<>& expr) {
+  expr.rhs->accept(*this);
+  expr.property->accept(*this);
+  expr.subject->accept(*this);
+  unique_ptr<Expression<TypedLocationInfo> > subject(move(exprCopyStack.top()));
+  exprCopyStack.pop();
+  unique_ptr<Expression<TypedLocationInfo> > property(move(exprCopyStack.top()));
+  exprCopyStack.pop();
+  unique_ptr<Expression<TypedLocationInfo> > rhs(move(exprCopyStack.top()));
+  exprCopyStack.pop();
+  TypedLocationInfo loc = rhs->resolvedData;
+  unique_ptr<Expression<TypedLocationInfo> > copy(new DynamicAccessExpression<TypedLocationInfo>(move(subject), move(property)));
+  copy->resolvedData = loc;
+  exprCopyStack.push(copy.release());
+}
+
 void LocationResolver::visitFuncDecl(FuncDecl<>& decl) {
   int i = 0;
   for (vector<string>::iterator it = decl.args.begin();

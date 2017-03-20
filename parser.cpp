@@ -466,7 +466,7 @@ unique_ptr<ast::Expression<> > Parser::parseAddSubExpression() {
 }
 
 unique_ptr<ast::Expression<> > Parser::parseDivMulExpression() {
-  unique_ptr<ast::Expression<> > acc(parseValue());
+  unique_ptr<ast::Expression<> > acc(parseAccess());
 
   while (current->type != TOKEN_TYPE_SEMICOLON
       && current->type != TOKEN_TYPE_PLUS
@@ -488,12 +488,12 @@ unique_ptr<ast::Expression<> > Parser::parseDivMulExpression() {
     try {
       if (current->type == TOKEN_TYPE_DIVIDE) {
         nextNoEol();
-        unique_ptr<ast::Expression<> > rhs(parseValue());
+        unique_ptr<ast::Expression<> > rhs(parseAccess());
         acc = unique_ptr<ast::Expression<> >(new ast::DivisionExpression<> (
             std::move(acc), std::move(rhs)));
       } else if (current->type == TOKEN_TYPE_MULTIPLY) {
         nextNoEol();
-        unique_ptr<ast::Expression<> > rhs(parseValue());
+        unique_ptr<ast::Expression<> > rhs(parseAccess());
         acc = unique_ptr<ast::Expression<> >(new ast::MultiplicationExpression<> (
             std::move(acc), std::move(rhs)));
       } else {
@@ -506,6 +506,58 @@ unique_ptr<ast::Expression<> > Parser::parseDivMulExpression() {
   }
 
   return std::move(acc);
+}
+
+unique_ptr<ast::Expression<> > Parser::parseAccess() {
+  unique_ptr<ast::Expression<> > acc(parseValue());
+
+  while (current->type != TOKEN_TYPE_SEMICOLON
+      && current->type != TOKEN_TYPE_PLUS
+      && current->type != TOKEN_TYPE_MINUS
+      && current->type != TOKEN_TYPE_DIVIDE
+      && current->type != TOKEN_TYPE_MULTIPLY
+      && current->type != TOKEN_TYPE_COMMA
+      && current->type != TOKEN_TYPE_CLOSE_PAREN
+      && current->type != TOKEN_TYPE_CLOSE_BRACKET
+      && current->type != TOKEN_TYPE_DO
+      && current->type != TOKEN_TYPE_EQ
+      && current->type != TOKEN_TYPE_EQEQ
+      && current->type != TOKEN_TYPE_BANGEQ
+      && current->type != TOKEN_TYPE_GT
+      && current->type != TOKEN_TYPE_GTE
+      && current->type != TOKEN_TYPE_LT
+      && current->type != TOKEN_TYPE_LTE
+      && current->type != TOKEN_TYPE_EOF) {
+
+    try {
+      if (current->type == TOKEN_TYPE_OPEN_BRACKET) {
+        nextNoEol();
+        unique_ptr<ast::Expression<> > property(parseExpression());
+        acc = unique_ptr<ast::Expression<> >(new ast::DynamicAccessExpression<> (
+            std::move(acc), std::move(property)));
+  
+        if (current->type != TOKEN_TYPE_CLOSE_BRACKET) {
+          errors.push_back(ParseError("missing close bracket in dynamic access", errorLocation));
+          if (current->type == TOKEN_TYPE_END
+            || current->type == TOKEN_TYPE_IF
+            || current->type == TOKEN_TYPE_FOR
+            || current->type == TOKEN_TYPE_ELSE) {
+            ignoreNextNext = true;
+          }
+          break;
+        }
+
+        next();
+      } else {
+        break;
+      }
+    } catch(ParseError e) {
+      errors.push_back(e);
+      break;
+    }
+  }
+
+  return acc;
 }
 
 unique_ptr<ast::Expression<> > Parser::parseValue() {
@@ -536,7 +588,7 @@ unique_ptr<ast::Expression<> > Parser::parseValue() {
     if (current->type != TOKEN_TYPE_CLOSE_PAREN) {
       errors.push_back(ParseError("missing close paren for subexpression", errorLocation));
     } else {
-      nextNoEol();
+      next();
     }
     return std::move(expr);
   }

@@ -36,6 +36,7 @@ class Parser {
   unique_ptr<ast::Expression<> > parseComparisonExpression();
   unique_ptr<ast::Expression<> > parseAddSubExpression();
   unique_ptr<ast::Expression<> > parseDivMulExpression();
+  unique_ptr<ast::Expression<> > parseAccess();
   unique_ptr<ast::Expression<> > parseValue();
 
   // Store this on the parser rather than using a visitor
