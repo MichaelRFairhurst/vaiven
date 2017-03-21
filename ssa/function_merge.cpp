@@ -59,6 +59,21 @@ void FunctionMerger::visitCmpLtInstr(CmpLtInstr& instr) {
 void FunctionMerger::visitCmpLteInstr(CmpLteInstr& instr) {
 }
 
+void FunctionMerger::visitDynamicAccessInstr(DynamicAccessInstr& instr) {
+}
+
+void FunctionMerger::visitDynamicStoreInstr(DynamicStoreInstr& instr) {
+}
+
+void FunctionMerger::visitListAccessInstr(ListAccessInstr& instr) {
+}
+
+void FunctionMerger::visitListStoreInstr(ListStoreInstr& instr) {
+}
+
+void FunctionMerger::visitListInitInstr(ListInitInstr& instr) {
+}
+
 void FunctionMerger::visitErrInstr(ErrInstr& instr) {
 }
 

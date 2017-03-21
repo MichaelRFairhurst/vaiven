@@ -15,6 +15,9 @@ void TypeAnalysis::box(Instruction** input, Instruction* instr) {
   // Always generate a box instruction now, though it may be optimized out
   // later if it isn't needed or if the instruction can be assembled boxed.
   Instruction* curInput = *input;
+  if (curInput->isBoxed) {
+    return;
+  }
   BoxInstr* boxInstr = new BoxInstr(curInput);
   emit(boxInstr);
   curInput->usages.erase(instr);
@@ -38,8 +41,19 @@ void TypeAnalysis::visitPhiInstr(PhiInstr& instr) {
     for (vector<Instruction*>::iterator it = instr.inputs.begin();
         it != instr.inputs.end();
         ++it) {
+      
+      // visit it early, since phis can precede their inputs
+      (*it)->accept(*this);
+
       if (!(*it)->isBoxed) {
-        box(&*it, &instr);
+        BoxInstr* boxed = new BoxInstr(*it);
+        // For loops, the input can be after the phi. Therefore ake care that we
+        // box after the input, not before the phi.
+        (*it)->append(boxed);
+
+        (*it)->usages.erase(&instr);
+        *it = boxed;
+        boxed->usages.insert(&instr);
       }
     }
     instr.isBoxed = true;
@@ -59,9 +73,7 @@ void TypeAnalysis::visitCallInstr(CallInstr& instr) {
   for (vector<Instruction*>::iterator it = instr.inputs.begin();
       it != instr.inputs.end();
       ++it) {
-    if (!(*it)->isBoxed) {
-      box(&*it, &instr);
-    }
+    box(&*it, &instr);
   }
 }
 
@@ -69,6 +81,7 @@ void TypeAnalysis::visitTypecheckInstr(TypecheckInstr& instr) {
 }
 
 void TypeAnalysis::visitBoxInstr(BoxInstr& instr) {
+  instr.type = instr.inputs[0]->type;
 }
 
 void TypeAnalysis::typecheckInput(Instruction& instr, VaivenStaticType expectedType, int input) {
@@ -109,6 +122,9 @@ void TypeAnalysis::visitAddInstr(AddInstr& instr) {
   } else if (instr.inputs[1]->type == VAIVEN_STATIC_TYPE_STRING) {
     instr.append(new StrAddInstr(instr.inputs[0], instr.inputs[1]));
     instr.replaceUsagesWith(instr.next);
+  } else {
+    box(&instr.inputs[0], &instr);
+    box(&instr.inputs[1], &instr);
   }
 }
 
@@ -177,6 +193,78 @@ void TypeAnalysis::visitCmpLtInstr(CmpLtInstr& instr) {
 
 void TypeAnalysis::visitCmpLteInstr(CmpLteInstr& instr) {
   visitBinIntInstruction(instr);
+}
+
+void TypeAnalysis::visitDynamicAccessInstr(DynamicAccessInstr& instr) {
+  if (instr.inputs[0]->type == VAIVEN_STATIC_TYPE_LIST) {
+    instr.append(new ListAccessInstr(instr.inputs[0], instr.inputs[1]));
+    instr.replaceUsagesWith(instr.next);
+    instr.safelyDeletable = true; // required for dead code elem since not pure
+  } else if (instr.inputs[0]->type == VAIVEN_STATIC_TYPE_OBJECT) {
+    // TODO faster instructions for objects
+  } else if (instr.inputs[0]->type != VAIVEN_STATIC_TYPE_UNKNOWN) {
+    // always throws an error
+    emit(new ErrInstr(EXPECTED_LIST_OR_OBJ));
+  } else if (instr.inputs[1]->type == VAIVEN_STATIC_TYPE_INT) {
+    instr.append(new ListAccessInstr(instr.inputs[0], instr.inputs[1]));
+    instr.replaceUsagesWith(instr.next);
+    instr.safelyDeletable = true; // required for dead code elem since not pure
+  } else if (instr.inputs[1]->type == VAIVEN_STATIC_TYPE_STRING) {
+    // TODO faster instructions for objects
+  } else if (instr.inputs[1]->type != VAIVEN_STATIC_TYPE_UNKNOWN) {
+    emit(new ErrInstr(EXPECTED_STR_OR_INT));
+  } else {
+    // a true dynamic access. Must be boxed
+    box(&instr.inputs[0], &instr);
+    box(&instr.inputs[1], &instr);
+  }
+}
+
+void TypeAnalysis::visitDynamicStoreInstr(DynamicStoreInstr& instr) {
+  if (instr.inputs[0]->type == VAIVEN_STATIC_TYPE_LIST) {
+    instr.append(new ListStoreInstr(instr.inputs[0], instr.inputs[1], instr.inputs[2]));
+    instr.replaceUsagesWith(instr.next);
+    instr.safelyDeletable = true; // required for dead code elem since not pure
+  } else if (instr.inputs[0]->type == VAIVEN_STATIC_TYPE_OBJECT) {
+    // TODO faster instructions for objects
+  } else if (instr.inputs[0]->type != VAIVEN_STATIC_TYPE_UNKNOWN) {
+    // always throws an error
+    emit(new ErrInstr(EXPECTED_LIST_OR_OBJ));
+  } else if (instr.inputs[1]->type == VAIVEN_STATIC_TYPE_INT) {
+    instr.append(new ListStoreInstr(instr.inputs[0], instr.inputs[1], instr.inputs[2]));
+    instr.replaceUsagesWith(instr.next);
+    instr.safelyDeletable = true; // required for dead code elem since not pure
+  } else if (instr.inputs[1]->type == VAIVEN_STATIC_TYPE_STRING) {
+    // TODO faster instructions for objects
+  } else if (instr.inputs[1]->type != VAIVEN_STATIC_TYPE_UNKNOWN) {
+    emit(new ErrInstr(EXPECTED_STR_OR_INT));
+  } else {
+    // a true dynamic access. Must be boxed
+    box(&instr.inputs[0], &instr);
+    box(&instr.inputs[1], &instr);
+    box(&instr.inputs[2], &instr);
+  }
+}
+
+void TypeAnalysis::visitListAccessInstr(ListAccessInstr& instr) {
+  typecheckInput(instr, VAIVEN_STATIC_TYPE_LIST, 0);
+  typecheckInput(instr, VAIVEN_STATIC_TYPE_INT, 1);
+}
+
+void TypeAnalysis::visitListStoreInstr(ListStoreInstr& instr) {
+  typecheckInput(instr, VAIVEN_STATIC_TYPE_LIST, 0);
+  typecheckInput(instr, VAIVEN_STATIC_TYPE_INT, 1);
+  box(&instr.inputs[2], &instr);
+}
+
+void TypeAnalysis::visitListInitInstr(ListInitInstr& instr) {
+  for (vector<Instruction*>::iterator it = instr.inputs.begin();
+      it != instr.inputs.end();
+      ++it) {
+    if (!(*it)->isBoxed) {
+      box(&*it, &instr);
+    }
+  }
 }
 
 void TypeAnalysis::visitErrInstr(ErrInstr& instr) {

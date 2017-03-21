@@ -27,6 +27,11 @@ class JmpThreader : public ForwardVisitor {
   void visitCmpGteInstr(CmpGteInstr& instr);
   void visitCmpLtInstr(CmpLtInstr& instr);
   void visitCmpLteInstr(CmpLteInstr& instr);
+  void visitDynamicAccessInstr(DynamicAccessInstr& instr);
+  void visitDynamicStoreInstr(DynamicStoreInstr& instr);
+  void visitListAccessInstr(ListAccessInstr& instr);
+  void visitListStoreInstr(ListStoreInstr& instr);
+  void visitListInitInstr(ListInitInstr& instr);
   void doCmpEqInstr(CmpEqInstr& instr);
   void doCmpIneqInstr(CmpIneqInstr& instr);
   void doCmpGtInstr(CmpGtInstr& instr);

@@ -237,19 +237,32 @@ void SsaBuilder::visitFuncCallExpression(FuncCallExpression<TypedLocationInfo>& 
 }
 
 void SsaBuilder::visitListLiteralExpression(ListLiteralExpression<TypedLocationInfo>& expr) {
+  ListInitInstr* instr = new ListInitInstr();
   for (int i = 0; i < expr.items.size(); ++i) {
     expr.items[i]->accept(*this);
+    instr->inputs.push_back(cur);
+    cur->usages.insert(instr);
   }
 
-  throw "not supported";
+  emit(instr);
 }
 
 void SsaBuilder::visitDynamicAccessExpression(DynamicAccessExpression<TypedLocationInfo>& expr) {
-  throw "not supported";
+  expr.subject->accept(*this);
+  Instruction* subject = cur;
+  expr.property->accept(*this);
+  Instruction* property = cur;
+  emit(new DynamicAccessInstr(subject, property));
 }
 
 void SsaBuilder::visitDynamicStoreExpression(DynamicStoreExpression<TypedLocationInfo>& expr) {
-  throw "not supported";
+  expr.subject->accept(*this);
+  Instruction* subject = cur;
+  expr.property->accept(*this);
+  Instruction* property = cur;
+  expr.rhs->accept(*this);
+  Instruction* rhs = cur;
+  emit(new DynamicStoreInstr(subject, property, rhs));
 }
 
 void SsaBuilder::visitFuncDecl(FuncDecl<TypedLocationInfo>& decl) {

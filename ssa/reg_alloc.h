@@ -31,6 +31,11 @@ class RegAlloc : public ForwardVisitor {
   void visitCmpGteInstr(CmpGteInstr& instr);
   void visitCmpLtInstr(CmpLtInstr& instr);
   void visitCmpLteInstr(CmpLteInstr& instr);
+  void visitDynamicAccessInstr(DynamicAccessInstr& instr);
+  void visitDynamicStoreInstr(DynamicStoreInstr& instr);
+  void visitListAccessInstr(ListAccessInstr& instr);
+  void visitListStoreInstr(ListStoreInstr& instr);
+  void visitListInitInstr(ListInitInstr& instr);
   void visitErrInstr(ErrInstr& instr);
   void visitRetInstr(RetInstr& instr);
   void visitJmpCcInstr(JmpCcInstr& instr);

@@ -567,6 +567,26 @@ void InstructionCombiner::visitCmpLteInstr(CmpLteInstr& instr) {
   }
 }
 
+void InstructionCombiner::visitDynamicAccessInstr(DynamicAccessInstr& instr) {
+  // TODO anything to combine here?
+}
+
+void InstructionCombiner::visitDynamicStoreInstr(DynamicStoreInstr& instr) {
+  // TODO anything to combine here?
+}
+
+void InstructionCombiner::visitListAccessInstr(ListAccessInstr& instr) {
+  // TODO anything to combine here?
+}
+
+void InstructionCombiner::visitListStoreInstr(ListStoreInstr& instr) {
+  // TODO anything to combine here?
+}
+
+void InstructionCombiner::visitListInitInstr(ListInitInstr& instr) {
+  // TODO anything to combine here?
+}
+
 void InstructionCombiner::visitErrInstr(ErrInstr& instr) {
 }
 

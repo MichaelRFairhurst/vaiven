@@ -156,7 +156,7 @@ void Emitter::visitStrAddInstr(StrAddInstr& instr) {
 
 void Emitter::visitIntAddInstr(IntAddInstr& instr) {
   if (instr.out != instr.inputs[0]->out) {
-    cc.mov(instr.out.r32(), instr.inputs[0]->out.r32());
+    cc.mov(instr.out, instr.inputs[0]->out);
   }
 
   if (instr.hasConstRhs) {
@@ -213,12 +213,12 @@ void Emitter::visitNotInstr(NotInstr& instr) {
   }
 
   cc.test(instr.inputs[0]->out.r32(), instr.inputs[0]->out.r32());
-  cc.setz(instr.out);
+  cc.setz(instr.out.r8());
 }
 
 void Emitter::visitCmpEqInstr(CmpEqInstr& instr) {
   if (instr.inputs[0]->type == VAIVEN_STATIC_TYPE_STRING
-    || instr.inputs[1]->type == VAIVEN_STATIC_TYPE_STRING) {
+    && instr.inputs[1]->type == VAIVEN_STATIC_TYPE_STRING) {
     CCFuncCall* call = cc.call((uint64_t) vaiven::cmpStrUnchecked, FuncSignature2<uint64_t, uint64_t, uint64_t>());
     call->setArg(0, instr.inputs[0]->out);
     call->setArg(1, instr.inputs[1]->out);
@@ -247,7 +247,7 @@ void Emitter::visitCmpEqInstr(CmpEqInstr& instr) {
 
 void Emitter::visitCmpIneqInstr(CmpIneqInstr& instr) {
   if (instr.inputs[0]->type == VAIVEN_STATIC_TYPE_STRING
-    || instr.inputs[1]->type == VAIVEN_STATIC_TYPE_STRING) {
+    && instr.inputs[1]->type == VAIVEN_STATIC_TYPE_STRING) {
     CCFuncCall* call = cc.call((uint64_t) vaiven::inverseCmpStrUnchecked, FuncSignature2<uint64_t, uint64_t, uint64_t>());
     call->setArg(0, instr.inputs[0]->out);
     call->setArg(1, instr.inputs[1]->out);
@@ -363,6 +363,59 @@ void Emitter::doCmpLteInstr(CmpLteInstr& instr) {
     cc.cmp(instr.inputs[0]->out.r32(), instr.constRhs);
   } else {
     cc.cmp(instr.inputs[0]->out.r32(), instr.inputs[1]->out.r32());
+  }
+}
+
+void Emitter::visitDynamicAccessInstr(DynamicAccessInstr& instr) {
+  CCFuncCall* call = cc.call((uint64_t) vaiven::get, FuncSignature2<uint64_t, uint64_t, uint64_t>());
+  call->setArg(0, instr.inputs[0]->out);
+  call->setArg(1, instr.inputs[1]->out);
+  call->setRet(0, instr.out);
+}
+
+void Emitter::visitDynamicStoreInstr(DynamicStoreInstr& instr) {
+  CCFuncCall* call = cc.call((uint64_t) vaiven::set, FuncSignature3<uint64_t, uint64_t, uint64_t, uint64_t>());
+  call->setArg(0, instr.inputs[0]->out);
+  call->setArg(1, instr.inputs[1]->out);
+  call->setArg(2, instr.inputs[2]->out);
+}
+
+void Emitter::visitListAccessInstr(ListAccessInstr& instr) {
+  // todo do this unchecked
+  CCFuncCall* call = cc.call((uint64_t) vaiven::listAccessUnchecked, FuncSignature2<uint64_t, uint64_t, uint64_t>());
+  call->setArg(0, instr.inputs[0]->out);
+  call->setArg(1, instr.inputs[1]->out);
+  call->setRet(0, instr.out);
+}
+
+void Emitter::visitListStoreInstr(ListStoreInstr& instr) {
+  // todo do this unchecked
+  CCFuncCall* call = cc.call((uint64_t) vaiven::listStoreUnchecked, FuncSignature3<uint64_t, uint64_t, uint64_t, uint64_t>());
+  call->setArg(0, instr.inputs[0]->out);
+  call->setArg(1, instr.inputs[1]->out);
+  call->setArg(2, instr.inputs[2]->out);
+}
+
+void Emitter::visitListInitInstr(ListInitInstr& instr) {
+  X86Gp size = cc.newUInt64();
+  cc.mov(size, instr.inputs.size());
+  CCFuncCall* alloc = cc.call((uint64_t) newListWithSize, FuncSignature1<uint64_t, uint64_t>());
+  alloc->setArg(0, size);
+  alloc->setRet(0, instr.out);
+
+  CCFuncCall* getPtr = cc.call((uint64_t) getListContainerUnchecked, FuncSignature1<uint64_t, uint64_t>());
+  getPtr->setArg(0, instr.out);
+  X86Gp ptr = cc.newUInt64();
+  getPtr->setRet(0, ptr);
+
+  for (vector<Instruction*>::iterator it = instr.inputs.begin();
+      it != instr.inputs.end();
+      ++it) {
+    if (it != instr.inputs.begin()) {
+      cc.add(ptr, sizeof(Value));
+    }
+
+    cc.mov(x86::ptr(ptr), (*it)->out);
   }
 }
 

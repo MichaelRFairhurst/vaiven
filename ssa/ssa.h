@@ -37,6 +37,11 @@ enum InstructionType {
   INSTR_CMPGTE,
   INSTR_CMPLT,
   INSTR_CMPLTE,
+  INSTR_DYNAMIC_ACCESS,
+  INSTR_DYNAMIC_STORE,
+  INSTR_LIST_ACCESS,
+  INSTR_LIST_STORE,
+  INSTR_LIST_INIT,
   INSTR_ERR,
   INSTR_RET,
   INSTR_JMPCC,
@@ -85,6 +90,11 @@ class CmpGtInstr;
 class CmpGteInstr;
 class CmpLtInstr;
 class CmpLteInstr;
+class DynamicAccessInstr;
+class DynamicStoreInstr;
+class ListAccessInstr;
+class ListStoreInstr;
+class ListInitInstr;
 class ErrInstr;
 class RetInstr;
 class JmpCcInstr;
@@ -115,6 +125,11 @@ class SsaVisitor {
   virtual void visitCmpGteInstr(CmpGteInstr& instr)=0;
   virtual void visitCmpLtInstr(CmpLtInstr& instr)=0;
   virtual void visitCmpLteInstr(CmpLteInstr& instr)=0;
+  virtual void visitDynamicAccessInstr(DynamicAccessInstr& instr)=0;
+  virtual void visitDynamicStoreInstr(DynamicStoreInstr& instr)=0;
+  virtual void visitListAccessInstr(ListAccessInstr& instr)=0;
+  virtual void visitListStoreInstr(ListStoreInstr& instr)=0;
+  virtual void visitListInitInstr(ListInitInstr& instr)=0;
   virtual void visitErrInstr(ErrInstr& instr)=0;
   virtual void visitRetInstr(RetInstr& instr)=0;
   virtual void visitJmpCcInstr(JmpCcInstr& instr)=0;
@@ -205,7 +220,7 @@ class BoxInstr : public Instruction {
 class AddInstr : public Instruction {
   public:
   AddInstr(Instruction* lhs, Instruction* rhs)
-      : Instruction(INSTR_ADD, VAIVEN_STATIC_TYPE_UNKNOWN, false) {
+      : Instruction(INSTR_ADD, VAIVEN_STATIC_TYPE_UNKNOWN, true) {
     inputs.push_back(lhs);
     inputs.push_back(rhs);
     lhs->usages.insert(this);
@@ -451,6 +466,84 @@ class CmpLteInstr : public Instruction {
 
   void accept(SsaVisitor& visitor) {
     visitor.visitCmpLteInstr(*this);
+  }
+};
+
+class DynamicAccessInstr : public Instruction {
+  public:
+  DynamicAccessInstr(Instruction* subject, Instruction* property)
+      : Instruction(INSTR_DYNAMIC_ACCESS, VAIVEN_STATIC_TYPE_UNKNOWN, true), safelyDeletable(false) {
+    inputs.push_back(subject);
+    inputs.push_back(property);
+    subject->usages.insert(this);
+    property->usages.insert(this);
+  };
+
+  bool safelyDeletable;
+
+  void accept(SsaVisitor& visitor) {
+    visitor.visitDynamicAccessInstr(*this);
+  }
+};
+
+class DynamicStoreInstr : public Instruction {
+  public:
+  DynamicStoreInstr(Instruction* subject, Instruction* property, Instruction* rhs)
+      : Instruction(INSTR_DYNAMIC_STORE, rhs->type, rhs->isBoxed), safelyDeletable(false) {
+    inputs.push_back(subject);
+    inputs.push_back(property);
+    inputs.push_back(rhs);
+    subject->usages.insert(this);
+    property->usages.insert(this);
+    rhs->usages.insert(this);
+  };
+
+  bool safelyDeletable;
+
+  void accept(SsaVisitor& visitor) {
+    visitor.visitDynamicStoreInstr(*this);
+  }
+};
+
+class ListAccessInstr : public Instruction {
+  public:
+  ListAccessInstr(Instruction* subject, Instruction* index)
+      : Instruction(INSTR_LIST_ACCESS, VAIVEN_STATIC_TYPE_UNKNOWN, true) {
+    inputs.push_back(subject);
+    inputs.push_back(index);
+    subject->usages.insert(this);
+    index->usages.insert(this);
+  };
+
+  void accept(SsaVisitor& visitor) {
+    visitor.visitListAccessInstr(*this);
+  }
+};
+
+class ListStoreInstr : public Instruction {
+  public:
+  ListStoreInstr(Instruction* subject, Instruction* index, Instruction* rhs)
+      : Instruction(INSTR_LIST_STORE, rhs->type, rhs->isBoxed) {
+    inputs.push_back(subject);
+    inputs.push_back(index);
+    inputs.push_back(rhs);
+    subject->usages.insert(this);
+    index->usages.insert(this);
+    rhs->usages.insert(this);
+  };
+
+  void accept(SsaVisitor& visitor) {
+    visitor.visitListStoreInstr(*this);
+  }
+};
+
+class ListInitInstr : public Instruction {
+  public:
+  ListInitInstr() : Instruction(INSTR_LIST_INIT, VAIVEN_STATIC_TYPE_LIST, true) {
+  };
+
+  void accept(SsaVisitor& visitor) {
+    visitor.visitListInitInstr(*this);
   }
 };
 

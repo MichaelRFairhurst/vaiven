@@ -152,7 +152,7 @@ void LocationResolver::visitDynamicStoreExpression(DynamicStoreExpression<>& exp
   unique_ptr<Expression<TypedLocationInfo> > rhs(move(exprCopyStack.top()));
   exprCopyStack.pop();
   TypedLocationInfo loc = rhs->resolvedData;
-  unique_ptr<Expression<TypedLocationInfo> > copy(new DynamicAccessExpression<TypedLocationInfo>(move(subject), move(property)));
+  unique_ptr<Expression<TypedLocationInfo> > copy(new DynamicStoreExpression<TypedLocationInfo>(move(subject), move(property), move(rhs)));
   copy->resolvedData = loc;
   exprCopyStack.push(copy.release());
 }

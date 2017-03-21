@@ -100,12 +100,60 @@ void AutoCompiler::visitVarDecl(VarDecl<TypedLocationInfo>& varDecl) {
 }
 
 void AutoCompiler::visitListLiteralExpression(ListLiteralExpression<TypedLocationInfo>& expr) {
+  X86Gp size = cc.newUInt64();
+  cc.mov(size, expr.items.size());
+  CCFuncCall* alloc = cc.call((uint64_t) newListWithSize, FuncSignature1<uint64_t, uint64_t>());
+  alloc->setArg(0, size);
+  X86Gp list = cc.newUInt64();
+  alloc->setRet(0, list);
+
+  CCFuncCall* getPtr = cc.call((uint64_t) getListContainerUnchecked, FuncSignature1<uint64_t, uint64_t>());
+  getPtr->setArg(0, list);
+  X86Gp ptr = cc.newUInt64();
+  getPtr->setRet(0, ptr);
+
+  for (vector<unique_ptr<Expression<TypedLocationInfo> > >::iterator it = expr.items.begin();
+      it != expr.items.end();
+      ++it) {
+    if (it != expr.items.begin()) {
+      cc.add(ptr, sizeof(Value));
+    }
+
+    (*it)->accept(*this);
+    cc.mov(x86::ptr(ptr), vRegs.top());
+    vRegs.pop();
+  }
+
+  vRegs.push(list);
 }
 
 void AutoCompiler::visitDynamicAccessExpression(DynamicAccessExpression<TypedLocationInfo>& expr) {
+  expr.subject->accept(*this);
+  expr.property->accept(*this);
+  X86Gp propertyReg = vRegs.top(); vRegs.pop();
+  X86Gp subjectReg = vRegs.top(); vRegs.pop();
+  CCFuncCall* access = cc.call((uint64_t) get, FuncSignature2<uint64_t, uint64_t, uint64_t>());
+  access->setArg(0, subjectReg);
+  access->setArg(1, propertyReg);
+
+  X86Gp result = cc.newUInt64();
+  access->setRet(0, result);
+  vRegs.push(result);
 }
 
 void AutoCompiler::visitDynamicStoreExpression(DynamicStoreExpression<TypedLocationInfo>& expr) {
+  expr.subject->accept(*this);
+  expr.property->accept(*this);
+  expr.rhs->accept(*this);
+  X86Gp rhsReg = vRegs.top(); vRegs.pop();
+  X86Gp propertyReg = vRegs.top(); vRegs.pop();
+  X86Gp subjectReg = vRegs.top(); vRegs.pop();
+  CCFuncCall* store = cc.call((uint64_t) set, FuncSignature3<uint64_t, uint64_t, uint64_t, uint64_t>());
+  store->setArg(0, subjectReg);
+  store->setArg(1, propertyReg);
+  store->setArg(2, rhsReg);
+
+  vRegs.push(rhsReg);
 }
 
 void AutoCompiler::visitFuncCallExpression(FuncCallExpression<TypedLocationInfo>& expr) {

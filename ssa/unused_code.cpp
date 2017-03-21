@@ -127,6 +127,33 @@ void UnusedCodeEliminator::visitCmpLteInstr(CmpLteInstr& instr) {
   visitPureInstr(instr);
 }
 
+void UnusedCodeEliminator::visitDynamicAccessInstr(DynamicAccessInstr& instr) {
+  // impure, cannot be removed unless marked deletable
+  if (instr.safelyDeletable) {
+    visitPureInstr(instr);
+  }
+}
+
+void UnusedCodeEliminator::visitDynamicStoreInstr(DynamicStoreInstr& instr) {
+  // impure, cannot be removed unless marked deletable
+  if (instr.safelyDeletable) {
+    visitPureInstr(instr);
+  }
+}
+
+void UnusedCodeEliminator::visitListAccessInstr(ListAccessInstr& instr) {
+  // list access can throw, so is not pure
+}
+
+void UnusedCodeEliminator::visitListStoreInstr(ListStoreInstr& instr) {
+  // impure, cannot be removed
+}
+
+void UnusedCodeEliminator::visitListInitInstr(ListInitInstr& instr) {
+  visitPureInstr(instr);
+  // TODO delete if only set and/or read without boundary checks
+}
+
 void UnusedCodeEliminator::visitErrInstr(ErrInstr& instr) {
   delete instr.next;
   instr.next = NULL;

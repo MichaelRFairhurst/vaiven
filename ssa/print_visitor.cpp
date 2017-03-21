@@ -104,6 +104,26 @@ void PrintVisitor::visitCmpLteInstr(CmpLteInstr& instr) {
   printInstruction("lte", &instr);
 }
 
+void PrintVisitor::visitDynamicAccessInstr(DynamicAccessInstr& instr) {
+  printInstruction("dyn acc", &instr);
+}
+
+void PrintVisitor::visitDynamicStoreInstr(DynamicStoreInstr& instr) {
+  printInstruction("dyn str", &instr);
+}
+
+void PrintVisitor::visitListAccessInstr(ListAccessInstr& instr) {
+  printInstruction("list acc", &instr);
+}
+
+void PrintVisitor::visitListStoreInstr(ListStoreInstr& instr) {
+  printInstruction("list str", &instr);
+}
+
+void PrintVisitor::visitListInitInstr(ListInitInstr& instr) {
+  printInstruction("list init", &instr);
+}
+
 void PrintVisitor::visitErrInstr(ErrInstr& instr) {
   printInstruction("err", &instr);
 }

@@ -7,7 +7,7 @@
 using namespace vaiven::ssa;
 using namespace vaiven::ast;
 
-const int STOP_INLINING_AT_SIZE = 5096; // ?
+const int STOP_INLINING_AT_SIZE = 2048; // ?
 const int MAX_INLINE_SIZE = 512; // ?
 const int WORST_INSTRUCTION_SIZE = 15; // wowowow
 const int BOX_COST = WORST_INSTRUCTION_SIZE * 2;
@@ -188,6 +188,21 @@ void Inliner::visitCmpLtInstr(CmpLtInstr& instr) {
 }
 
 void Inliner::visitCmpLteInstr(CmpLteInstr& instr) {
+}
+
+void Inliner::visitDynamicAccessInstr(DynamicAccessInstr& instr) {
+}
+
+void Inliner::visitDynamicStoreInstr(DynamicStoreInstr& instr) {
+}
+
+void Inliner::visitListAccessInstr(ListAccessInstr& instr) {
+}
+
+void Inliner::visitListStoreInstr(ListStoreInstr& instr) {
+}
+
+void Inliner::visitListInitInstr(ListInitInstr& instr) {
 }
 
 void Inliner::visitErrInstr(ErrInstr& instr) {

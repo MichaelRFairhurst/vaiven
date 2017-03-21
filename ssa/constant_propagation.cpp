@@ -172,6 +172,26 @@ void ConstantPropagator::visitCmpLteInstr(CmpLteInstr& instr) {
   }
 }
 
+void ConstantPropagator::visitDynamicAccessInstr(DynamicAccessInstr& instr) {
+  // todo track "constant" lists/objects
+}
+
+void ConstantPropagator::visitDynamicStoreInstr(DynamicStoreInstr& instr) {
+  // todo track "constant" lists/objects
+}
+
+void ConstantPropagator::visitListAccessInstr(ListAccessInstr& instr) {
+  // todo track "constant" lists
+}
+
+void ConstantPropagator::visitListStoreInstr(ListStoreInstr& instr) {
+  // todo track "constant" lists
+}
+
+void ConstantPropagator::visitListInitInstr(ListInitInstr& instr) {
+  // todo track "constant" lists
+}
+
 void ConstantPropagator::visitErrInstr(ErrInstr& instr) {
 }
 

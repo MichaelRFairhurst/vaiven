@@ -37,6 +37,16 @@ Value vaiven::newList() {
   return Value(list);
 }
 
+Value vaiven::newListWithSize(int size) {
+  GcableList* list = globalHeap->newList();
+  list->list.resize(size);
+  return Value(list);
+}
+
+Value* vaiven::getListContainerUnchecked(GcableList* list) {
+  return &list->list[0];
+}
+
 Value vaiven::add(Value lhs, Value rhs) {
   if (lhs.isInt() && rhs.isInt()) {
     return Value(lhs.getInt() + rhs.getInt());
@@ -145,11 +155,7 @@ Value vaiven::set(Value subject, Value propOrIndex, Value value) {
   if (subject.getPtr()->getType() == GCABLE_TYPE_LIST) {
     GcableList* list = (GcableList*) subject.getPtr();
     if (propOrIndex.isInt()) {
-      int index = propOrIndex.getInt();
-      while (list->list.size() <= index) {
-        list->list.push_back(Value());
-      }
-      list->list[index] = value;
+      listStoreUnchecked(list, propOrIndex.getInt(), value);
     } else {
       expectedInt();
     }
@@ -177,11 +183,7 @@ Value vaiven::get(Value subject, Value propOrIndex) {
   if (subject.getPtr()->getType() == GCABLE_TYPE_LIST) {
     GcableList* list = (GcableList*) subject.getPtr();
     if (propOrIndex.isInt()) {
-      int index = propOrIndex.getInt();
-      if (list->list.size() <= index) {
-        return Value();
-      }
-      return list->list[index];
+      return listAccessUnchecked(list, propOrIndex.getInt());
     } else {
       expectedInt();
     }
@@ -204,15 +206,29 @@ Value vaiven::get(Value subject, Value propOrIndex) {
   return Value();
 }
 
+Value vaiven::listAccessUnchecked(GcableList* list, int index) {
+  if (list->list.size() <= index) {
+    return Value();
+  }
+  return list->list[index];
+}
+
+void vaiven::listStoreUnchecked(GcableList* list, int index, Value value) {
+  if (list->list.size() <= index) {
+    list->list.resize(index + 1);
+  }
+  list->list[index] = value;
+}
+
 Value vaiven::cmp(Value a, Value b) {
-  return Value(cmpUnboxed(a, b));
+  return Value((bool) cmpUnboxed(a, b));
 }
 
 Value vaiven::inverseCmp(Value a, Value b) {
-  return Value(inverseCmpUnboxed(a, b));
+  return Value((bool) inverseCmpUnboxed(a, b));
 }
 
-bool vaiven::cmpUnboxed(Value a, Value b) {
+uint64_t vaiven::cmpUnboxed(Value a, Value b) {
   if (a.isPtr() && b.isPtr()
       && a.getPtr()->getType() == GCABLE_TYPE_STRING
       && b.getPtr()->getType() == GCABLE_TYPE_STRING) {
@@ -221,16 +237,16 @@ bool vaiven::cmpUnboxed(Value a, Value b) {
   return a.getRaw() == b.getRaw();
 }
 
-bool vaiven::cmpStrUnchecked(GcableString* a, GcableString* b) {
+uint64_t vaiven::cmpStrUnchecked(GcableString* a, GcableString* b) {
   return a->str == b->str;
 }
 
-bool vaiven::inverseCmpUnboxed(Value a, Value b) {
-  return !cmpUnboxed(a, b);
+uint64_t vaiven::inverseCmpUnboxed(Value a, Value b) {
+  return !(bool) cmpUnboxed(a, b);
 }
 
-bool vaiven::inverseCmpStrUnchecked(GcableString* a, GcableString* b) {
-  return !cmpStrUnchecked(a, b);
+uint64_t vaiven::inverseCmpStrUnchecked(GcableString* a, GcableString* b) {
+  return !(bool) cmpStrUnchecked(a, b);
 }
 
 Value vaiven::toString(Value subject) {

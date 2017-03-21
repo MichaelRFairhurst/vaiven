@@ -174,6 +174,21 @@ void ConstantInliner::visitCmpLteInstr(CmpLteInstr& instr) {
   }
 }
 
+void ConstantInliner::visitDynamicAccessInstr(DynamicAccessInstr& instr) {
+}
+
+void ConstantInliner::visitDynamicStoreInstr(DynamicStoreInstr& instr) {
+}
+
+void ConstantInliner::visitListAccessInstr(ListAccessInstr& instr) {
+}
+
+void ConstantInliner::visitListStoreInstr(ListStoreInstr& instr) {
+}
+
+void ConstantInliner::visitListInitInstr(ListInitInstr& instr) {
+}
+
 void ConstantInliner::visitErrInstr(ErrInstr& instr) {
 }
 
