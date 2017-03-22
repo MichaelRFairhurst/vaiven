@@ -291,7 +291,7 @@ Vaiven has some loosely defined type rules, and almost no type-coersion.
 Vaiven has been made to have optional semicolons for pretty syntax, with
 predictable effects and minimal whitespace significance. It has also been
 designed so that newlines are special, not
-(else if)[http://www.mikedrivendevelopment.com/2016/06/else-if-is-not-special-except-in-python.html].
+[else if](http://www.mikedrivendevelopment.com/2016/06/else-if-is-not-special-except-in-python.html).
 
 You can write vaiven code with no special newline handling, by always using
 semicolons and `do`.
@@ -353,7 +353,7 @@ end.
 ### Else if isn't special
 
 I am of the opinion that
-(else if should not be special)[http://www.mikedrivendevelopment.com/2016/06/else-if-is-not-special-except-in-python.html],
+[else if should not be special](http://www.mikedrivendevelopment.com/2016/06/else-if-is-not-special-except-in-python.html),
 and so in vaiven, it is not.
 
 You may have noticed, if `do` is the semicolon of statements, and `else if` is
