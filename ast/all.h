@@ -23,6 +23,8 @@
 #include "list_literal_expression.h"
 #include "dynamic_access_expression.h"
 #include "dynamic_store_expression.h"
+#include "static_access_expression.h"
+#include "static_store_expression.h"
 #include "var_decl.h"
 #include "if_statement.h"
 #include "for_cond.h"

@@ -164,6 +164,14 @@ void JumpingCompiler::visitDynamicStoreExpression(DynamicStoreExpression<TypedLo
   compiler.visitDynamicStoreExpression(expr);
 }
 
+void JumpingCompiler::visitStaticAccessExpression(StaticAccessExpression<TypedLocationInfo>& expr) {
+  compiler.visitStaticAccessExpression(expr);
+}
+
+void JumpingCompiler::visitStaticStoreExpression(StaticStoreExpression<TypedLocationInfo>& expr) {
+  compiler.visitStaticStoreExpression(expr);
+}
+
 void JumpingCompiler::visitFuncCallExpression(FuncCallExpression<TypedLocationInfo>& expr) {
   compiler.visitFuncCallExpression(expr);
 }

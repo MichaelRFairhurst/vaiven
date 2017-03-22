@@ -74,6 +74,18 @@ void FunctionMerger::visitListStoreInstr(ListStoreInstr& instr) {
 void FunctionMerger::visitListInitInstr(ListInitInstr& instr) {
 }
 
+void FunctionMerger::visitDynamicObjectAccessInstr(DynamicObjectAccessInstr& instr) {
+}
+
+void FunctionMerger::visitDynamicObjectStoreInstr(DynamicObjectStoreInstr& instr) {
+}
+
+void FunctionMerger::visitObjectAccessInstr(ObjectAccessInstr& instr) {
+}
+
+void FunctionMerger::visitObjectStoreInstr(ObjectStoreInstr& instr) {
+}
+
 void FunctionMerger::visitErrInstr(ErrInstr& instr) {
 }
 

@@ -372,6 +372,8 @@ unique_ptr<Token> Tokenizer::next() {
 unique_ptr<Token> Tokenizer::nextOr(TokenType newlineType) {
   char c = input.get();
   switch(c) {
+    case '.':
+      return unique_ptr<Token>(new Token(TOKEN_TYPE_DOT));
     case '+':
       return unique_ptr<Token>(new Token(TOKEN_TYPE_PLUS));
     case '-':

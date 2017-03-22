@@ -201,7 +201,9 @@ void TypeAnalysis::visitDynamicAccessInstr(DynamicAccessInstr& instr) {
     instr.replaceUsagesWith(instr.next);
     instr.safelyDeletable = true; // required for dead code elem since not pure
   } else if (instr.inputs[0]->type == VAIVEN_STATIC_TYPE_OBJECT) {
-    // TODO faster instructions for objects
+    instr.append(new DynamicObjectAccessInstr(instr.inputs[0], instr.inputs[1]));
+    instr.replaceUsagesWith(instr.next);
+    instr.safelyDeletable = true; // required for dead code elem since not pure
   } else if (instr.inputs[0]->type != VAIVEN_STATIC_TYPE_UNKNOWN) {
     // always throws an error
     emit(new ErrInstr(EXPECTED_LIST_OR_OBJ));
@@ -210,7 +212,9 @@ void TypeAnalysis::visitDynamicAccessInstr(DynamicAccessInstr& instr) {
     instr.replaceUsagesWith(instr.next);
     instr.safelyDeletable = true; // required for dead code elem since not pure
   } else if (instr.inputs[1]->type == VAIVEN_STATIC_TYPE_STRING) {
-    // TODO faster instructions for objects
+    instr.append(new DynamicObjectAccessInstr(instr.inputs[0], instr.inputs[1]));
+    instr.replaceUsagesWith(instr.next);
+    instr.safelyDeletable = true; // required for dead code elem since not pure
   } else if (instr.inputs[1]->type != VAIVEN_STATIC_TYPE_UNKNOWN) {
     emit(new ErrInstr(EXPECTED_STR_OR_INT));
   } else {
@@ -226,7 +230,9 @@ void TypeAnalysis::visitDynamicStoreInstr(DynamicStoreInstr& instr) {
     instr.replaceUsagesWith(instr.next);
     instr.safelyDeletable = true; // required for dead code elem since not pure
   } else if (instr.inputs[0]->type == VAIVEN_STATIC_TYPE_OBJECT) {
-    // TODO faster instructions for objects
+    instr.append(new DynamicObjectStoreInstr(instr.inputs[0], instr.inputs[1], instr.inputs[2]));
+    instr.replaceUsagesWith(instr.next);
+    instr.safelyDeletable = true; // required for dead code elem since not pure
   } else if (instr.inputs[0]->type != VAIVEN_STATIC_TYPE_UNKNOWN) {
     // always throws an error
     emit(new ErrInstr(EXPECTED_LIST_OR_OBJ));
@@ -235,7 +241,9 @@ void TypeAnalysis::visitDynamicStoreInstr(DynamicStoreInstr& instr) {
     instr.replaceUsagesWith(instr.next);
     instr.safelyDeletable = true; // required for dead code elem since not pure
   } else if (instr.inputs[1]->type == VAIVEN_STATIC_TYPE_STRING) {
-    // TODO faster instructions for objects
+    instr.append(new DynamicObjectStoreInstr(instr.inputs[0], instr.inputs[1], instr.inputs[2]));
+    instr.replaceUsagesWith(instr.next);
+    instr.safelyDeletable = true; // required for dead code elem since not pure
   } else if (instr.inputs[1]->type != VAIVEN_STATIC_TYPE_UNKNOWN) {
     emit(new ErrInstr(EXPECTED_STR_OR_INT));
   } else {
@@ -265,6 +273,26 @@ void TypeAnalysis::visitListInitInstr(ListInitInstr& instr) {
       box(&*it, &instr);
     }
   }
+}
+
+void TypeAnalysis::visitDynamicObjectAccessInstr(DynamicObjectAccessInstr& instr) {
+  typecheckInput(instr, VAIVEN_STATIC_TYPE_OBJECT, 0);
+  typecheckInput(instr, VAIVEN_STATIC_TYPE_STRING, 1);
+}
+
+void TypeAnalysis::visitDynamicObjectStoreInstr(DynamicObjectStoreInstr& instr) {
+  typecheckInput(instr, VAIVEN_STATIC_TYPE_OBJECT, 0);
+  typecheckInput(instr, VAIVEN_STATIC_TYPE_STRING, 1);
+  box(&instr.inputs[2], &instr);
+}
+
+void TypeAnalysis::visitObjectAccessInstr(ObjectAccessInstr& instr) {
+  typecheckInput(instr, VAIVEN_STATIC_TYPE_OBJECT, 0);
+}
+
+void TypeAnalysis::visitObjectStoreInstr(ObjectStoreInstr& instr) {
+  typecheckInput(instr, VAIVEN_STATIC_TYPE_OBJECT, 0);
+  box(&instr.inputs[1], &instr);
 }
 
 void TypeAnalysis::visitErrInstr(ErrInstr& instr) {

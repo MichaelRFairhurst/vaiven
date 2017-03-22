@@ -58,6 +58,14 @@ void Compiler::visitDynamicStoreExpression(DynamicStoreExpression<TypedLocationI
   throw "not yet supported";
 }
 
+void Compiler::visitStaticAccessExpression(StaticAccessExpression<TypedLocationInfo>& expr) {
+  throw "not yet supported";
+}
+
+void Compiler::visitStaticStoreExpression(StaticStoreExpression<TypedLocationInfo>& expr) {
+  throw "not yet supported";
+}
+
 void Compiler::visitFuncCallExpression(FuncCallExpression<TypedLocationInfo>& expr) {
   throw "not yet supported";
 }

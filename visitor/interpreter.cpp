@@ -127,7 +127,25 @@ void Interpreter::visitDynamicStoreExpression(DynamicStoreExpression<>& expr) {
   Value property = stack.top(); stack.pop();
   Value subject = stack.top(); stack.pop();
 
-  stack.push(vaiven::set(subject, property, rhs));
+  vaiven::set(subject, property, rhs);
+  stack.push(rhs);
+}
+
+void Interpreter::visitStaticAccessExpression(StaticAccessExpression<>& expr) {
+  expr.subject->accept(*this);
+  Value subject = stack.top(); stack.pop();
+
+  stack.push(vaiven::objectAccessChecked(subject, expr.property));
+}
+
+void Interpreter::visitStaticStoreExpression(StaticStoreExpression<>& expr) {
+  expr.subject->accept(*this);
+  expr.rhs->accept(*this);
+  Value rhs = stack.top(); stack.pop();
+  Value subject = stack.top(); stack.pop();
+
+  vaiven::objectStoreChecked(subject, expr.property, rhs);
+  stack.push(rhs);
 }
 
 void Interpreter::visitFuncCallExpression(FuncCallExpression<>& expr) {

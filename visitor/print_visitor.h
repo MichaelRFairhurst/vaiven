@@ -30,6 +30,8 @@ class PrintVisitor : public Visitor<> {
   virtual void visitListLiteralExpression(ListLiteralExpression<>& expr);
   virtual void visitDynamicAccessExpression(DynamicAccessExpression<>& expr);
   virtual void visitDynamicStoreExpression(DynamicStoreExpression<>& expr);
+  virtual void visitStaticAccessExpression(StaticAccessExpression<>& expr);
+  virtual void visitStaticStoreExpression(StaticStoreExpression<>& expr);
   virtual void visitExpressionStatement(ExpressionStatement<>& stmt);
   virtual void visitIfStatement(IfStatement<>& stmt);
   virtual void visitForCondition(ForCondition<>& stmt);

@@ -1,5 +1,7 @@
 #include "constant_inliner.h"
 
+#include "../heap.h"
+
 using namespace vaiven::ssa;
 
 void ConstantInliner::visitPhiInstr(PhiInstr& instr) {
@@ -187,6 +189,37 @@ void ConstantInliner::visitListStoreInstr(ListStoreInstr& instr) {
 }
 
 void ConstantInliner::visitListInitInstr(ListInitInstr& instr) {
+}
+
+void ConstantInliner::visitDynamicObjectAccessInstr(DynamicObjectAccessInstr& instr) {
+  if (instr.inputs[1]->tag == INSTR_CONSTANT) {
+    GcableString* val = (GcableString*) static_cast<ConstantInstr*>(instr.inputs[1])->val.getPtr();
+    // TODO don't leak this, but last beyond SSA phase
+    string* property = new string(val->str);
+    ObjectAccessInstr* newInstr =
+      new ObjectAccessInstr(instr.inputs[0], property);
+    instr.append(newInstr);
+    instr.replaceUsagesWith(newInstr);
+  }
+}
+
+void ConstantInliner::visitDynamicObjectStoreInstr(DynamicObjectStoreInstr& instr) {
+  if (instr.inputs[1]->tag == INSTR_CONSTANT) {
+    GcableString* val = (GcableString*) static_cast<ConstantInstr*>(instr.inputs[1])->val.getPtr();
+    // TODO don't leak this, but last beyond SSA phase
+    string* property = new string(val->str);
+    ObjectStoreInstr* newInstr =
+      new ObjectStoreInstr(instr.inputs[0], property, instr.inputs[2]);
+    instr.append(newInstr);
+    instr.replaceUsagesWith(newInstr);
+    instr.safelyDeletable = true;
+  }
+}
+
+void ConstantInliner::visitObjectAccessInstr(ObjectAccessInstr& instr) {
+}
+
+void ConstantInliner::visitObjectStoreInstr(ObjectStoreInstr& instr) {
 }
 
 void ConstantInliner::visitErrInstr(ErrInstr& instr) {

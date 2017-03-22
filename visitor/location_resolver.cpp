@@ -157,6 +157,29 @@ void LocationResolver::visitDynamicStoreExpression(DynamicStoreExpression<>& exp
   exprCopyStack.push(copy.release());
 }
 
+void LocationResolver::visitStaticAccessExpression(StaticAccessExpression<>& expr) {
+  expr.subject->accept(*this);
+  unique_ptr<Expression<TypedLocationInfo> > subject(move(exprCopyStack.top()));
+  exprCopyStack.pop();
+  TypedLocationInfo loc(Location::spilled(), VAIVEN_STATIC_TYPE_UNKNOWN, true);
+  unique_ptr<Expression<TypedLocationInfo> > copy(new StaticAccessExpression<TypedLocationInfo>(move(subject), expr.property));
+  copy->resolvedData = loc;
+  exprCopyStack.push(copy.release());
+}
+
+void LocationResolver::visitStaticStoreExpression(StaticStoreExpression<>& expr) {
+  expr.rhs->accept(*this);
+  expr.subject->accept(*this);
+  unique_ptr<Expression<TypedLocationInfo> > subject(move(exprCopyStack.top()));
+  exprCopyStack.pop();
+  unique_ptr<Expression<TypedLocationInfo> > rhs(move(exprCopyStack.top()));
+  exprCopyStack.pop();
+  TypedLocationInfo loc = rhs->resolvedData;
+  unique_ptr<Expression<TypedLocationInfo> > copy(new StaticStoreExpression<TypedLocationInfo>(move(subject), expr.property, move(rhs)));
+  copy->resolvedData = loc;
+  exprCopyStack.push(copy.release());
+}
+
 void LocationResolver::visitFuncDecl(FuncDecl<>& decl) {
   int i = 0;
   for (vector<string>::iterator it = decl.args.begin();

@@ -548,6 +548,23 @@ unique_ptr<ast::Expression<> > Parser::parseAccess() {
         }
 
         next();
+      } else if (current->type == TOKEN_TYPE_DOT) {
+        nextNoEol();
+        if (current->type != TOKEN_TYPE_ID) {
+          errors.push_back(ParseError("no token after . in property acces", errorLocation));
+          if (current->type == TOKEN_TYPE_END
+            || current->type == TOKEN_TYPE_IF
+            || current->type == TOKEN_TYPE_FOR
+            || current->type == TOKEN_TYPE_ELSE) {
+            ignoreNextNext = true;
+          }
+          break;
+        }
+        unique_ptr<StringToken> idtok(static_cast<StringToken*>(current->copy()));
+        acc = unique_ptr<ast::Expression<> >(new ast::StaticAccessExpression<> (
+            std::move(acc), idtok->lexeme));
+
+        next();
       } else {
         break;
       }

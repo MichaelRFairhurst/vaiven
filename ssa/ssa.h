@@ -42,6 +42,10 @@ enum InstructionType {
   INSTR_LIST_ACCESS,
   INSTR_LIST_STORE,
   INSTR_LIST_INIT,
+  INSTR_DYNAMIC_OBJECT_ACCESS,
+  INSTR_DYNAMIC_OBJECT_STORE,
+  INSTR_OBJECT_ACCESS,
+  INSTR_OBJECT_STORE,
   INSTR_ERR,
   INSTR_RET,
   INSTR_JMPCC,
@@ -95,6 +99,10 @@ class DynamicStoreInstr;
 class ListAccessInstr;
 class ListStoreInstr;
 class ListInitInstr;
+class DynamicObjectAccessInstr;
+class DynamicObjectStoreInstr;
+class ObjectAccessInstr;
+class ObjectStoreInstr;
 class ErrInstr;
 class RetInstr;
 class JmpCcInstr;
@@ -130,6 +138,10 @@ class SsaVisitor {
   virtual void visitListAccessInstr(ListAccessInstr& instr)=0;
   virtual void visitListStoreInstr(ListStoreInstr& instr)=0;
   virtual void visitListInitInstr(ListInitInstr& instr)=0;
+  virtual void visitDynamicObjectAccessInstr(DynamicObjectAccessInstr& instr)=0;
+  virtual void visitDynamicObjectStoreInstr(DynamicObjectStoreInstr& instr)=0;
+  virtual void visitObjectAccessInstr(ObjectAccessInstr& instr)=0;
+  virtual void visitObjectStoreInstr(ObjectStoreInstr& instr)=0;
   virtual void visitErrInstr(ErrInstr& instr)=0;
   virtual void visitRetInstr(RetInstr& instr)=0;
   virtual void visitJmpCcInstr(JmpCcInstr& instr)=0;
@@ -544,6 +556,73 @@ class ListInitInstr : public Instruction {
 
   void accept(SsaVisitor& visitor) {
     visitor.visitListInitInstr(*this);
+  }
+};
+
+class DynamicObjectAccessInstr : public Instruction {
+  public:
+  DynamicObjectAccessInstr(Instruction* subject, Instruction* index)
+      : Instruction(INSTR_DYNAMIC_OBJECT_ACCESS, VAIVEN_STATIC_TYPE_UNKNOWN, true) {
+    inputs.push_back(subject);
+    inputs.push_back(index);
+    subject->usages.insert(this);
+    index->usages.insert(this);
+  };
+
+  void accept(SsaVisitor& visitor) {
+    visitor.visitDynamicObjectAccessInstr(*this);
+  }
+};
+
+class DynamicObjectStoreInstr : public Instruction {
+  public:
+  DynamicObjectStoreInstr(Instruction* subject, Instruction* index, Instruction* rhs)
+      : Instruction(INSTR_DYNAMIC_OBJECT_STORE, rhs->type, rhs->isBoxed),
+      safelyDeletable(false) {
+    inputs.push_back(subject);
+    inputs.push_back(index);
+    inputs.push_back(rhs);
+    subject->usages.insert(this);
+    index->usages.insert(this);
+    rhs->usages.insert(this);
+  };
+
+  bool safelyDeletable;
+
+  void accept(SsaVisitor& visitor) {
+    visitor.visitDynamicObjectStoreInstr(*this);
+  }
+};
+
+class ObjectAccessInstr : public Instruction {
+  public:
+  ObjectAccessInstr(Instruction* subject, string* property) : property(property),
+      Instruction(INSTR_OBJECT_ACCESS, VAIVEN_STATIC_TYPE_UNKNOWN, true) {
+    inputs.push_back(subject);
+    subject->usages.insert(this);
+  };
+
+  string* property;
+
+  void accept(SsaVisitor& visitor) {
+    visitor.visitObjectAccessInstr(*this);
+  }
+};
+
+class ObjectStoreInstr : public Instruction {
+  public:
+  ObjectStoreInstr(Instruction* subject, string* property, Instruction* rhs)
+      : Instruction(INSTR_OBJECT_STORE, rhs->type, rhs->isBoxed), property(property) {
+    inputs.push_back(subject);
+    inputs.push_back(rhs);
+    subject->usages.insert(this);
+    rhs->usages.insert(this);
+  };
+
+  string* property;
+
+  void accept(SsaVisitor& visitor) {
+    visitor.visitObjectStoreInstr(*this);
   }
 };
 

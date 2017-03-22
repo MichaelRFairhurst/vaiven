@@ -23,6 +23,10 @@ Value set(Value objectOrArr, Value propOrIndex, Value value);
 Value get(Value objectOrArr, Value propOrIndex);
 Value listAccessUnchecked(GcableList* list, int index);
 void listStoreUnchecked(GcableList* list, int index, Value value);
+Value objectAccessChecked(Value subject, string& property);
+void objectStoreChecked(Value subject, string& property, Value value);
+Value objectAccessUnchecked(GcableObject* object, string& property);
+void objectStoreUnchecked(GcableObject* object, string& property, Value value);
 Value cmp(Value a, Value b);
 Value inverseCmp(Value a, Value b);
 // seems like using bool often results in garbage in the upper bits

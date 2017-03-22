@@ -43,6 +43,8 @@ class UsageApplier : public Visitor<TypedLocationInfo> {
   virtual void visitListLiteralExpression(ListLiteralExpression<TypedLocationInfo>& expr);
   virtual void visitDynamicAccessExpression(DynamicAccessExpression<TypedLocationInfo>& expr);
   virtual void visitDynamicStoreExpression(DynamicStoreExpression<TypedLocationInfo>& expr);
+  virtual void visitStaticAccessExpression(StaticAccessExpression<TypedLocationInfo>& expr);
+  virtual void visitStaticStoreExpression(StaticStoreExpression<TypedLocationInfo>& expr);
   virtual void visitExpressionStatement(ExpressionStatement<TypedLocationInfo>& stmt);
   virtual void visitIfStatement(IfStatement<TypedLocationInfo>& stmt);
   virtual void visitForCondition(ForCondition<TypedLocationInfo>& stmt);

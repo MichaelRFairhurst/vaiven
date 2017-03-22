@@ -381,7 +381,6 @@ void Emitter::visitDynamicStoreInstr(DynamicStoreInstr& instr) {
 }
 
 void Emitter::visitListAccessInstr(ListAccessInstr& instr) {
-  // todo do this unchecked
   CCFuncCall* call = cc.call((uint64_t) vaiven::listAccessUnchecked, FuncSignature2<uint64_t, uint64_t, uint64_t>());
   call->setArg(0, instr.inputs[0]->out);
   call->setArg(1, instr.inputs[1]->out);
@@ -389,7 +388,6 @@ void Emitter::visitListAccessInstr(ListAccessInstr& instr) {
 }
 
 void Emitter::visitListStoreInstr(ListStoreInstr& instr) {
-  // todo do this unchecked
   CCFuncCall* call = cc.call((uint64_t) vaiven::listStoreUnchecked, FuncSignature3<uint64_t, uint64_t, uint64_t, uint64_t>());
   call->setArg(0, instr.inputs[0]->out);
   call->setArg(1, instr.inputs[1]->out);
@@ -417,6 +415,54 @@ void Emitter::visitListInitInstr(ListInitInstr& instr) {
 
     cc.mov(x86::ptr(ptr), (*it)->out);
   }
+}
+
+void Emitter::visitDynamicObjectAccessInstr(DynamicObjectAccessInstr& instr) {
+  X86Gp str;
+  if (instr.inputs[1]->usages.size() == 1) {
+    str = instr.inputs[1]->out;
+  } else {
+    str = cc.newUInt64();
+    cc.mov(str, instr.inputs[1]->out);
+  }
+  cc.add(str, 8); // string member offset
+  CCFuncCall* call = cc.call((uint64_t) vaiven::objectAccessUnchecked, FuncSignature2<uint64_t, uint64_t, uint64_t>());
+  call->setArg(0, instr.inputs[0]->out);
+  call->setArg(1, str);
+  call->setRet(0, instr.out);
+}
+
+void Emitter::visitDynamicObjectStoreInstr(DynamicObjectStoreInstr& instr) {
+  X86Gp str;
+  if (instr.inputs[1]->usages.size() == 1) {
+    str = instr.inputs[1]->out;
+  } else {
+    str = cc.newUInt64();
+    cc.mov(str, instr.inputs[1]->out);
+  }
+  cc.add(str, 8); // string member offset
+  CCFuncCall* call = cc.call((uint64_t) vaiven::objectStoreUnchecked, FuncSignature3<uint64_t, uint64_t, uint64_t, uint64_t>());
+  call->setArg(0, instr.inputs[0]->out);
+  call->setArg(1, str);
+  call->setArg(2, instr.inputs[2]->out);
+}
+
+void Emitter::visitObjectAccessInstr(ObjectAccessInstr& instr) {
+  X86Gp str = cc.newUInt64();
+  cc.mov(str, (uint64_t) instr.property);
+  CCFuncCall* call = cc.call((uint64_t) vaiven::objectAccessUnchecked, FuncSignature2<uint64_t, uint64_t, uint64_t>());
+  call->setArg(0, instr.inputs[0]->out);
+  call->setArg(1, str);
+  call->setRet(0, instr.out);
+}
+
+void Emitter::visitObjectStoreInstr(ObjectStoreInstr& instr) {
+  X86Gp str = cc.newUInt64();
+  cc.mov(str, (uint64_t) instr.property);
+  CCFuncCall* call = cc.call((uint64_t) vaiven::objectStoreUnchecked, FuncSignature3<uint64_t, uint64_t, uint64_t, uint64_t>());
+  call->setArg(0, instr.inputs[0]->out);
+  call->setArg(1, str);
+  call->setArg(2, instr.inputs[1]->out);
 }
 
 void Emitter::visitErrInstr(ErrInstr& instr) {

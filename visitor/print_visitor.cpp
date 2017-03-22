@@ -94,6 +94,17 @@ void PrintVisitor::visitDynamicStoreExpression(DynamicStoreExpression<>& expr) {
   expr.rhs->accept(*this);
 }
 
+void PrintVisitor::visitStaticAccessExpression(StaticAccessExpression<>& expr) {
+  expr.subject->accept(*this);
+  cout << "." << expr.property;
+}
+
+void PrintVisitor::visitStaticStoreExpression(StaticStoreExpression<>& expr) {
+  expr.subject->accept(*this);
+  cout << "." << expr.property << " = ";
+  expr.rhs->accept(*this);
+}
+
 void PrintVisitor::visitFuncDecl(FuncDecl<>& decl) {
   cout << "fn " << decl.name << " of ";
   for (vector<string>::iterator it = decl.args.begin();

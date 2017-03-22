@@ -74,6 +74,18 @@ void JmpThreader::visitListStoreInstr(ListStoreInstr& instr) {
 void JmpThreader::visitListInitInstr(ListInitInstr& instr) {
 }
 
+void JmpThreader::visitDynamicObjectAccessInstr(DynamicObjectAccessInstr& instr) {
+}
+
+void JmpThreader::visitDynamicObjectStoreInstr(DynamicObjectStoreInstr& instr) {
+}
+
+void JmpThreader::visitObjectAccessInstr(ObjectAccessInstr& instr) {
+}
+
+void JmpThreader::visitObjectStoreInstr(ObjectStoreInstr& instr) {
+}
+
 void JmpThreader::visitErrInstr(ErrInstr& instr) {
 }
 

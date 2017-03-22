@@ -587,6 +587,22 @@ void InstructionCombiner::visitListInitInstr(ListInitInstr& instr) {
   // TODO anything to combine here?
 }
 
+void InstructionCombiner::visitDynamicObjectAccessInstr(DynamicObjectAccessInstr& instr) {
+  // TODO anything to combine here?
+}
+
+void InstructionCombiner::visitDynamicObjectStoreInstr(DynamicObjectStoreInstr& instr) {
+  // TODO anything to combine here?
+}
+
+void InstructionCombiner::visitObjectAccessInstr(ObjectAccessInstr& instr) {
+  // TODO anything to combine here?
+}
+
+void InstructionCombiner::visitObjectStoreInstr(ObjectStoreInstr& instr) {
+  // TODO anything to combine here?
+}
+
 void InstructionCombiner::visitErrInstr(ErrInstr& instr) {
 }
 

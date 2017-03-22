@@ -30,6 +30,13 @@ void AssignmentProducer::visitDynamicAccessExpression(DynamicAccessExpression<>&
 void AssignmentProducer::visitDynamicStoreExpression(DynamicStoreExpression<>& expr) {
 }
 
+void AssignmentProducer::visitStaticAccessExpression(StaticAccessExpression<>& expr) {
+  result.reset(new StaticStoreExpression<>(std::move(expr.subject), expr.property, std::move(rhs)));
+}
+
+void AssignmentProducer::visitStaticStoreExpression(StaticStoreExpression<>& expr) {
+}
+
 void AssignmentProducer::visitFuncCallExpression(FuncCallExpression<>& expr) {
 }
 

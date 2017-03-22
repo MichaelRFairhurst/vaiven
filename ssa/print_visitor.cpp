@@ -124,6 +124,22 @@ void PrintVisitor::visitListInitInstr(ListInitInstr& instr) {
   printInstruction("list init", &instr);
 }
 
+void PrintVisitor::visitDynamicObjectAccessInstr(DynamicObjectAccessInstr& instr) {
+  printInstruction("dyn obj acc", &instr);
+}
+
+void PrintVisitor::visitDynamicObjectStoreInstr(DynamicObjectStoreInstr& instr) {
+  printInstruction("dyn obj str", &instr);
+}
+
+void PrintVisitor::visitObjectAccessInstr(ObjectAccessInstr& instr) {
+  printInstruction("obj acc", &instr);
+}
+
+void PrintVisitor::visitObjectStoreInstr(ObjectStoreInstr& instr) {
+  printInstruction("obj str", &instr);
+}
+
 void PrintVisitor::visitErrInstr(ErrInstr& instr) {
   printInstruction("err", &instr);
 }

@@ -148,6 +148,22 @@ void RegAlloc::visitListInitInstr(ListInitInstr& instr) {
   instr.out = cc.newUInt64();
 }
 
+void RegAlloc::visitDynamicObjectAccessInstr(DynamicObjectAccessInstr& instr) {
+  instr.out = cc.newUInt64();
+}
+
+void RegAlloc::visitDynamicObjectStoreInstr(DynamicObjectStoreInstr& instr) {
+  instr.out = instr.inputs[2]->out;
+}
+
+void RegAlloc::visitObjectAccessInstr(ObjectAccessInstr& instr) {
+  instr.out = cc.newUInt64();
+}
+
+void RegAlloc::visitObjectStoreInstr(ObjectStoreInstr& instr) {
+  instr.out = instr.inputs[1]->out;
+}
+
 void RegAlloc::visitErrInstr(ErrInstr& instr) {
 }
 

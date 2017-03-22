@@ -206,6 +206,41 @@ Value vaiven::get(Value subject, Value propOrIndex) {
   return Value();
 }
 
+Value vaiven::objectAccessChecked(Value subject, string& property) {
+  if (!subject.isPtr()) {
+    expectedObj();
+  }
+
+  if (subject.getPtr()->getType() != GCABLE_TYPE_OBJECT) {
+    expectedObj();
+  }
+
+  return objectAccessUnchecked((GcableObject*) subject.getPtr(), property);
+}
+
+void vaiven::objectStoreChecked(Value subject, string& property, Value value) {
+  if (!subject.isPtr()) {
+    expectedObj();
+  }
+
+  if (subject.getPtr()->getType() != GCABLE_TYPE_OBJECT) {
+    expectedObj();
+  }
+
+  objectStoreUnchecked((GcableObject*) subject.getPtr(), property, value);
+}
+
+Value vaiven::objectAccessUnchecked(GcableObject* object, string& property) {
+  if (object->properties.find(property) == object->properties.end()) {
+    return Value();
+  }
+  return object->properties[property];
+}
+
+void vaiven::objectStoreUnchecked(GcableObject* object, string& property, Value value) {
+  object->properties[property] = value;
+}
+
 Value vaiven::listAccessUnchecked(GcableList* list, int index) {
   if (list->list.size() <= index) {
     return Value();

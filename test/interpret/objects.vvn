@@ -1,0 +1,44 @@
+var o = object();
+
+fn getvoid is end
+var void = getvoid()
+
+assert(o.foo == void)
+assert(o.bar == void)
+assert(o["foo"] == void)
+assert(o["bar"] == void)
+
+o.foo = 4
+
+assert(o.foo == 4)
+assert(o.bar == void)
+assert(o["foo"] == 4)
+assert(o["bar"] == void)
+
+o.foo = 4
+
+assert(o.foo == 4)
+assert(o.bar == void)
+assert(o["foo"] == 4)
+assert(o["bar"] == void)
+
+assert((o.foo = "bar") == "bar")
+assert(o.foo == "bar")
+assert(o.bar == void)
+assert(o["foo"] == "bar")
+assert(o["bar"] == void)
+
+o.bar = 4
+
+assert(o.foo == "bar")
+assert(o.bar == 4)
+assert(o["foo"] == "bar")
+assert(o["bar"] == 4)
+
+assert((o["baz"] = "bang") == "bang")
+assert(o.foo == "bar")
+assert(o.bar == 4)
+assert(o.baz == "bang")
+assert(o["foo"] == "bar")
+assert(o["bar"] == 4)
+assert(o["baz"] == "bang")

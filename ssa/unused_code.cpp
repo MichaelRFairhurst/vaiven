@@ -142,7 +142,8 @@ void UnusedCodeEliminator::visitDynamicStoreInstr(DynamicStoreInstr& instr) {
 }
 
 void UnusedCodeEliminator::visitListAccessInstr(ListAccessInstr& instr) {
-  // list access can throw, so is not pure
+  // this list access can't throw, its already typechecked
+  visitPureInstr(instr);
 }
 
 void UnusedCodeEliminator::visitListStoreInstr(ListStoreInstr& instr) {
@@ -152,6 +153,27 @@ void UnusedCodeEliminator::visitListStoreInstr(ListStoreInstr& instr) {
 void UnusedCodeEliminator::visitListInitInstr(ListInitInstr& instr) {
   visitPureInstr(instr);
   // TODO delete if only set and/or read without boundary checks
+}
+
+void UnusedCodeEliminator::visitDynamicObjectAccessInstr(DynamicObjectAccessInstr& instr) {
+  // this object access can't throw, its already typechecked
+  visitPureInstr(instr);
+}
+
+void UnusedCodeEliminator::visitDynamicObjectStoreInstr(DynamicObjectStoreInstr& instr) {
+  // impure, cannot be removed unless marked deletable
+  if (instr.safelyDeletable) {
+    visitPureInstr(instr);
+  }
+}
+
+void UnusedCodeEliminator::visitObjectAccessInstr(ObjectAccessInstr& instr) {
+  // this object access can't throw, its already typechecked
+  visitPureInstr(instr);
+}
+
+void UnusedCodeEliminator::visitObjectStoreInstr(ObjectStoreInstr& instr) {
+  // impure, cannot be removed
 }
 
 void UnusedCodeEliminator::visitErrInstr(ErrInstr& instr) {

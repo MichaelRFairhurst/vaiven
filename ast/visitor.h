@@ -52,6 +52,10 @@ class DynamicAccessExpression;
 template<typename RD=void>
 class DynamicStoreExpression;
 template<typename RD=void>
+class StaticAccessExpression;
+template<typename RD=void>
+class StaticStoreExpression;
+template<typename RD=void>
 class VarDecl;
 template<typename RD=void>
 class IfStatement;
@@ -84,6 +88,8 @@ class Visitor {
   virtual void visitListLiteralExpression(ListLiteralExpression<RD>& expr)=0;
   virtual void visitDynamicAccessExpression(DynamicAccessExpression<RD>& expr)=0;
   virtual void visitDynamicStoreExpression(DynamicStoreExpression<RD>& expr)=0;
+  virtual void visitStaticAccessExpression(StaticAccessExpression<RD>& expr)=0;
+  virtual void visitStaticStoreExpression(StaticStoreExpression<RD>& expr)=0;
   virtual void visitExpressionStatement(ExpressionStatement<RD>& stmt)=0;
   virtual void visitIfStatement(IfStatement<RD>& stmt)=0;
   virtual void visitForCondition(ForCondition<RD>& stmt)=0;

@@ -265,6 +265,20 @@ void SsaBuilder::visitDynamicStoreExpression(DynamicStoreExpression<TypedLocatio
   emit(new DynamicStoreInstr(subject, property, rhs));
 }
 
+void SsaBuilder::visitStaticAccessExpression(StaticAccessExpression<TypedLocationInfo>& expr) {
+  expr.subject->accept(*this);
+  Instruction* subject = cur;
+  emit(new ObjectAccessInstr(subject, &expr.property));
+}
+
+void SsaBuilder::visitStaticStoreExpression(StaticStoreExpression<TypedLocationInfo>& expr) {
+  expr.subject->accept(*this);
+  Instruction* subject = cur;
+  expr.rhs->accept(*this);
+  Instruction* rhs = cur;
+  emit(new ObjectStoreInstr(subject, &expr.property, rhs));
+}
+
 void SsaBuilder::visitFuncDecl(FuncDecl<TypedLocationInfo>& decl) {
   for (int i = 0; i < decl.args.size(); ++i) {
     ArgInstr* arg = new ArgInstr(i, usageInfo.argShapes[i].getStaticType());

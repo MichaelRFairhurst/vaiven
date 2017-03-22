@@ -156,6 +156,35 @@ void AutoCompiler::visitDynamicStoreExpression(DynamicStoreExpression<TypedLocat
   vRegs.push(rhsReg);
 }
 
+void AutoCompiler::visitStaticAccessExpression(StaticAccessExpression<TypedLocationInfo>& expr) {
+  expr.subject->accept(*this);
+  X86Gp propertyReg = cc.newUInt64();
+  X86Gp subjectReg = vRegs.top(); vRegs.pop();
+  cc.mov(propertyReg, (uint64_t) &expr.property);
+  CCFuncCall* access = cc.call((uint64_t) objectAccessChecked, FuncSignature2<uint64_t, uint64_t, uint64_t>());
+  access->setArg(0, subjectReg);
+  access->setArg(1, propertyReg);
+
+  X86Gp result = cc.newUInt64();
+  access->setRet(0, result);
+  vRegs.push(result);
+}
+
+void AutoCompiler::visitStaticStoreExpression(StaticStoreExpression<TypedLocationInfo>& expr) {
+  expr.subject->accept(*this);
+  expr.rhs->accept(*this);
+  X86Gp rhsReg = vRegs.top(); vRegs.pop();
+  X86Gp propertyReg = cc.newUInt64();
+  X86Gp subjectReg = vRegs.top(); vRegs.pop();
+  cc.mov(propertyReg, (uint64_t) &expr.property);
+  CCFuncCall* store = cc.call((uint64_t) objectStoreChecked, FuncSignature3<uint64_t, uint64_t, uint64_t, uint64_t>());
+  store->setArg(0, subjectReg);
+  store->setArg(1, propertyReg);
+  store->setArg(2, rhsReg);
+
+  vRegs.push(rhsReg);
+}
+
 void AutoCompiler::visitFuncCallExpression(FuncCallExpression<TypedLocationInfo>& expr) {
   auto finder = funcs.funcs.find(expr.name);
   if (finder == funcs.funcs.end()) {

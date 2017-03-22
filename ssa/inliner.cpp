@@ -205,6 +205,18 @@ void Inliner::visitListStoreInstr(ListStoreInstr& instr) {
 void Inliner::visitListInitInstr(ListInitInstr& instr) {
 }
 
+void Inliner::visitDynamicObjectAccessInstr(DynamicObjectAccessInstr& instr) {
+}
+
+void Inliner::visitDynamicObjectStoreInstr(DynamicObjectStoreInstr& instr) {
+}
+
+void Inliner::visitObjectAccessInstr(ObjectAccessInstr& instr) {
+}
+
+void Inliner::visitObjectStoreInstr(ObjectStoreInstr& instr) {
+}
+
 void Inliner::visitErrInstr(ErrInstr& instr) {
 }
 

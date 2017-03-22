@@ -29,6 +29,10 @@ class ConstantInliner : public ForwardVisitor {
   void visitListAccessInstr(ListAccessInstr& instr);
   void visitListStoreInstr(ListStoreInstr& instr);
   void visitListInitInstr(ListInitInstr& instr);
+  void visitDynamicObjectAccessInstr(DynamicObjectAccessInstr& instr);
+  void visitDynamicObjectStoreInstr(DynamicObjectStoreInstr& instr);
+  void visitObjectAccessInstr(ObjectAccessInstr& instr);
+  void visitObjectStoreInstr(ObjectStoreInstr& instr);
   void visitErrInstr(ErrInstr& instr);
   void visitRetInstr(RetInstr& instr);
   void visitJmpCcInstr(JmpCcInstr& instr);

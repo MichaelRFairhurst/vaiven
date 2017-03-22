@@ -33,6 +33,10 @@ class ForwardVisitor : public SsaVisitor {
   virtual void visitListAccessInstr(ListAccessInstr& instr)=0;
   virtual void visitListStoreInstr(ListStoreInstr& instr)=0;
   virtual void visitListInitInstr(ListInitInstr& instr)=0;
+  virtual void visitDynamicObjectAccessInstr(DynamicObjectAccessInstr& instr)=0;
+  virtual void visitDynamicObjectStoreInstr(DynamicObjectStoreInstr& instr)=0;
+  virtual void visitObjectAccessInstr(ObjectAccessInstr& instr)=0;
+  virtual void visitObjectStoreInstr(ObjectStoreInstr& instr)=0;
   virtual void visitErrInstr(ErrInstr& instr)=0;
   virtual void visitRetInstr(RetInstr& instr)=0;
   virtual void visitJmpCcInstr(JmpCcInstr& instr)=0;
