@@ -1,11 +1,3 @@
-AST_OBJECTS = \
-	ast/addition_expression.o \
-	ast/subtraction_expression.o \
-	ast/multiplication_expression.o \
-	ast/division_expression.o \
-	ast/integer_expression.o \
-	ast/variable_expression.o \
-
 VISITOR_OBJECTS = \
 	visitor/print_visitor.o \
 	visitor/interpreter.o \
@@ -13,7 +5,6 @@ VISITOR_OBJECTS = \
 	visitor/autocompiler.o \
 	visitor/location_resolver.o \
 	visitor/usage_applier.o \
-	visitor/recompiler.o \
 	visitor/jumping_compiler.o \
 	visitor/ssa_builder.o \
 	visitor/assignment_producer.o \
@@ -84,7 +75,7 @@ RELEASECXXFLAGS := -O3 -DNDEBUG
 PROFILECXXFLAGS := -O3 -g -DNDEBUG
 CXXFLAGS := -DASMJIT_EMBED -std=c++11 -fno-omit-frame-pointer ${PROFILECXXFLAGS}
 
-vvn : ${MAIN_OBJECTS} ${AST_OBJECTS} ${VISITOR_OBJECTS} ${ASMJIT_OBJECTS} ${SSA_OBJECTS}
+vvn : ${MAIN_OBJECTS} ${VISITOR_OBJECTS} ${ASMJIT_OBJECTS} ${SSA_OBJECTS}
 	g++ $^ -o vvn
 
 clean:
