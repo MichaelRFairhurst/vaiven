@@ -566,7 +566,6 @@ make use of these tricks.
 * larger std library
 * falsy values (at the very least void and empty string?)
 * have `end` act as a semicolon?
-* comments
 * single quote strings
 * escapes inside strings
 * check type of object at runtime

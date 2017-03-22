@@ -1,0 +1,23 @@
+assert(1 == 1) // comment at EOL is like a semicolon
+
+// lots of free standing comments should be OK
+// lots of free standing comments should be OK
+// lots of free standing comments should be OK
+// lots of free standing comments should be OK
+
+assert( // a comment mid-expression should be ok
+  true // this too
+// should be OK to start a new line mid expression
+  // and should be OK to have spaces in front
+) // hopefully that worked!
+
+var x = 1 // comment
+assert(x == 1)
+
+var // pause!
+y // pause!
+= // pause!
+4 // end of statement
+assert(y == 4)
+
+// should be OK with no EOL after this comment

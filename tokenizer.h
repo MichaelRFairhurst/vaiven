@@ -53,7 +53,8 @@ enum TokenType {
   TOKEN_TYPE_COMMA,
   TOKEN_TYPE_SEMICOLON,
   TOKEN_TYPE_ERROR,
-  TOKEN_TYPE_EOF
+  TOKEN_TYPE_EOF,
+  TOKEN_TYPE_IGNORABLE_NEWLINE // this is for nextNoEol only
 };
 
 class Tokenizer {

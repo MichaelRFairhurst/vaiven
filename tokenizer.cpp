@@ -356,13 +356,12 @@ unique_ptr<Token> Tokenizer::tokenizeId(vector<char>& buffer) {
 }
 
 unique_ptr<Token> Tokenizer::nextNoEol() {
-  char c = input.peek();
-  while (c == ' ' || c == '\n' || c == '\t') {
-    input.get();
-    c = input.peek();
+  while(true) {
+    unique_ptr<Token> token = nextOr(TOKEN_TYPE_IGNORABLE_NEWLINE);
+    if (token->type != TOKEN_TYPE_IGNORABLE_NEWLINE) {
+      return std::move(token);
+    }
   }
-
-  return next();
 }
 
 unique_ptr<Token> Tokenizer::next() {
@@ -393,7 +392,20 @@ unique_ptr<Token> Tokenizer::nextOr(TokenType newlineType) {
     case '*':
       return unique_ptr<Token>(new Token(TOKEN_TYPE_MULTIPLY));
     case '/':
-      return unique_ptr<Token>(new Token(TOKEN_TYPE_DIVIDE));
+      // Comments
+      if (input.peek() == '/') {
+        do {
+          c = input.get();
+        } while (c != '\n' && c != EOF);
+
+        if (c == EOF) {
+          return unique_ptr<Token>(new Token(TOKEN_TYPE_EOF));
+        } else {
+          return unique_ptr<Token>(new Token(newlineType));
+        }
+      } else {
+        return unique_ptr<Token>(new Token(TOKEN_TYPE_DIVIDE));
+      }
     case '>':
       if (input.peek() == '=') {
         input.get();
