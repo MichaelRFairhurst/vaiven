@@ -1,22 +1,13 @@
 var foo = "foo"
 var bar = "bar"
-assert(cmp(foo, foo))
-assert(cmp("foo", "foo"))
-assert(cmp(foo, "foo"))
-assert(cmp("foo", foo))
 
-assert(!cmp(foo, bar))
-assert(!cmp("foo", "bar"))
-assert(!cmp(foo, "bar"))
-assert(!cmp("foo", bar))
+assert(foo.append(bar) == "foobar")
 
-assert(cmp(append(foo, bar), "foobar"))
+assert(foo.len() == 3)
+assert(bar.len() == 3)
+assert("foobar".len() == 6)
 
-assert(len(foo) == 3)
-assert(len(bar) == 3)
-assert(len("foobar") == 6)
-
-assert(cmp(toString(foo), foo))
-assert(cmp(toString("foo"), "foo"))
-assert(cmp(toString(foo), "foo"))
-assert(cmp(toString("foo"), foo))
+assert(foo.toString() == foo)
+assert("foo".toString() == "foo")
+assert(foo.toString() == "foo")
+assert("foo".toString() == foo)

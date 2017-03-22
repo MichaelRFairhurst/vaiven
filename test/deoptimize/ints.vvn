@@ -12,7 +12,7 @@ intOp(true)
 intOp(false)
 intOp()
 intOp("foo")
-intOp(list())
+intOp([])
 intOp(object())
 
 fn intAdd of x is
@@ -28,7 +28,7 @@ intAdd(1)
 intAdd(true)
 intAdd(false)
 intAdd()
-intAdd(list())
+intAdd([])
 intAdd(object())
 
 assert(intAdd("foo") == "foofoo")

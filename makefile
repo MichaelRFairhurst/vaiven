@@ -80,7 +80,6 @@ vvn : ${MAIN_OBJECTS} ${VISITOR_OBJECTS} ${ASMJIT_OBJECTS} ${SSA_OBJECTS}
 
 clean:
 	rm visitor/*.o
-	rm ast/*.o
 	rm ssa/*.o
 	rm *.o
 	rm vvn

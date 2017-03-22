@@ -10,15 +10,11 @@ using namespace vaiven;
 
 void vaiven::init_std(Functions& funcs) {
   funcs.addNative("print", 1, (void*) print, false);
-  funcs.addNative("list", 0, (void*) newList, true);
   funcs.addNative("append", 2, (void*) append, false);
   funcs.addNative("len", 1, (void*) len, false); // not pure because can throw
   funcs.addNative("assert", 1, (void*) assert, false);
   funcs.addNative("object", 0, (void*) object, true);
   funcs.addNative("keys", 1, (void*) keys, false); // not pure because can throw
-  funcs.addNative("set", 3, (void*) set, false);
-  funcs.addNative("get", 2, (void*) get, false); // not pure because can throw
-  funcs.addNative("cmp", 2, (void*) cmp, true);
   funcs.addNative("toString", 1, (void*) toString, true);
 }
 
@@ -30,40 +26,6 @@ Value vaiven::print(Value value) {
   }
 
   return Value();
-}
-
-Value vaiven::newList() {
-  GcableList* list = globalHeap->newList();
-  return Value(list);
-}
-
-Value vaiven::newListWithSize(int size) {
-  GcableList* list = globalHeap->newList();
-  list->list.resize(size);
-  return Value(list);
-}
-
-Value* vaiven::getListContainerUnchecked(GcableList* list) {
-  return &list->list[0];
-}
-
-Value vaiven::add(Value lhs, Value rhs) {
-  if (lhs.isInt() && rhs.isInt()) {
-    return Value(lhs.getInt() + rhs.getInt());
-  } else if (lhs.isPtr() && lhs.getPtr()->getType() == GCABLE_TYPE_STRING) {
-    if (rhs.isPtr() && rhs.getPtr()->getType() == GCABLE_TYPE_STRING) {
-      GcableString* strleft = (GcableString*) lhs.getPtr();
-      GcableString* strright = (GcableString*) rhs.getPtr();
-      return addStrUnchecked(strleft, strright);
-    }
-  }
-  expectedStrOrInt();
-}
-
-Value vaiven::addStrUnchecked(GcableString* lhs, GcableString* rhs) {
-  GcableString* result = globalHeap->newString();
-  result->str = lhs->str + rhs->str;
-  return Value(result);
 }
 
 Value vaiven::append(Value lhs, Value rhs) {
@@ -145,6 +107,51 @@ Value vaiven::keys(Value subject) {
   }
 
   return Value(list);
+}
+
+
+Value vaiven::toString(Value subject) {
+  if (subject.isPtr() && subject.getPtr()->getType() == GCABLE_TYPE_STRING) {
+    return subject;
+  }
+
+  GcableString* str = globalHeap->newString();
+  str->str = toStringCpp(subject);
+  return Value(str);
+}
+
+Value vaiven::newList() {
+  GcableList* list = globalHeap->newList();
+  return Value(list);
+}
+
+Value vaiven::newListWithSize(int size) {
+  GcableList* list = globalHeap->newList();
+  list->list.resize(size);
+  return Value(list);
+}
+
+Value* vaiven::getListContainerUnchecked(GcableList* list) {
+  return &list->list[0];
+}
+
+Value vaiven::add(Value lhs, Value rhs) {
+  if (lhs.isInt() && rhs.isInt()) {
+    return Value(lhs.getInt() + rhs.getInt());
+  } else if (lhs.isPtr() && lhs.getPtr()->getType() == GCABLE_TYPE_STRING) {
+    if (rhs.isPtr() && rhs.getPtr()->getType() == GCABLE_TYPE_STRING) {
+      GcableString* strleft = (GcableString*) lhs.getPtr();
+      GcableString* strright = (GcableString*) rhs.getPtr();
+      return addStrUnchecked(strleft, strright);
+    }
+  }
+  expectedStrOrInt();
+}
+
+Value vaiven::addStrUnchecked(GcableString* lhs, GcableString* rhs) {
+  GcableString* result = globalHeap->newString();
+  result->str = lhs->str + rhs->str;
+  return Value(result);
 }
 
 Value vaiven::set(Value subject, Value propOrIndex, Value value) {
@@ -282,16 +289,6 @@ uint64_t vaiven::inverseCmpUnboxed(Value a, Value b) {
 
 uint64_t vaiven::inverseCmpStrUnchecked(GcableString* a, GcableString* b) {
   return !(bool) cmpStrUnchecked(a, b);
-}
-
-Value vaiven::toString(Value subject) {
-  if (subject.isPtr() && subject.getPtr()->getType() == GCABLE_TYPE_STRING) {
-    return subject;
-  }
-
-  GcableString* str = globalHeap->newString();
-  str->str = toStringCpp(subject);
-  return Value(str);
 }
 
 string vaiven::toStringCpp(Value subject) {

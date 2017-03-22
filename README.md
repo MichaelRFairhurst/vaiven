@@ -132,6 +132,26 @@ In this case, these do the same thing.
 
 Currently, you cannot simply `ret`, you must `ret` a value.
 
+## Method call syntax
+
+Methods don't actually exist in vaiven, which is common to dynamic languages.
+However, most dynamic languages maintain the feel of methods by using anonymous
+function members, which is an approach not taken by vaiven.
+
+Instead vaiven emulates methods via a special syntax. Any function can be called
+on a value as if it were a method, and that value becomes the first parameter.
+
+```
+toString(1) // "1"
+1.toString() // equivalent
+cmp(1, 2) // false
+1.cmp(2) // false
+```
+
+Note that this does not allow for polymorphism, as the function is a global. You
+can use tagged objects to emulate polymorphic behavior as needed, which keeps
+the language small.
+
 ## Variables
 
 Variables are scoped to their control structures and/or to functions, and/or

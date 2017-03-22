@@ -561,10 +561,42 @@ unique_ptr<ast::Expression<> > Parser::parseAccess() {
           break;
         }
         unique_ptr<StringToken> idtok(static_cast<StringToken*>(current->copy()));
-        acc = unique_ptr<ast::Expression<> >(new ast::StaticAccessExpression<> (
-            std::move(acc), idtok->lexeme));
 
         next();
+
+        if (current->type == TOKEN_TYPE_OPEN_PAREN) {
+          nextNoEol();
+          vector<unique_ptr<ast::Expression<> > > params;
+          params.push_back(std::move(acc));
+          while (current->type != TOKEN_TYPE_EOF
+              && current->type != TOKEN_TYPE_CLOSE_PAREN) {
+            TokenType prevNewlineReplacement = newlineReplacement;
+            newlineReplacement = TOKEN_TYPE_COMMA;
+            try {
+              params.push_back(parseExpression());
+              newlineReplacement = prevNewlineReplacement;
+            } catch(ParseError e) {
+              newlineReplacement = prevNewlineReplacement;
+              throw e;
+            }
+
+            if (current->type != TOKEN_TYPE_COMMA) {
+              break;
+            }
+
+            nextNoEol();
+          }
+
+          if (current->type != TOKEN_TYPE_CLOSE_PAREN) {
+            errors.push_back(ParseError("missing close paren for function call", errorLocation));
+          }
+
+          next();
+          acc = unique_ptr<ast::Expression<> >(new ast::FuncCallExpression<> (idtok->lexeme, move(params)));
+        } else {
+          acc = unique_ptr<ast::Expression<> >(new ast::StaticAccessExpression<> (
+            std::move(acc), idtok->lexeme));
+        }
       } else {
         break;
       }

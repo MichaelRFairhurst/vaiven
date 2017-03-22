@@ -12,7 +12,7 @@ strOp(4)
 strOp(true)
 strOp(false)
 strOp()
-strOp(list())
+strOp([])
 strOp(object())
 
 fn strAdd of x is
@@ -30,7 +30,7 @@ assert(strAdd(4) == 8)
 strAdd(true)
 strAdd(false)
 strAdd()
-strAdd(list())
+strAdd([])
 strAdd(object())
 
 fn strCmp of x, y is

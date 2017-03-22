@@ -3,62 +3,35 @@ var obj = object()
 fn getvoid is end
 var void = getvoid()
 
-assert(!cmp(obj, true))
-assert(!cmp(obj, false))
-assert(!cmp(obj, true))
-assert(!cmp(obj, list()))
-assert(!cmp(obj, object()))
-
-assert(obj != true)
-assert(obj != false)
-assert(obj != true)
-assert(obj != list())
 assert(obj != object())
 
-assert(cmp(obj, obj))
-assert(obj == obj)
-assert(cmp(toString(obj), "{}"))
+assert(obj.toString() == "{}")
 
-assert(len(keys(obj)) == 0)
-assert(get(obj, "foo") == void)
+assert(obj.keys().len() == 0)
 
-set(obj, "foo", "bar")
+obj.foo = "bar"
 
-assert(len(keys(obj)) == 1)
-assert(cmp(get(keys(obj), 0), "foo"))
-assert(cmp(get(obj, "foo"), "bar"))
-assert(get(obj, "bar") == void)
-assert(cmp(toString(obj), "{foo:bar}"))
-toString(obj)
+assert(obj.keys().len() == 1)
+assert(obj.keys()[0] == "foo")
+assert(obj.toString() == "{foo:bar}")
 
-set(obj, "foo", "foo")
+obj.foo = "foo"
 
-assert(len(keys(obj)) == 1)
-assert(cmp(get(keys(obj), 0), "foo"))
-assert(cmp(get(obj, "foo"), "foo"))
-assert(get(obj, "bar") == void)
-assert(cmp(toString(obj), "{foo:foo}"))
-toString(obj)
+assert(obj.keys().len() == 1)
+assert(obj.keys()[0] == "foo")
+assert(obj.toString() == "{foo:foo}")
 
-set(obj, "bar", "foo")
+obj.bar = "foo"
 
-assert(len(keys(obj)) == 2)
-assert(cmp(get(keys(obj), 1), "foo"))
-assert(cmp(get(keys(obj), 0), "bar"))
-assert(cmp(get(obj, "foo"), "foo"))
-assert(cmp(get(obj, "bar"), "foo"))
-assert(get(obj, "baz") == void)
-assert(cmp(toString(obj), "{bar:foo, foo:foo}"))
-toString(obj)
+assert(obj.keys().len() == 2)
+assert(obj.keys()[1] == "foo")
+assert(obj.keys()[0] == "bar")
+assert(obj.toString() == "{bar:foo, foo:foo}")
 
-set(obj, "foo", "bar")
+obj.foo = "bar"
 
-assert(len(keys(obj)) == 2)
-assert(cmp(get(keys(obj), 1), "foo"))
-assert(cmp(get(keys(obj), 0), "bar"))
-assert(cmp(get(obj, "foo"), "bar"))
-assert(cmp(get(obj, "bar"), "foo"))
-assert(get(obj, "baz") == void)
-assert(cmp(toString(obj), "{bar:foo, foo:bar}"))
-toString(obj)
+assert(obj.keys().len() == 2)
+assert(obj.keys()[1] == "foo")
+assert(obj.keys()[0] == "bar")
+assert(obj.toString() == "{bar:foo, foo:bar}")
 
