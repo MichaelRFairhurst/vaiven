@@ -33,19 +33,6 @@ SSA_OBJECTS = \
 	ssa/inliner.o \
 	ssa/function_merge.o \
 
-NANOJIT_OBJECTS = \
-	nanojit-central/Containers.o \
-	nanojit-central/NativeX64.o \
-	nanojit-central/avmplus.o \
-	nanojit-central/Assembler.o \
-	nanojit-central/Fragmento.o \
-	nanojit-central/RegAlloc.o \
-	nanojit-central/CodeAlloc.o \
-	nanojit-central/LIR.o \
-	nanojit-central/VMPI.o \
-	nanojit-central/njconfig.o \
-	nanojit-central/Allocator.o \
-
 ASMJIT_OBJECTS = \
 	asmjit/src/asmjit/base/arch.o \
 	asmjit/src/asmjit/base/logging.o \
