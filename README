@@ -132,6 +132,18 @@ In this case, these do the same thing.
 
 Currently, you cannot simply `ret`, you must `ret` a value.
 
+## Variables
+
+Variables are scoped to their control structures and/or to functions, and/or
+globally. Global variables are only accessable from outside functions, and
+variables cannot share a name, even in subscopes (shadowing not allowed).
+
+```
+  var x = 4
+```
+
+Currently all variables must be initialized when declared.
+
 ## If statements
 
 If statements do not require parenthesis or brackets in vaiven.
@@ -250,16 +262,29 @@ You will get a type error if you attempt to use a non-integer as an index.
 ## Objects
 
 Object literals are not yet supported, but you can make an object via the
-function `object`. It can then be used like an associative array.
+function `object`. It can then be used like an associative array, or using `.`
+member syntax.
 
 ```
-  var o = object();
-  o["foo"] = "bar";
-  o["foo"]; // "bar"
-  o["baz"]; // void
+  var o = object()
+  o.foo = "bar"
+  o.foo // "bar"
+  o["foo"] // "bar"
+
+  o["baz"] // void
+  o.baz // void
+
+  o[myVar] = "dynamic property"
+  o[myVar] // "dynamic property"
 ```
 
-Soon dot syntax and object literals will be added.
+Soon object literals will be added.
+
+## Type rules
+
+Vaiven has some loosely defined type rules, and almost no type-coersion.
+
+
 
 ## Semicolons
 
@@ -431,3 +456,56 @@ inlining into fear of code explosion. On the flip side, you can add arguments
 which are unused, since those arguments represent a chance at optimization. With
 the right compilation flags, you can track the compilers inlining decisions to
 make use of these tricks.
+
+# To Do 
+
+### Core language:
+
+* void as a keyword (and decide void, null, nil, nada?)
+* support doubles
+* object literals
+* unary -/+
+* += style operators
+* binary operators?
+* &&, || with short circuiting
+* stack traces
+* imports
+* postfix function syntax
+* void return
+* if for / for if
+* for over lists (and objects?)
+* larger std library
+* falsy values (at the very least void and empty string?)
+* have `end` act as a semicolon?
+* check type of object at runtime
+* perhaps more type coercions, like toString() before property access or
+parseInt before array access
+
+### Performance:
+
+* Common Subexpression Elimination
+* Loop Invariant Code Motion
+* Bounds check elimination
+* track "constant" lists and objects
+* Precise GC and/or better allocator for heap
+* Custom string/list/object implementation for inlinability
+* fuzz test for security/stability
+* dynamic deoptimization/on-stack optimization
+* profile jumps to reduce branching
+* profile jumps to make better inlining decisions
+* profile hash lookups to make for faster property access
+* better benchmarks
+* align jumps
+
+### Domain language
+
+Once vaiven runs as a TUI framework, it needs these things. Currently, vaiven is
+just a little VM that doesn't need any domain-related aspects.
+
+* Choose a strategy: fork the core language? Plugin model? Neither?
+* fully spec language
+* ...
+
+# Legal
+
+*This is not an official google product*. Please see LICENSE for more.
