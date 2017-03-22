@@ -284,7 +284,76 @@ Soon object literals will be added.
 
 Vaiven has some loosely defined type rules, and almost no type-coersion.
 
+For the plus operator, when one side's static type can be inferred, you will get
+an error requesting that type on the other side. When neither is inferred, you
+will get a more general error. Only strings and ints can be concattenated, and
+only with themselves.
 
+```
+[] + [] // Type Error: expected int or string
+1 + object() // Type Error: expected int
+[] + 1 // Type Error: expected int
+"" + true // Type Error: expected string
+[] + false // Type Error: expected string
+"" + 1 // Type Error: expected string
+1 + void // Type Error: expected int
+```
+
+Other math operators only support ints:
+
+```
+"" * [] // Type Error: expected int
+"" - true // Type Error: expected int
+false / "" // Type Error: expected int
+[] > object() // Type Error: expected int
+```
+
+Like `+`, `[]` is polymorphic but requires agreement between both sides. If the
+static type of one side can be inferred, you will get an error expecting the
+other operand to match. Otherwise, you will get a generic error. Lists can be
+subscripted with ints and objects can be subscripted with strings.
+
+```
+1[object()] // Type Error: expected list or object
+true[false] // Type Error: expected list or object
+1[""] // Type Error: expected object
+""[1] // Type Error: expected list
+1[""] // Type Error: expected object
+object()[1] // Type Error: expected string
+[1,2,3]["0"] // Type Error: expected int
+```
+
+Comparisons can safely cross types, and behave like `===` in js.
+
+```
+1 == true // false
+0 == "0" // false
+true == "true" // false
+[] == "" // false
+object() == "{}" // false
+```
+
+Conditions (like in if, for) and `!` *must* be bools.
+
+```
+!true // OK
+if true // OK
+if 1 // Type Error: expected bool
+  !1 // Type Error: expected bool
+end
+if "" // Type Error: expected bool
+  !"" // Type Error: expected bool
+end
+if [] // Type Error: expected bool
+  ![] // Type Error: expected bool
+end
+if void // Type Error: expected bool
+  !void // Type Error: expected bool
+end
+if object() // Type Error: expected bool
+  !object() // Type Error: expected bool
+end
+```
 
 ## Semicolons
 
@@ -477,6 +546,9 @@ make use of these tricks.
 * larger std library
 * falsy values (at the very least void and empty string?)
 * have `end` act as a semicolon?
+* comments
+* single quote strings
+* escapes inside strings
 * check type of object at runtime
 * perhaps more type coercions, like toString() before property access or
 parseInt before array access
