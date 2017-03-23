@@ -466,6 +466,18 @@ unique_ptr<Token> Tokenizer::nextOr(TokenType newlineType) {
         return unique_ptr<Token>(new StringToken(TOKEN_TYPE_STRING, string(buffer.begin(), buffer.end())));
       }
 
+    case '\'':
+      {
+        c = input.get();
+        vector<char> buffer;
+        buffer.reserve(STRING_BUFFER_RESERVE_SIZE);
+        while(c != '\'' && c != EOF) {
+          buffer.push_back(c);
+          c = input.get();
+        }
+        return unique_ptr<Token>(new StringToken(TOKEN_TYPE_STRING, string(buffer.begin(), buffer.end())));
+      }
+
     case '\t':
     case ' ':
       return nextOr(newlineType);

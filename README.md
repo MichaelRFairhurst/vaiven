@@ -54,10 +54,11 @@ modulo.
 
 ## Strings
 
-Strings are much like javascript. You can not yet use single quotes for them,
+Strings are much like javascript. You can not yet use double or single quotes,
 but you can concatenate them with `+`, and they are immutable.
 
-You can also call `toString` on any value to do type coercion.
+You can also call `toString` on any value to, for instance, turn an int into a
+string.
 
 ## Functions
 
@@ -566,7 +567,6 @@ make use of these tricks.
 * larger std library
 * falsy values (at the very least void and empty string?)
 * have `end` act as a semicolon?
-* single quote strings
 * escapes inside strings
 * check type of object at runtime
 * perhaps more type coercions, like toString() before property access or
