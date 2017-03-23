@@ -29,22 +29,22 @@ void Emitter::visitArgInstr(ArgInstr& instr) {
     cc.mov(checkArg, MAX_PTR);
     cc.cmp(instr.out, checkArg);
     cc.jg(deoptimizeLabel);
-    cc.mov(checkArg, x86::qword_ptr(instr.out));
-    cc.cmp(checkArg, GCABLE_TYPE_STRING);
+    cc.mov(checkArg.r32(), x86::dword_ptr(instr.out));
+    cc.cmp(checkArg.r32(), GCABLE_TYPE_STRING);
     cc.jne(deoptimizeLabel);
   } else if (instr.type == VAIVEN_STATIC_TYPE_LIST) {
     cc.mov(checkArg, MAX_PTR);
     cc.cmp(instr.out, checkArg);
     cc.jg(deoptimizeLabel);
-    cc.mov(checkArg, x86::qword_ptr(instr.out));
-    cc.cmp(checkArg, GCABLE_TYPE_LIST);
+    cc.mov(checkArg.r32(), x86::dword_ptr(instr.out));
+    cc.cmp(checkArg.r32(), GCABLE_TYPE_LIST);
     cc.jne(deoptimizeLabel);
   } else if (instr.type == VAIVEN_STATIC_TYPE_OBJECT) {
     cc.mov(checkArg, MAX_PTR);
     cc.cmp(instr.out, checkArg);
     cc.jg(deoptimizeLabel);
-    cc.mov(checkArg, x86::qword_ptr(instr.out));
-    cc.cmp(checkArg, GCABLE_TYPE_OBJECT);
+    cc.mov(checkArg.r32(), x86::dword_ptr(instr.out));
+    cc.cmp(checkArg.r32(), GCABLE_TYPE_OBJECT);
     cc.jne(deoptimizeLabel);
   }
 }
@@ -118,8 +118,8 @@ void Emitter::visitTypecheckInstr(TypecheckInstr& instr) {
     cc.mov(checkReg, MAX_PTR);
     cc.cmp(instr.out, checkReg);
     cc.jg(deoptimizeLabel);
-    cc.mov(checkReg, x86::qword_ptr(instr.out));
-    cc.cmp(checkReg, GCABLE_TYPE_STRING);
+    cc.mov(checkReg.r32(), x86::dword_ptr(instr.out));
+    cc.cmp(checkReg.r32(), GCABLE_TYPE_STRING);
     cc.jne(error.stringTypeErrorLabel);
     error.hasStringTypeError = true;
   }

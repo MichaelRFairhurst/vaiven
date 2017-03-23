@@ -1,0 +1,162 @@
+fn getvoid is end
+var void = getvoid()
+
+1 + true
+1 + false
+1 + void
+1 + []
+1 + object()
+true + 1
+false + 1
+void + 1
+[] + 1
+object() + 1
+
+"foo" + true
+"foo" + false
+"foo" + void
+"foo" + []
+"foo" + object()
+true + "foo"
+false + "foo"
+void + "foo"
+[] + "foo"
+object() + "foo"
+
+1 + "foo"
+"foo" + 1
+
+1 - true
+1 - false
+1 - void
+1 - "foo"
+1 - []
+1 - object()
+true - 1
+false - 1
+void - 1
+"foo" - 1
+[] - 1
+object() - 1
+
+1 * true
+1 * false
+1 * void
+1 * "foo"
+1 * []
+1 * object()
+true * 1
+false * 1
+void * 1
+"foo" * 1
+[] * 1
+object() * 1
+
+1 / true
+1 / false
+1 / void
+1 / "foo"
+1 / []
+1 / object()
+true / 1
+false / 1
+void / 1
+"foo" / 1
+[] / 1
+object() / 1
+
+1 > true
+1 > false
+1 > void
+1 > "foo"
+1 > []
+1 > object()
+true > 1
+false > 1
+void > 1
+"foo" > 1
+[] > 1
+object() > 1
+
+1 <= true
+1 <= false
+1 <= void
+1 <= "foo"
+1 <= []
+1 <= object()
+true <= 1
+false <= 1
+void <= 1
+"foo" <= 1
+[] <= 1
+object() <= 1
+
+1 > true
+1 > false
+1 > void
+1 > "foo"
+1 > []
+1 > object()
+true > 1
+false > 1
+void > 1
+"foo" > 1
+[] > 1
+object() > 1
+
+1 >= true
+1 >= false
+1 >= void
+1 >= "foo"
+1 >= []
+1 >= object()
+true >= 1
+false >= 1
+void >= 1
+"foo" >= 1
+[] >= 1
+object() >= 1
+
+1.foo
+"foo".foo
+true.foo
+false.foo
+void.foo
+[].foo
+
+1[0]
+"foo"[0]
+true[0]
+false[0]
+void[0]
+object()[0]
+
+[]["foo"]
+[][true]
+[][false]
+[][void]
+[][object()]
+
+object()[0]
+object()[true]
+object()[false]
+object()[void]
+object()[object()]
+
+!2
+!"foo"
+![]
+!void
+!object()
+
+if 2 do end
+if "foo" do end
+if [] do end
+if void do end
+if object() do end
+
+for 2 do end
+for "foo" do end
+for [] do end
+for void do end
+for object() do end

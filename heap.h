@@ -22,6 +22,8 @@ enum GcableType {
   GCABLE_TYPE_LIST = 1,
   GCABLE_TYPE_STRING = 2,
   GCABLE_TYPE_OBJECT = 4,
+
+  Internal_ForceMyEnumIntSize = 1 << 30
 };
 
 const int GcableMarkBit = 8;

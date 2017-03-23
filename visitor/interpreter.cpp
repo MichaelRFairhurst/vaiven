@@ -37,6 +37,10 @@ Value Interpreter::interpret(Node<>& root) {
 void Interpreter::visitIfStatement(IfStatement<>& stmt) {
   stmt.condition->accept(*this);
   Value condVal = stack.top(); stack.pop();
+  if (!condVal.isBool()) {
+    expectedBool();
+  }
+
   if (condVal.getBool()) {
     ScopeFrame<Value> trueScope(scope);
     for(vector<unique_ptr<Statement<> > >::iterator it = stmt.trueStatements.begin();
@@ -64,6 +68,10 @@ void Interpreter::visitForCondition(ForCondition<>& stmt) {
   do {
     stmt.condition->accept(*this);
     Value condVal = stack.top(); stack.pop();
+    if (!condVal.isBool()) {
+      expectedBool();
+    }
+
     if (!condVal.getBool()) {
       break;
     }
