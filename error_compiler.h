@@ -21,7 +21,9 @@ class ErrorCompiler {
 
   void generateTypeErrorProlog();
   void typecheckInt(asmjit::X86Gp vreg, TypedLocationInfo& info);
+  void typecheckInt(asmjit::X86Gp vreg);
   void typecheckBool(asmjit::X86Gp vreg, TypedLocationInfo& info);
+  void typecheckBool(asmjit::X86Gp vreg);
 
   X86Compiler& cc;
 

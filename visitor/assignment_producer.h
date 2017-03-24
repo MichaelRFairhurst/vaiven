@@ -14,7 +14,8 @@ using std::unique_ptr;
 class AssignmentProducer : public Visitor<> {
 
   public:
-  AssignmentProducer(unique_ptr<Expression<>> rhs) : rhs(std::move(rhs)) {};
+  AssignmentProducer(unique_ptr<Expression<>> rhs, ast::PreAssignmentOp preAssignmentOp)
+      : rhs(std::move(rhs)), preAssignmentOp(preAssignmentOp) {};
 
   virtual void visitAssignmentExpression(AssignmentExpression<>& expr);
   virtual void visitAdditionExpression(AdditionExpression<>& expr);
@@ -46,6 +47,7 @@ class AssignmentProducer : public Visitor<> {
   virtual void visitFuncDecl(FuncDecl<>& funcDecl);
   virtual void visitVarDecl(VarDecl<>& varDecl);
 
+  ast::PreAssignmentOp preAssignmentOp;
   unique_ptr<Expression<>> rhs;
   unique_ptr<Expression<>> result;
 

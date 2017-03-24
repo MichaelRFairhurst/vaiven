@@ -144,10 +144,23 @@ void AutoCompiler::visitDynamicAccessExpression(DynamicAccessExpression<TypedLoc
 void AutoCompiler::visitDynamicStoreExpression(DynamicStoreExpression<TypedLocationInfo>& expr) {
   expr.subject->accept(*this);
   expr.property->accept(*this);
-  expr.rhs->accept(*this);
-  X86Gp rhsReg = vRegs.top(); vRegs.pop();
   X86Gp propertyReg = vRegs.top(); vRegs.pop();
   X86Gp subjectReg = vRegs.top(); vRegs.pop();
+  X86Gp rhsReg;
+
+  if (expr.preAssignmentOp != ast::kPreAssignmentOpNone) {
+    CCFuncCall* access = cc.call((uint64_t) get, FuncSignature2<uint64_t, uint64_t, uint64_t>());
+    access->setArg(0, subjectReg);
+    access->setArg(1, propertyReg);
+
+    rhsReg = cc.newUInt64();
+    access->setRet(0, rhsReg);
+    doPreAssignmentOp(rhsReg, expr.preAssignmentOp, *expr.rhs);
+  } else {
+    expr.rhs->accept(*this);
+    rhsReg = vRegs.top(); vRegs.pop();
+  }
+
   CCFuncCall* store = cc.call((uint64_t) set, FuncSignature3<uint64_t, uint64_t, uint64_t, uint64_t>());
   store->setArg(0, subjectReg);
   store->setArg(1, propertyReg);
@@ -172,11 +185,24 @@ void AutoCompiler::visitStaticAccessExpression(StaticAccessExpression<TypedLocat
 
 void AutoCompiler::visitStaticStoreExpression(StaticStoreExpression<TypedLocationInfo>& expr) {
   expr.subject->accept(*this);
-  expr.rhs->accept(*this);
-  X86Gp rhsReg = vRegs.top(); vRegs.pop();
   X86Gp propertyReg = cc.newUInt64();
   X86Gp subjectReg = vRegs.top(); vRegs.pop();
   cc.mov(propertyReg, (uint64_t) &expr.property);
+  X86Gp rhsReg;
+
+  if (expr.preAssignmentOp != ast::kPreAssignmentOpNone) {
+    CCFuncCall* access = cc.call((uint64_t) objectAccessChecked, FuncSignature2<uint64_t, uint64_t, uint64_t>());
+    access->setArg(0, subjectReg);
+    access->setArg(1, propertyReg);
+
+    rhsReg = cc.newUInt64();
+    access->setRet(0, rhsReg);
+    doPreAssignmentOp(rhsReg, expr.preAssignmentOp, *expr.rhs);
+  } else {
+    expr.rhs->accept(*this);
+    rhsReg = vRegs.top(); vRegs.pop();
+  }
+
   CCFuncCall* store = cc.call((uint64_t) objectStoreChecked, FuncSignature3<uint64_t, uint64_t, uint64_t, uint64_t>());
   store->setArg(0, subjectReg);
   store->setArg(1, propertyReg);
@@ -397,7 +423,6 @@ void AutoCompiler::visitBlock(Block<TypedLocationInfo>& block) {
 }
 
 void AutoCompiler::visitAssignmentExpression(AssignmentExpression<TypedLocationInfo>& expr) {
-  expr.expr->accept(*this);
   X86Gp target;
   if (scope.contains(expr.varname)) {
     target = scope.get(expr.varname);
@@ -410,10 +435,78 @@ void AutoCompiler::visitAssignmentExpression(AssignmentExpression<TypedLocationI
       target = argRegs[expr.resolvedData.location.data.argIndex];
     }
   }
-  box(vRegs.top(), expr.expr->resolvedData);
-  cc.mov(target, vRegs.top());
-  vRegs.pop();
+
+  doPreAssignmentOp(target, expr.preAssignmentOp, *expr.expr);
+
   vRegs.push(target);
+}
+
+void AutoCompiler::doPreAssignmentOp(X86Gp currentVal, ast::PreAssignmentOp preAssignmentOp, ast::Expression<TypedLocationInfo>& newVal) {
+  if (preAssignmentOp == ast::kPreAssignmentOpAdd) {
+    if (newVal.resolvedData.location.type == LOCATION_TYPE_IMM && newVal.resolvedData.type == VAIVEN_STATIC_TYPE_INT) {
+      error.typecheckInt(currentVal);
+      cc.add(currentVal.r32(), newVal.resolvedData.location.data.imm);
+      box(currentVal, VAIVEN_STATIC_TYPE_INT);
+    } else {
+      if (newVal.resolvedData.type == VAIVEN_STATIC_TYPE_INT) {
+        newVal.accept(*this);
+        error.typecheckInt(currentVal);
+        cc.add(currentVal.r32(), vRegs.top().r32()); // overflow behavior must be 32 bit
+        vRegs.pop();
+        box(currentVal, VAIVEN_STATIC_TYPE_INT);
+      } else if (newVal.resolvedData.type == VAIVEN_STATIC_TYPE_STRING) {
+        newVal.accept(*this);
+        box(vRegs.top(), newVal.resolvedData);
+        // TODO pure string append
+        CCFuncCall* call = cc.call((uint64_t) vaiven::add, FuncSignature2<uint64_t, uint64_t, uint64_t>());
+        X86Gp result = cc.newUInt64();
+        call->setArg(0, currentVal);
+        call->setArg(1, vRegs.top());
+        call->setRet(0, currentVal);
+      } else {
+        newVal.accept(*this);
+        box(vRegs.top(), newVal.resolvedData);
+        CCFuncCall* call = cc.call((uint64_t) vaiven::add, FuncSignature2<uint64_t, uint64_t, uint64_t>());
+        X86Gp result = cc.newUInt64();
+        call->setArg(0, currentVal);
+        call->setArg(1, vRegs.top());
+        call->setRet(0, currentVal);
+      }
+    }
+  } else if (preAssignmentOp == ast::kPreAssignmentOpSub) {
+    if (newVal.resolvedData.location.type == LOCATION_TYPE_IMM) {
+      error.typecheckInt(currentVal);
+      cc.sub(currentVal.r32(), newVal.resolvedData.location.data.imm);
+      box(currentVal, VAIVEN_STATIC_TYPE_INT);
+    } else {
+      newVal.accept(*this);
+      error.typecheckInt(currentVal);
+      cc.sub(currentVal.r32(), vRegs.top().r32()); // overflow behavior must be 32 bit
+      vRegs.pop();
+      box(currentVal, VAIVEN_STATIC_TYPE_INT);
+    }
+  } else if (preAssignmentOp == ast::kPreAssignmentOpMul) {
+    newVal.accept(*this);
+    error.typecheckInt(currentVal);
+    error.typecheckInt(vRegs.top(), newVal.resolvedData);
+    cc.imul(currentVal.r32(), vRegs.top().r32()); // overflow behavior must be 32 bit
+    vRegs.pop();
+    box(currentVal, VAIVEN_STATIC_TYPE_INT);
+  } else if (preAssignmentOp == ast::kPreAssignmentOpDiv) {
+    newVal.accept(*this);
+    error.typecheckInt(currentVal);
+    error.typecheckInt(vRegs.top(), newVal.resolvedData);
+    X86Gp dummy = cc.newInt64();
+    cc.xor_(dummy, dummy);
+    cc.idiv(dummy.r32(), currentVal.r32(), vRegs.top().r32()); // overflow behavior must be 32 bit
+    vRegs.pop();
+    box(currentVal, VAIVEN_STATIC_TYPE_INT);
+  } else {
+    newVal.accept(*this);
+    box(vRegs.top(), newVal.resolvedData);
+    cc.mov(currentVal, vRegs.top());
+    vRegs.pop();
+  }
 }
 
 void AutoCompiler::visitAdditionExpression(AdditionExpression<TypedLocationInfo>& expr) {
@@ -643,16 +736,20 @@ void AutoCompiler::box(asmjit::X86Gp vReg, TypedLocationInfo& typeInfo) {
     return;
   }
 
-  if (typeInfo.type == VAIVEN_STATIC_TYPE_INT) {
+  box(vReg, typeInfo.type);
+}
+
+void AutoCompiler::box(asmjit::X86Gp vReg, VaivenStaticType type) {
+  if (type == VAIVEN_STATIC_TYPE_INT) {
     // can't use 64 bit immediates except with MOV
     X86Gp fullValue = cc.newInt64();
     cc.mov(fullValue, INT_TAG);
     cc.or_(vReg, fullValue);
-  } else if (typeInfo.type == VAIVEN_STATIC_TYPE_BOOL) {
+  } else if (type == VAIVEN_STATIC_TYPE_BOOL) {
     X86Gp fullValue = cc.newInt64();
     cc.mov(fullValue, BOOL_TAG);
     cc.or_(vReg, fullValue);
-  } else if (typeInfo.type == VAIVEN_STATIC_TYPE_DOUBLE) {
+  } else if (type == VAIVEN_STATIC_TYPE_DOUBLE) {
     X86Gp fullValue = cc.newInt64();
     cc.mov(fullValue, (uint64_t) 0xFFFFFFFFFFFFFFFF);
     // no bitwise negation, so do 1111 XOR ????

@@ -1,0 +1,51 @@
+fn inc of observable, retval is
+  observable[0] += 1
+  ret retval
+end
+
+fn run of varSoOptimizes is
+  var x = 1
+
+  assert((x += 2) == 3)
+  assert(x == 3)
+
+  assert((x -= 1) == 2)
+  assert(x == 2)
+
+  assert((x *= 2) == 4)
+  assert(x == 4)
+
+  assert((x /= 2) == 2)
+  assert(x == 2)
+
+  x = "foo"
+
+  assert((x += "bar") == "foobar")
+  assert(x == "foobar")
+
+  x = [1]
+
+  var observable = [0]
+  assert((x[inc(observable, 0)] += 3) == 4)
+  assert(x[0] == 4)
+  assert(observable[0] == 1)
+
+  var o = object()
+
+  o.foo = "foo"
+
+  assert((inc(observable, o).foo += "bar") == "foobar")
+  assert(o.foo == "foobar")
+  assert(observable[0] == 2)
+end
+
+run()
+"make hot"
+run()
+run()
+run()
+run()
+run()
+run()
+run()
+run()

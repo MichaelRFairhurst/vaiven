@@ -24,14 +24,22 @@ void AssignmentProducer::visitListLiteralExpression(ListLiteralExpression<>& exp
 }
 
 void AssignmentProducer::visitDynamicAccessExpression(DynamicAccessExpression<>& expr) {
-  result.reset(new DynamicStoreExpression<>(std::move(expr.subject), std::move(expr.property), std::move(rhs)));
+  result.reset(new DynamicStoreExpression<>(
+      std::move(expr.subject),
+      std::move(expr.property),
+      std::move(rhs),
+      preAssignmentOp));
 }
 
 void AssignmentProducer::visitDynamicStoreExpression(DynamicStoreExpression<>& expr) {
 }
 
 void AssignmentProducer::visitStaticAccessExpression(StaticAccessExpression<>& expr) {
-  result.reset(new StaticStoreExpression<>(std::move(expr.subject), expr.property, std::move(rhs)));
+  result.reset(new StaticStoreExpression<>(
+      std::move(expr.subject),
+      expr.property,
+      std::move(rhs),
+      preAssignmentOp));
 }
 
 void AssignmentProducer::visitStaticStoreExpression(StaticStoreExpression<>& expr) {
@@ -71,7 +79,7 @@ void AssignmentProducer::visitStringExpression(StringExpression<>& expr) {
 }
 
 void AssignmentProducer::visitVariableExpression(VariableExpression<>& expr) {
-  result.reset(new AssignmentExpression<>(expr.id, std::move(rhs)));
+  result.reset(new AssignmentExpression<>(expr.id, std::move(rhs), preAssignmentOp));
 }
 
 void AssignmentProducer::visitBoolLiteral(BoolLiteral<>& expr) {

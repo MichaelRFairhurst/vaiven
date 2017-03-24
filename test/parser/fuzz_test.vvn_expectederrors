@@ -315,7 +315,6 @@ Parse Error: missing semicolon (or newline) at end of expression at function wit
 Parse Error: expected expression, got a close paren at function without a name
 Parse Error: tried to parse a value, but got an unknown token at function without a name
 Parse Error: tried to parse a value, but got an unknown token at function without a name
-Parse Error: tried to parse a value, but got an unknown token at function without a name
 Parse Error: missing semicolon (or newline) at end of expression at function without a name
 Parse Error: tried to parse a value, but got an unknown token at function without a name
 Parse Error: missing semicolon (or newline) at end of expression at function without a name
@@ -592,7 +591,6 @@ Parse Error: tried to parse a value, but got an unknown token at function falser
 Parse Error: missing semicolon (or newline) at end of expression at function falseret
 Parse Error: tried to parse a value, but got an unknown token at function falseret
 Parse Error: tried to parse a value, but got an unknown token at function falseret
-Parse Error: tried to parse a value, but got an unknown token at function falseret
 Parse Error: missing semicolon (or newline) at end of expression at function falseret
 Parse Error: tried to parse a value, but got an unknown token at function falseret
 Parse Error: tried to parse a value, but got an unknown token at function falseret
@@ -729,7 +727,7 @@ Parse Error: tried to parse a value, but got an unknown token at top level
 Parse Error: missing semicolon (or newline) at end of expression at top level
 Parse Error: missing semicolon (or newline) at end of expression at top level
 Parse Error: missing semicolon (or newline) at end of expression at top level
-Error: Accessed a var that does not exist
+Error: Got a non-boolean in a boolean operation
 Parse Error: tried to parse a value, but got an unknown token at top level
 Parse Error: tried to parse a value, but got an unknown token at top level
 Error: Accessed a var that does not exist
@@ -742,7 +740,7 @@ Parse Error: missing semicolon (or newline) at end of expression at top level
 Parse Error: tried to parse a value, but got an unknown token at top level
 Parse Error: missing semicolon (or newline) at end of expression at top level
 Parse Error: tried to parse a value, but got an unknown token at top level
-Error: Accessed a var that does not exist
+Error: Got a non-boolean in a boolean operation
 Parse Error: missing close paren for subexpression at top level
 Parse Error: missing semicolon (or newline) at end of expression at top level
 Error: Accessed a var that does not exist
@@ -1016,7 +1014,7 @@ Parse Error: missing semicolon (or newline) at end of expression at top level
 Parse Error: tried to parse a value, but got an unknown token at top level
 Parse Error: missing semicolon (or newline) at end of expression at top level
 Parse Error: missing semicolon (or newline) at end of expression at top level
-Error: Accessed a var that does not exist
+Error: Got a non-boolean in a boolean operation
 Parse Error: missing semicolon (or newline) at end of expression at top level
 Error: Accessed a var that does not exist
 Parse Error: tried to parse a value, but got an unknown token at top level

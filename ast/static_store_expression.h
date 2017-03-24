@@ -4,6 +4,7 @@
 #include <memory>
 #include <string>
 #include "expression.h"
+#include "pre_assignment_op.h"
 
 using std::unique_ptr;
 using std::string;
@@ -17,8 +18,9 @@ class StaticStoreExpression : public Expression<RD> {
   StaticStoreExpression(
       unique_ptr<Expression<RD> > subject,
       string property,
-      unique_ptr<Expression<RD> > rhs)
-      : subject(std::move(subject)), property(property), rhs(std::move(rhs)) {};
+      unique_ptr<Expression<RD> > rhs,
+      PreAssignmentOp preAssignmentOp)
+      : subject(std::move(subject)), property(property), rhs(std::move(rhs)), preAssignmentOp(preAssignmentOp) {};
 
   void accept(Visitor<RD>& v) {
     return v.visitStaticStoreExpression(*this);
@@ -28,6 +30,7 @@ class StaticStoreExpression : public Expression<RD> {
   unique_ptr<Expression<RD> > subject;
   string property;
   unique_ptr<Expression<RD> > rhs;
+  PreAssignmentOp preAssignmentOp;
 };
 
 }}

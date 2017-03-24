@@ -547,7 +547,7 @@ which are unused, since those arguments represent a chance at optimization. With
 the right compilation flags, you can track the compilers inlining decisions to
 make use of these tricks.
 
-# To Do 
+# To Do
 
 ### Core language:
 
@@ -555,7 +555,6 @@ make use of these tricks.
 * support doubles
 * object literals
 * unary -/+
-* += style operators
 * binary operators?
 * &&, || with short circuiting
 * stack traces

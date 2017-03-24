@@ -374,8 +374,16 @@ unique_ptr<Token> Tokenizer::nextOr(TokenType newlineType) {
     case '.':
       return unique_ptr<Token>(new Token(TOKEN_TYPE_DOT));
     case '+':
+      if (input.peek() == '=') {
+        input.get();
+        return unique_ptr<Token>(new Token(TOKEN_TYPE_PLUSEQ));
+      }
       return unique_ptr<Token>(new Token(TOKEN_TYPE_PLUS));
     case '-':
+      if (input.peek() == '=') {
+        input.get();
+        return unique_ptr<Token>(new Token(TOKEN_TYPE_SUBEQ));
+      }
       return unique_ptr<Token>(new Token(TOKEN_TYPE_MINUS));
     case '(':
       return unique_ptr<Token>(new Token(TOKEN_TYPE_OPEN_PAREN));
@@ -390,6 +398,10 @@ unique_ptr<Token> Tokenizer::nextOr(TokenType newlineType) {
     case '}':
       return unique_ptr<Token>(new Token(TOKEN_TYPE_CLOSE_BRACE));
     case '*':
+      if (input.peek() == '=') {
+        input.get();
+        return unique_ptr<Token>(new Token(TOKEN_TYPE_MULEQ));
+      }
       return unique_ptr<Token>(new Token(TOKEN_TYPE_MULTIPLY));
     case '/':
       // Comments
@@ -403,6 +415,9 @@ unique_ptr<Token> Tokenizer::nextOr(TokenType newlineType) {
         } else {
           return unique_ptr<Token>(new Token(newlineType));
         }
+      } else if (input.peek() == '=') {
+        input.get();
+        return unique_ptr<Token>(new Token(TOKEN_TYPE_DIVEQ));
       } else {
         return unique_ptr<Token>(new Token(TOKEN_TYPE_DIVIDE));
       }

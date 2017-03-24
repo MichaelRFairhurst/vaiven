@@ -321,23 +321,35 @@ unique_ptr<ast::Expression<> > Parser::parseAssignmentExpression() {
       && current->type != TOKEN_TYPE_DO
       && current->type != TOKEN_TYPE_EOF) {
 
+    ast::PreAssignmentOp preAssignmentOp;
     if (current->type == TOKEN_TYPE_EQ) {
-      nextNoEol();
-      try {
-        unique_ptr<ast::Expression<> > rhs = parseAssignmentExpression();
-        AssignmentProducer assignmentProducer(std::move(rhs));
-        lhs->accept(assignmentProducer);
-        if (assignmentProducer.result.get() == NULL) {
-          errors.push_back(ParseError("assignment to a nonassignable expression", errorLocation));
-          break;
-        }
-        return std::move(assignmentProducer.result);
-      } catch(ParseError e) {
-        errors.push_back(e);
-        return lhs;
-      }
+      preAssignmentOp = ast::kPreAssignmentOpNone;
+    } else if (current->type == TOKEN_TYPE_PLUSEQ) {
+      preAssignmentOp = ast::kPreAssignmentOpAdd;
+    } else if (current->type == TOKEN_TYPE_SUBEQ) {
+      preAssignmentOp = ast::kPreAssignmentOpSub;
+    } else if (current->type == TOKEN_TYPE_MULEQ) {
+      preAssignmentOp = ast::kPreAssignmentOpMul;
+    } else if (current->type == TOKEN_TYPE_DIVEQ) {
+      preAssignmentOp = ast::kPreAssignmentOpDiv;
     } else {
+      // error to be caught later likely
       break;
+    }
+
+    nextNoEol();
+    try {
+      unique_ptr<ast::Expression<> > rhs = parseAssignmentExpression();
+      AssignmentProducer assignmentProducer(std::move(rhs), preAssignmentOp);
+      lhs->accept(assignmentProducer);
+      if (assignmentProducer.result.get() == NULL) {
+        errors.push_back(ParseError("assignment to a nonassignable expression", errorLocation));
+        break;
+      }
+      return std::move(assignmentProducer.result);
+    } catch(ParseError e) {
+      errors.push_back(e);
+      return lhs;
     }
   }
 
@@ -353,6 +365,10 @@ unique_ptr<ast::Expression<> > Parser::parseEqualityExpression() {
       && current->type != TOKEN_TYPE_COMMA
       && current->type != TOKEN_TYPE_DO
       && current->type != TOKEN_TYPE_EQ
+      && current->type != TOKEN_TYPE_PLUSEQ
+      && current->type != TOKEN_TYPE_SUBEQ
+      && current->type != TOKEN_TYPE_MULEQ
+      && current->type != TOKEN_TYPE_DIVEQ
       && current->type != TOKEN_TYPE_EOF) {
 
     try {
@@ -387,6 +403,10 @@ unique_ptr<ast::Expression<> > Parser::parseComparisonExpression() {
       && current->type != TOKEN_TYPE_COMMA
       && current->type != TOKEN_TYPE_DO
       && current->type != TOKEN_TYPE_EQ
+      && current->type != TOKEN_TYPE_PLUSEQ
+      && current->type != TOKEN_TYPE_SUBEQ
+      && current->type != TOKEN_TYPE_MULEQ
+      && current->type != TOKEN_TYPE_DIVEQ
       && current->type != TOKEN_TYPE_EQEQ
       && current->type != TOKEN_TYPE_BANGEQ
       && current->type != TOKEN_TYPE_EOF) {
@@ -433,6 +453,10 @@ unique_ptr<ast::Expression<> > Parser::parseAddSubExpression() {
       && current->type != TOKEN_TYPE_COMMA
       && current->type != TOKEN_TYPE_DO
       && current->type != TOKEN_TYPE_EQ
+      && current->type != TOKEN_TYPE_PLUSEQ
+      && current->type != TOKEN_TYPE_SUBEQ
+      && current->type != TOKEN_TYPE_MULEQ
+      && current->type != TOKEN_TYPE_DIVEQ
       && current->type != TOKEN_TYPE_EQEQ
       && current->type != TOKEN_TYPE_BANGEQ
       && current->type != TOKEN_TYPE_GT
@@ -477,6 +501,10 @@ unique_ptr<ast::Expression<> > Parser::parseDivMulExpression() {
       && current->type != TOKEN_TYPE_CLOSE_BRACKET
       && current->type != TOKEN_TYPE_DO
       && current->type != TOKEN_TYPE_EQ
+      && current->type != TOKEN_TYPE_PLUSEQ
+      && current->type != TOKEN_TYPE_SUBEQ
+      && current->type != TOKEN_TYPE_MULEQ
+      && current->type != TOKEN_TYPE_DIVEQ
       && current->type != TOKEN_TYPE_EQEQ
       && current->type != TOKEN_TYPE_BANGEQ
       && current->type != TOKEN_TYPE_GT
@@ -521,6 +549,10 @@ unique_ptr<ast::Expression<> > Parser::parseAccess() {
       && current->type != TOKEN_TYPE_CLOSE_BRACKET
       && current->type != TOKEN_TYPE_DO
       && current->type != TOKEN_TYPE_EQ
+      && current->type != TOKEN_TYPE_PLUSEQ
+      && current->type != TOKEN_TYPE_SUBEQ
+      && current->type != TOKEN_TYPE_MULEQ
+      && current->type != TOKEN_TYPE_DIVEQ
       && current->type != TOKEN_TYPE_EQEQ
       && current->type != TOKEN_TYPE_BANGEQ
       && current->type != TOKEN_TYPE_GT

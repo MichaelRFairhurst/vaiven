@@ -151,8 +151,8 @@ void LocationResolver::visitDynamicStoreExpression(DynamicStoreExpression<>& exp
   exprCopyStack.pop();
   unique_ptr<Expression<TypedLocationInfo> > rhs(move(exprCopyStack.top()));
   exprCopyStack.pop();
-  TypedLocationInfo loc = rhs->resolvedData;
-  unique_ptr<Expression<TypedLocationInfo> > copy(new DynamicStoreExpression<TypedLocationInfo>(move(subject), move(property), move(rhs)));
+  TypedLocationInfo loc(Location::spilled(), rhs->resolvedData.type, true);
+  unique_ptr<Expression<TypedLocationInfo> > copy(new DynamicStoreExpression<TypedLocationInfo>(move(subject), move(property), move(rhs), expr.preAssignmentOp));
   copy->resolvedData = loc;
   exprCopyStack.push(copy.release());
 }
@@ -174,8 +174,8 @@ void LocationResolver::visitStaticStoreExpression(StaticStoreExpression<>& expr)
   exprCopyStack.pop();
   unique_ptr<Expression<TypedLocationInfo> > rhs(move(exprCopyStack.top()));
   exprCopyStack.pop();
-  TypedLocationInfo loc = rhs->resolvedData;
-  unique_ptr<Expression<TypedLocationInfo> > copy(new StaticStoreExpression<TypedLocationInfo>(move(subject), expr.property, move(rhs)));
+  TypedLocationInfo loc(Location::spilled(), rhs->resolvedData.type, true);
+  unique_ptr<Expression<TypedLocationInfo> > copy(new StaticStoreExpression<TypedLocationInfo>(move(subject), expr.property, move(rhs), expr.preAssignmentOp));
   copy->resolvedData = loc;
   exprCopyStack.push(copy.release());
 }
@@ -249,7 +249,7 @@ void LocationResolver::visitAssignmentExpression(AssignmentExpression<>& expr) {
   unique_ptr<Expression<TypedLocationInfo> > inner(move(exprCopyStack.top()));
   exprCopyStack.pop();
   loc.type = inner->resolvedData.type;
-  unique_ptr<Expression<TypedLocationInfo> > copy(new AssignmentExpression<TypedLocationInfo>(expr.varname, move(inner)));
+  unique_ptr<Expression<TypedLocationInfo> > copy(new AssignmentExpression<TypedLocationInfo>(expr.varname, move(inner), expr.preAssignmentOp));
   copy->resolvedData = loc;
   exprCopyStack.push(copy.release());
 }

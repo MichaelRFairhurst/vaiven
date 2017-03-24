@@ -4,6 +4,7 @@
 #include <memory>
 #include <string>
 #include "expression.h"
+#include "pre_assignment_op.h"
 
 using std::unique_ptr;
 using std::string;
@@ -17,8 +18,9 @@ class DynamicStoreExpression : public Expression<RD> {
   DynamicStoreExpression(
       unique_ptr<Expression<RD> > subject,
       unique_ptr<Expression<RD> > property,
-      unique_ptr<Expression<RD> > rhs)
-    : property(std::move(property)), subject(std::move(subject)), rhs(std::move(rhs)) {};
+      unique_ptr<Expression<RD> > rhs,
+      PreAssignmentOp preAssignmentOp)
+    : property(std::move(property)), subject(std::move(subject)), rhs(std::move(rhs)), preAssignmentOp(preAssignmentOp) {};
 
   void accept(Visitor<RD>& v) {
     return v.visitDynamicStoreExpression(*this);
@@ -28,6 +30,7 @@ class DynamicStoreExpression : public Expression<RD> {
   unique_ptr<Expression<RD> > subject;
   unique_ptr<Expression<RD> > property;
   unique_ptr<Expression<RD> > rhs;
+  PreAssignmentOp preAssignmentOp;
 };
 
 }}

@@ -67,30 +67,38 @@ void vaiven::ErrorCompiler::generateTypeErrorProlog() {
 
 void vaiven::ErrorCompiler::typecheckInt(asmjit::X86Gp vreg, TypedLocationInfo& typeInfo) {
   if (typeInfo.type == VAIVEN_STATIC_TYPE_UNKNOWN) {
-    X86Gp testReg = cc.newInt64();
-    cc.mov(testReg, vreg);
-    cc.shr(testReg, VALUE_TAG_SHIFT);
-    cc.cmp(testReg, INT_TAG_SHIFTED);
-    cc.jne(intTypeErrorLabel);
-
-    hasIntTypeError = true;
+    typecheckInt(vreg);
   } else if (typeInfo.type != VAIVEN_STATIC_TYPE_INT) {
     cc.jmp(intTypeErrorLabel);
     hasIntTypeError = true;
   }
 }
 
+void vaiven::ErrorCompiler::typecheckInt(asmjit::X86Gp vreg) {
+  X86Gp testReg = cc.newInt64();
+  cc.mov(testReg, vreg);
+  cc.shr(testReg, VALUE_TAG_SHIFT);
+  cc.cmp(testReg, INT_TAG_SHIFTED);
+  cc.jne(intTypeErrorLabel);
+
+  hasIntTypeError = true;
+}
+
 void vaiven::ErrorCompiler::typecheckBool(asmjit::X86Gp vreg, TypedLocationInfo& typeInfo) {
   if (typeInfo.type == VAIVEN_STATIC_TYPE_UNKNOWN) {
-    X86Gp testReg = cc.newInt64();
-    cc.mov(testReg, vreg);
-    cc.shr(testReg, VALUE_TAG_SHIFT);
-    cc.cmp(testReg, BOOL_TAG_SHIFTED);
-    cc.jne(boolTypeErrorLabel);
-
-    hasBoolTypeError = true;
+    typecheckBool(vreg);
   } else if (typeInfo.type != VAIVEN_STATIC_TYPE_BOOL) {
     cc.jmp(intTypeErrorLabel);
     hasBoolTypeError = true;
   }
+}
+
+void vaiven::ErrorCompiler::typecheckBool(asmjit::X86Gp vreg) {
+  X86Gp testReg = cc.newInt64();
+  cc.mov(testReg, vreg);
+  cc.shr(testReg, VALUE_TAG_SHIFT);
+  cc.cmp(testReg, BOOL_TAG_SHIFTED);
+  cc.jne(boolTypeErrorLabel);
+
+  hasBoolTypeError = true;
 }

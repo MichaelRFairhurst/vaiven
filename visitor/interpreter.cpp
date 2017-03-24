@@ -135,8 +135,49 @@ void Interpreter::visitDynamicStoreExpression(DynamicStoreExpression<>& expr) {
   Value property = stack.top(); stack.pop();
   Value subject = stack.top(); stack.pop();
 
-  vaiven::set(subject, property, rhs);
-  stack.push(rhs);
+  switch (expr.preAssignmentOp) {
+    case ast::kPreAssignmentOpNone:
+      vaiven::set(subject, property, rhs);
+      stack.push(rhs);
+      break;
+
+    case ast::kPreAssignmentOpAdd: {
+      Value result = vaiven::add(vaiven::get(subject, property), rhs);
+      vaiven::set(subject, property, result);
+      stack.push(result);
+      break;
+    }
+    case ast::kPreAssignmentOpSub: {
+      Value lhs = vaiven::get(subject, property);
+      if (!rhs.isInt() || !lhs.isInt()) {
+        expectedInt();
+      }
+      Value result = Value(lhs.getInt() - rhs.getInt());
+      vaiven::set(subject, property, result);
+      stack.push(result);
+      break;
+    }
+    case ast::kPreAssignmentOpMul: {
+      Value lhs = vaiven::get(subject, property);
+      if (!rhs.isInt() || !lhs.isInt()) {
+        expectedInt();
+      }
+      Value result = Value(lhs.getInt() * rhs.getInt());
+      vaiven::set(subject, property, result);
+      stack.push(result);
+      break;
+    }
+    case ast::kPreAssignmentOpDiv: {
+      Value lhs = vaiven::get(subject, property);
+      if (!rhs.isInt() || !lhs.isInt()) {
+        expectedInt();
+      }
+      Value result = Value(lhs.getInt() / rhs.getInt());
+      vaiven::set(subject, property, result);
+      stack.push(result);
+      break;
+    }
+  }
 }
 
 void Interpreter::visitStaticAccessExpression(StaticAccessExpression<>& expr) {
@@ -152,8 +193,49 @@ void Interpreter::visitStaticStoreExpression(StaticStoreExpression<>& expr) {
   Value rhs = stack.top(); stack.pop();
   Value subject = stack.top(); stack.pop();
 
-  vaiven::objectStoreChecked(subject, expr.property, rhs);
-  stack.push(rhs);
+  switch (expr.preAssignmentOp) {
+    case ast::kPreAssignmentOpNone:
+      vaiven::objectStoreChecked(subject, expr.property, rhs);
+      stack.push(rhs);
+      break;
+
+    case ast::kPreAssignmentOpAdd: {
+      Value result = vaiven::add(vaiven::objectAccessChecked(subject, expr.property), rhs);
+      vaiven::objectStoreUnchecked((GcableObject*) subject.getPtr(), expr.property, result);
+      stack.push(result);
+      break;
+    }
+    case ast::kPreAssignmentOpSub: {
+      Value lhs = vaiven::objectAccessChecked(subject, expr.property);
+      if (!rhs.isInt() || !lhs.isInt()) {
+        expectedInt();
+      }
+      Value result = Value(lhs.getInt() - rhs.getInt());
+      vaiven::objectStoreUnchecked((GcableObject*) subject.getPtr(), expr.property, result);
+      stack.push(result);
+      break;
+    }
+    case ast::kPreAssignmentOpMul: {
+      Value lhs = vaiven::objectAccessChecked(subject, expr.property);
+      if (!rhs.isInt() || !lhs.isInt()) {
+        expectedInt();
+      }
+      Value result = Value(lhs.getInt() * rhs.getInt());
+      vaiven::objectStoreUnchecked((GcableObject*) subject.getPtr(), expr.property, result);
+      stack.push(result);
+      break;
+    }
+    case ast::kPreAssignmentOpDiv: {
+      Value lhs = vaiven::objectAccessChecked(subject, expr.property);
+      if (!rhs.isInt() || !lhs.isInt()) {
+        expectedInt();
+      }
+      Value result = Value(lhs.getInt() / rhs.getInt());
+      vaiven::objectStoreUnchecked((GcableObject*) subject.getPtr(), expr.property, result);
+      stack.push(result);
+      break;
+    }
+  }
 }
 
 void Interpreter::visitFuncCallExpression(FuncCallExpression<>& expr) {
@@ -235,8 +317,53 @@ void Interpreter::visitBlock(Block<>& block) {
 void Interpreter::visitAssignmentExpression(AssignmentExpression<>& expr) {
   expr.expr->accept(*this);
   if (scope.contains(expr.varname)) {
-    scope.replace(expr.varname, stack.top());
-    stack.pop();
+    switch (expr.preAssignmentOp) {
+      case ast::kPreAssignmentOpNone:
+        scope.replace(expr.varname, stack.top());
+        break;
+      case ast::kPreAssignmentOpAdd: {
+        Value left = scope.get(expr.varname);
+        Value right = stack.top();
+        Value result = vaiven::add(left, right);
+        scope.replace(expr.varname, result);
+        stack.pop();
+        stack.push(result);
+        break;
+      }
+      case ast::kPreAssignmentOpSub: {
+        Value left = scope.get(expr.varname);
+        Value right = stack.top();
+        if (!right.isInt() || !left.isInt()) {
+          expectedInt();
+        }
+        Value result = Value(left.getInt() - right.getInt());
+        scope.replace(expr.varname, result);
+        stack.push(result);
+        break;
+      }
+      case ast::kPreAssignmentOpMul: {
+        Value left = scope.get(expr.varname);
+        Value right = stack.top();
+        if (!right.isInt() || !left.isInt()) {
+          expectedInt();
+        }
+        Value result = Value(left.getInt() * right.getInt());
+        scope.replace(expr.varname, result);
+        stack.push(result);
+        break;
+      }
+      case ast::kPreAssignmentOpDiv: {
+        Value left = scope.get(expr.varname);
+        Value right = stack.top();
+        if (!right.isInt() || !left.isInt()) {
+          expectedInt();
+        }
+        Value result = Value(left.getInt() / right.getInt());
+        scope.replace(expr.varname, result);
+        stack.push(result);
+        break;
+      }
+    }
   } else {
     noSuchVar();
   }

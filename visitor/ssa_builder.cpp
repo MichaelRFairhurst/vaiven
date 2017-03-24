@@ -262,6 +262,32 @@ void SsaBuilder::visitDynamicStoreExpression(DynamicStoreExpression<TypedLocatio
   Instruction* property = cur;
   expr.rhs->accept(*this);
   Instruction* rhs = cur;
+
+  switch (expr.preAssignmentOp) {
+    case kPreAssignmentOpNone:
+      break;
+    case kPreAssignmentOpAdd:
+      emit(new DynamicAccessInstr(subject, property));
+      emit(new AddInstr(cur, rhs));
+      rhs = cur;
+      break;
+    case kPreAssignmentOpSub:
+      emit(new DynamicAccessInstr(subject, property));
+      emit(new SubInstr(cur, rhs));
+      rhs = cur;
+      break;
+    case kPreAssignmentOpMul:
+      emit(new DynamicAccessInstr(subject, property));
+      emit(new MulInstr(cur, rhs));
+      rhs = cur;
+      break;
+    case kPreAssignmentOpDiv:
+      emit(new DynamicAccessInstr(subject, property));
+      emit(new DivInstr(cur, rhs));
+      rhs = cur;
+      break;
+  }
+
   emit(new DynamicStoreInstr(subject, property, rhs));
 }
 
@@ -276,6 +302,32 @@ void SsaBuilder::visitStaticStoreExpression(StaticStoreExpression<TypedLocationI
   Instruction* subject = cur;
   expr.rhs->accept(*this);
   Instruction* rhs = cur;
+
+  switch (expr.preAssignmentOp) {
+    case kPreAssignmentOpNone:
+      break;
+    case kPreAssignmentOpAdd:
+      emit(new ObjectAccessInstr(subject, &expr.property));
+      emit(new AddInstr(cur, rhs));
+      rhs = cur;
+      break;
+    case kPreAssignmentOpSub:
+      emit(new ObjectAccessInstr(subject, &expr.property));
+      emit(new SubInstr(cur, rhs));
+      rhs = cur;
+      break;
+    case kPreAssignmentOpMul:
+      emit(new ObjectAccessInstr(subject, &expr.property));
+      emit(new MulInstr(cur, rhs));
+      rhs = cur;
+      break;
+    case kPreAssignmentOpDiv:
+      emit(new ObjectAccessInstr(subject, &expr.property));
+      emit(new DivInstr(cur, rhs));
+      rhs = cur;
+      break;
+  }
+
   emit(new ObjectStoreInstr(subject, &expr.property, rhs));
 }
 
@@ -323,6 +375,23 @@ void SsaBuilder::visitAssignmentExpression(AssignmentExpression<TypedLocationInf
   // x = y; if foo do x = z; ... use phi after block
   if (scope.inHigherScope(expr.varname)) {
     varsToPhi.insert(expr.varname);
+  }
+
+  switch (expr.preAssignmentOp) {
+    case kPreAssignmentOpNone:
+      break;
+    case kPreAssignmentOpAdd:
+      emit(new AddInstr(scope.get(expr.varname), cur));
+      break;
+    case kPreAssignmentOpSub:
+      emit(new SubInstr(scope.get(expr.varname), cur));
+      break;
+    case kPreAssignmentOpMul:
+      emit(new MulInstr(scope.get(expr.varname), cur));
+      break;
+    case kPreAssignmentOpDiv:
+      emit(new DivInstr(scope.get(expr.varname), cur));
+      break;
   }
 
   scope.replace(expr.varname, cur);

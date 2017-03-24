@@ -60,6 +60,7 @@ class AutoCompiler : public Visitor<TypedLocationInfo> {
   virtual void visitFuncDecl(FuncDecl<TypedLocationInfo>& funcDecl);
   virtual void visitVarDecl(VarDecl<TypedLocationInfo>& varDecl);
 
+  void doPreAssignmentOp(asmjit::X86Gp currentVal, ast::PreAssignmentOp preAssignmentOp, ast::Expression<TypedLocationInfo>& newVal);
   void doCmpIntExpression(Expression<TypedLocationInfo>& left, Expression<TypedLocationInfo>& right);
   void doCmpNotExpression(NotExpression<TypedLocationInfo>& expr);
   // returns if ended in jmp or vreg
@@ -72,6 +73,7 @@ class AutoCompiler : public Visitor<TypedLocationInfo> {
   void typecheckInt(asmjit::X86Gp vreg, TypedLocationInfo& info);
   void typecheckBool(asmjit::X86Gp vreg, TypedLocationInfo& info);
   void box(asmjit::X86Gp vreg, TypedLocationInfo& info);
+  void box(asmjit::X86Gp vreg, VaivenStaticType type);
 
   X86Compiler& cc;
   asmjit::CodeHolder& codeHolder;
