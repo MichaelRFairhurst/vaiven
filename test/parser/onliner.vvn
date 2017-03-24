@@ -1,0 +1,24 @@
+if true do 'something with semi'; end
+if true do 'something without semi' end
+if true do 'multiple'; 'things'; 'semi'; end
+if true do 'multiple'; 'things'; 'no semi' end
+
+if true
+else do 'something with semi'; end
+if true
+else do 'something without semi' end
+if true
+else do 'multiple'; 'things'; 'semi'; end
+if true
+else do 'multiple'; 'things'; 'no semi' end
+
+for false do 'something with semi'; end
+for false do 'something without semi' end
+for false do 'multiple'; 'things'; 'semi'; end
+for false do 'multiple'; 'things'; 'no semi' end
+
+if true do 'something with semi'; else do 'something with semi'; end
+if true do 'something without semi' else do 'something without semi' end
+if true do 'multiple'; 'things'; 'semi'; else do 'multiple'; 'things'; 'semi'; end
+if true do 'multiple'; 'things'; 'no semi' else do 'multiple'; 'things'; 'no semi' end
+

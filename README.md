@@ -213,22 +213,27 @@ be careful that this is not the same:
   end
 ```
 
-This actually requires one more `end` to finish the statement. See the section
-on semicolons for why.
+This actually requires one more `end` to finish the statement. While vaiven
+makes semicolons optional, it does not have whitespace significance. See the
+section on semicolons for why this example is treated as if `hasShoes` in
+*within* rather than *after* the `else` statement. 
 
 ### One line control structures
 
 Control structures can be put on a single line, but you must use the `do`
-keyword, semicolons, and `end`. This may be relaxed in the future.
+keyword and `end`. (The requirement for `end` may be relaxed in the future)
 
 ```
-  if true do print("true"); end
+  if true do print("true") end
+  if true do print("true") else do print("false") end
 
   if false
     ...
-  else if foo do print("foo"); end
-  else do print("false"); end
+  else if foo do print("foo") end
+  else do print("false") end
 ```
+
+having to use `do` after `else` may also be relaxed in the future.
 
 You can see the section on semicolons for why.
 
@@ -243,11 +248,10 @@ loop. It simply runs the following block as long as the condition is true.
   end
 ```
 
-Like if and else if, this can be put on one line using `do`, semicolons, and
-`end`.
+Like if and else if, this can be put on one line using `do` and `end`.
 
 ```
-  for x < 10 do x = x + 1; end
+  for x < 10 do x = x + 1 end
 ```
 
 ## Lists
@@ -413,7 +417,13 @@ Therefore, the above code is exactly equivalent to
 
 and this is why the oneline versions of if/for/else look like the original
 grammar; `do` is the semicolon of control structors, and so both are optional.
-And commas are the semicolons of parameter lists, so we made those optional too.
+But one-liners require them.
+
+To make `if true do something; end` a little cleaner, we also made `end` suffice
+in place of a semicolon, but leave it for the enclosing statement to consume.
+
+And since commas are the semicolons of parameter lists, so we made those
+optional too.
 
 ```
   foo(
@@ -422,7 +432,7 @@ And commas are the semicolons of parameter lists, so we made those optional too.
   )
 ```
 
-Newlines can also fill in for `is`, and thats why the shorthand function syntax
+Newlines can also fill in for `is`, and that's why the shorthand function syntax
 works:
 
 ```
@@ -462,9 +472,11 @@ structure. It is not unique to else if, as you can also do else for.
   end
 ```
 
-and the same logic will applies to `if` and `for` as well:
+and the same logic will applies to `if` and `for` and `ret` as well:
 
 ```
+  if a ret 4
+
   if x for y
     ...
     y = y + 1
@@ -473,6 +485,8 @@ and the same logic will applies to `if` and `for` as well:
   for z if q
     ...
   end
+
+  for z if q ret a
 ```
 
 So `else if` is not special. All control structures can be blended as desired!
@@ -560,11 +574,9 @@ make use of these tricks.
 * imports
 * postfix function syntax
 * void return
-* if for / for if
 * for over lists (and objects?)
 * larger std library
 * falsy values (at the very least void and empty string?)
-* have `end` act as a semicolon?
 * escapes inside strings
 * check type of object at runtime
 * perhaps more type coercions, like toString() before property access or

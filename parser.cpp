@@ -140,7 +140,9 @@ unique_ptr<ast::VarDecl<> > Parser::parseVarDecl() {
   }
 
   unique_ptr<ast::Expression<> > initializer = parseExpression();
-  if (current->type != TOKEN_TYPE_SEMICOLON) {
+  if (current->type == TOKEN_TYPE_END || current->type == TOKEN_TYPE_ELSE) {
+    ignoreNextNext = true; // end will be consumed otherwise after this
+  } else if (current->type != TOKEN_TYPE_SEMICOLON) {
     errors.push_back(ParseError("missing semicolon after var declaration", errorLocation));
     ignoreNextNext = true; // the error token will be consumed by the container without this
   }
@@ -287,11 +289,10 @@ unique_ptr<ast::ReturnStatement<> > Parser::parseReturnStatement() {
   next();
   unique_ptr<ast::ReturnStatement<> > stmt(new ast::ReturnStatement<>(parseExpression()));
 
-  if (current->type != TOKEN_TYPE_SEMICOLON) {
+  if (current->type == TOKEN_TYPE_END || current->type == TOKEN_TYPE_ELSE) {
+    ignoreNextNext = true; // end will be consumed otherwise after this
+  } else if (current->type != TOKEN_TYPE_SEMICOLON) {
     errors.push_back(ParseError("missing semicolon (or newline) at end of return", errorLocation));
-    if (current->type == TOKEN_TYPE_END) {
-      ignoreNextNext = true; // the error token will be consumed by the container without this
-    }
   }
   
   return std::move(stmt);
@@ -300,11 +301,10 @@ unique_ptr<ast::ReturnStatement<> > Parser::parseReturnStatement() {
 unique_ptr<ast::ExpressionStatement<> > Parser::parseExpressionStatement() {
   unique_ptr<ast::ExpressionStatement<> > stmt(new ast::ExpressionStatement<>(parseExpression()));
 
-  if (current->type != TOKEN_TYPE_SEMICOLON) {
+  if (current->type == TOKEN_TYPE_END || current->type == TOKEN_TYPE_ELSE) {
+    ignoreNextNext = true; // end will be consumed otherwise after this
+  } else if (current->type != TOKEN_TYPE_SEMICOLON) {
     errors.push_back(ParseError("missing semicolon (or newline) at end of expression", errorLocation));
-    if (current->type == TOKEN_TYPE_END) {
-      ignoreNextNext = true; // the error token will be consumed by the container without this
-    }
   }
   
   return std::move(stmt);

@@ -1,6 +1,3 @@
-fn missingEndSemi is 5 end
-assert(missingEndSemi() == 5)
-
 fn missingIs 6; end
 assert(missingIs() == 6)
 
@@ -11,19 +8,19 @@ fn "missing name and is"; end
 var wontBeDefined = ;
 wontBeDefined
 
-fn ifNoDoNoSemi is
+fn ifNoDo is
   if true ret true end
   ret false
 end
 
-assert(ifNoDoNoSemi() == true);
+assert(ifNoDo() == true);
 
-fn forNoDoNoSemi is
+fn forNoDo is
   for true ret true end
   ret false
 end
 
-assert(forNoDoNoSemi() == true);
+assert(forNoDo() == true);
 
 fn danglingValueEvaluates
   ret true false

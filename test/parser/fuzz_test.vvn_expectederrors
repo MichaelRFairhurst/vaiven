@@ -250,7 +250,6 @@ Parse Error: missing close paren for subexpression at top level
 Parse Error: missing semicolon (or newline) at end of expression at top level
 Error: Accessed a var that does not exist
 Parse Error: missing semicolon (or newline) at end of expression at top level
-Parse Error: missing semicolon (or newline) at end of expression at top level
 Parse Error: tried to parse a value, but got an unknown token at top level
 Parse Error: missing semicolon (or newline) at end of expression at top level
 Parse Error: missing semicolon (or newline) at end of expression at top level
@@ -297,7 +296,6 @@ Error: Accessed a var that does not exist
 Parse Error: tried to parse a value, but got an unknown token at top level
 Parse Error: tried to parse a value, but got an unknown token at top level
 Parse Error: tried to parse a value, but got an unknown token at top level
-Parse Error: missing semicolon (or newline) at end of expression at top level
 Parse Error: tried to parse a value, but got an unknown token at top level
 Parse Error: tried to parse a value, but got an unknown token at top level
 Parse Error: tried to parse a value, but got an unknown token at top level
@@ -431,7 +429,6 @@ Parse Error: tried to parse a value, but got an unknown token at function withou
 Parse Error: missing semicolon (or newline) at end of return at function without a name
 Parse Error: tried to parse a value, but got an unknown token at function without a name
 Parse Error: tried to parse a value, but got an unknown token at function without a name
-Parse Error: missing semicolon (or newline) at end of expression at function without a name
 Parse Error: missing function name at function declaration
 Parse Error: missing semicolon (or newline) at end of expression at top level
 Parse Error: tried to parse a value, but got an unknown token at top level
@@ -461,7 +458,6 @@ Parse Error: missing semicolon (or newline) at end of expression at top level
 Parse Error: tried to parse a value, but got an unknown token at top level
 Parse Error: tried to parse a value, but got an unknown token at top level
 Parse Error: missing semicolon (or newline) at end of expression at top level
-Parse Error: missing semicolon (or newline) at end of expression at top level
 Error: Accessed a var that does not exist
 Parse Error: tried to parse a value, but got an unknown token at top level
 Parse Error: tried to parse a value, but got an unknown token at top level
@@ -483,13 +479,11 @@ Parse Error: missing semicolon (or newline) at end of expression at function wit
 Parse Error: missing function name at function declaration
 Parse Error: tried to parse a value, but got an unknown token at top level
 Parse Error: tried to parse a value, but got an unknown token at top level
-Parse Error: missing semicolon (or newline) at end of expression at top level
 Error: Accessed a var that does not exist
 Parse Error: tried to parse a value, but got an unknown token at top level
 Parse Error: tried to parse a value, but got an unknown token at top level
 Parse Error: missing semicolon (or newline) at end of expression at top level
 Parse Error: tried to parse a value, but got an unknown token at top level
-Parse Error: missing semicolon (or newline) at end of expression at top level
 Parse Error: missing semicolon (or newline) at end of expression at top level
 Parse Error: missing semicolon (or newline) at end of expression at top level
 Parse Error: tried to parse a value, but got an unknown token at top level
@@ -520,7 +514,6 @@ Parse Error: tried to parse a value, but got an unknown token at function withou
 Parse Error: tried to parse a value, but got an unknown token at function without a name
 Parse Error: missing semicolon (or newline) at end of expression at function without a name
 Parse Error: tried to parse a value, but got an unknown token at function without a name
-Parse Error: missing semicolon (or newline) at end of expression at function without a name
 Parse Error: missing semicolon (or newline) at end of expression at function without a name
 Parse Error: missing function name at function declaration
 Parse Error: missing semicolon (or newline) at end of expression at top level
@@ -587,7 +580,6 @@ Parse Error: expected expression, got a close paren at function without a name
 Parse Error: missing semicolon (or newline) at end of expression at function without a name
 Parse Error: tried to parse a value, but got an unknown token at function without a name
 Parse Error: tried to parse a value, but got an unknown token at function without a name
-Parse Error: missing semicolon (or newline) at end of expression at function without a name
 Parse Error: missing function name at function declaration
 Parse Error: missing semicolon (or newline) at end of expression at top level
 Error: Accessed a var that does not exist
@@ -601,7 +593,6 @@ Error: Accessed a var that does not exist
 Parse Error: tried to parse a value, but got an unknown token at top level
 Parse Error: missing semicolon (or newline) at end of expression at top level
 Error: Accessed a var that does not exist
-Parse Error: missing semicolon (or newline) at end of return at top level
 Parse Error: tried to parse a value, but got an unknown token at top level
 Parse Error: tried to parse a value, but got an unknown token at top level
 Parse Error: tried to parse a value, but got an unknown token at top level
@@ -609,7 +600,6 @@ Parse Error: missing semicolon (or newline) at end of expression at top level
 Error: Accessed a var that does not exist
 Parse Error: tried to parse a value, but got an unknown token at top level
 Parse Error: tried to parse a value, but got an unknown token at top level
-Parse Error: missing semicolon (or newline) at end of expression at top level
 Parse Error: tried to parse a value, but got an unknown token at top level
 Parse Error: missing close paren for subexpression at top level
 Parse Error: missing semicolon (or newline) at end of expression at top level
@@ -740,9 +730,7 @@ Parse Error: tried to parse a value, but got an unknown token at function withou
 Parse Error: tried to parse a value, but got an unknown token at function without a name
 Parse Error: tried to parse a value, but got an unknown token at function without a name
 Parse Error: missing semicolon (or newline) at end of expression at function without a name
-Parse Error: missing semicolon (or newline) at end of expression at function without a name
 Parse Error: missing function name at function declaration
-Parse Error: missing semicolon (or newline) at end of expression at top level
 Parse Error: tried to parse a value, but got an unknown token at top level
 Parse Error: tried to parse a value, but got an unknown token at top level
 Parse Error: tried to parse a value, but got an unknown token at top level
@@ -838,7 +826,6 @@ Parse Error: missing semicolon (or newline) at end of expression at top level
 Parse Error: tried to parse a value, but got an unknown token at top level
 Parse Error: tried to parse a value, but got an unknown token at top level
 Parse Error: missing close paren for subexpression at top level
-Parse Error: missing semicolon (or newline) at end of expression at top level
 Error: Accessed a var that does not exist
 Parse Error: tried to parse a value, but got an unknown token at top level
 Parse Error: tried to parse a value, but got an unknown token at top level
@@ -864,7 +851,6 @@ Parse Error: missing semicolon (or newline) at end of expression at function wit
 Parse Error: missing semicolon (or newline) at end of return at function without a name
 Parse Error: missing semicolon (or newline) at end of return at function without a name
 Parse Error: tried to parse a value, but got an unknown token at function without a name
-Parse Error: missing semicolon (or newline) at end of expression at function without a name
 Parse Error: missing function name at function declaration
 Parse Error: missing semicolon (or newline) at end of expression at top level
 Error: Accessed a var that does not exist
@@ -940,7 +926,6 @@ Parse Error: tried to parse a value, but got an unknown token at function withou
 Parse Error: missing semicolon (or newline) at end of expression at function without a name
 Parse Error: tried to parse a value, but got an unknown token at function without a name
 Parse Error: tried to parse a value, but got an unknown token at function without a name
-Parse Error: missing semicolon (or newline) at end of expression at function without a name
 Parse Error: missing function name at function declaration
 Parse Error: expected expression, got a close paren at top level
 Parse Error: missing semicolon (or newline) at end of expression at top level
@@ -1008,7 +993,6 @@ Parse Error: missing semicolon (or newline) at end of expression at top level
 Error: Accessed a var that does not exist
 Parse Error: tried to parse a value, but got an unknown token at top level
 Parse Error: tried to parse a value, but got an unknown token at top level
-Parse Error: missing semicolon (or newline) at end of expression at top level
 Error: Accessed a var that does not exist
 Parse Error: tried to parse a value, but got an unknown token at top level
 Parse Error: expected expression, got a close paren at top level
@@ -1116,7 +1100,6 @@ Parse Error: tried to parse a value, but got an unknown token at function endx
 Parse Error: tried to parse a value, but got an unknown token at function endx
 Parse Error: missing semicolon (or newline) at end of expression at function endx
 Parse Error: tried to parse a value, but got an unknown token at function endx
-Parse Error: missing semicolon (or newline) at end of expression at function endx
 Parse Error: missing semicolon (or newline) at end of expression at function endx
 Parse Error: missing semicolon (or newline) at end of expression at top level
 Error: Accessed a var that does not exist
@@ -1283,7 +1266,6 @@ Parse Error: missing semicolon (or newline) at end of expression at function wit
 Parse Error: tried to parse a value, but got an unknown token at function without a name
 Parse Error: missing semicolon (or newline) at end of expression at function without a name
 Parse Error: tried to parse a value, but got an unknown token at function without a name
-Parse Error: missing semicolon (or newline) at end of expression at function without a name
 Parse Error: missing semicolon (or newline) at end of expression at function without a name
 Parse Error: missing function name at function declaration
 Parse Error: missing is at end of function at function without a name
