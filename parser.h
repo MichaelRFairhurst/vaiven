@@ -24,6 +24,7 @@ class Parser {
 
   unique_ptr<ast::FuncDecl<> > parseFuncDecl();
   unique_ptr<ast::Statement<> > parseStatement();
+  unique_ptr<ast::Statement<> > parseControlStatement();
   unique_ptr<ast::Block<> > parseBlock();
   unique_ptr<ast::VarDecl<> > parseVarDecl();
   unique_ptr<ast::IfStatement<> > parseIfStatement();

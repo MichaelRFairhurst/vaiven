@@ -98,6 +98,18 @@ unique_ptr<ast::FuncDecl<> > Parser::parseFuncDecl() {
 }
 
 unique_ptr<ast::Statement<> > Parser::parseStatement() {
+  if (current->type == TOKEN_TYPE_OPEN_BRACE
+      || current->type == TOKEN_TYPE_VAR
+      || current->type == TOKEN_TYPE_IF
+      || current->type == TOKEN_TYPE_FOR
+      || current->type == TOKEN_TYPE_RET) {
+    return parseControlStatement();
+  } else {
+    return unique_ptr<ast::Statement<> > (parseExpressionStatement().release());
+  }
+}
+
+unique_ptr<ast::Statement<> > Parser::parseControlStatement() {
   if (current->type == TOKEN_TYPE_OPEN_BRACE) {
     return unique_ptr<ast::Statement<> > (parseBlock().release());
   } else if (current->type == TOKEN_TYPE_VAR) {
@@ -108,9 +120,9 @@ unique_ptr<ast::Statement<> > Parser::parseStatement() {
     return unique_ptr<ast::Statement<> > (parseForCondition().release());
   } else if (current->type == TOKEN_TYPE_RET) {
     return unique_ptr<ast::Statement<> > (parseReturnStatement().release());
-  } else {
-    return unique_ptr<ast::Statement<> > (parseExpressionStatement().release());
   }
+
+  throw ParseError("Expected control statement but did not get a control keyword", errorLocation);
 }
 
 unique_ptr<ast::VarDecl<> > Parser::parseVarDecl() {
@@ -172,31 +184,34 @@ unique_ptr<ast::IfStatement<> > Parser::parseIfStatement() {
     throw e;
   }
 
-  if (current->type != TOKEN_TYPE_DO) {
-    errors.push_back(ParseError("missing 'do' (or newline) at end of if condition", errorLocation));
-  } else {
-    nextNoEol();
-  }
-
   vector<unique_ptr<ast::Statement<> > > trueStmts;
   vector<unique_ptr<ast::Statement<> > > falseStmts;
-  while (current->type != TOKEN_TYPE_EOF
-      && current->type != TOKEN_TYPE_ELSE
-      && current->type != TOKEN_TYPE_END) {
+  if (current->type != TOKEN_TYPE_DO) {
     try {
-      trueStmts.push_back(parseStatement());
+      trueStmts.push_back(parseControlStatement());
     } catch(ParseError e) {
       errors.push_back(e);
     }
+  } else {
+    nextNoEol();
+    while (current->type != TOKEN_TYPE_EOF
+        && current->type != TOKEN_TYPE_ELSE
+        && current->type != TOKEN_TYPE_END) {
+      try {
+        trueStmts.push_back(parseStatement());
+      } catch(ParseError e) {
+        errors.push_back(e);
+      }
 
-    nextNoEol(); // statements don't consume their final token
+      nextNoEol(); // statements don't consume their final token
+    }
   }
 
   if (current->type == TOKEN_TYPE_ELSE) {
     nextOr(TOKEN_TYPE_DO);
     if (current->type != TOKEN_TYPE_DO) {
       try {
-        falseStmts.push_back(parseStatement());
+        falseStmts.push_back(parseControlStatement());
       } catch(ParseError e) {
         errors.push_back(e);
       }
@@ -238,22 +253,25 @@ unique_ptr<ast::ForCondition<> > Parser::parseForCondition() {
     throw e;
   }
 
-  if (current->type != TOKEN_TYPE_DO) {
-    errors.push_back(ParseError("missing 'do' (or newline) at end of for condition", errorLocation));
-  } else {
-    nextNoEol();
-  }
-
   vector<unique_ptr<ast::Statement<> > > stmts;
-  while (current->type != TOKEN_TYPE_EOF
-      && current->type != TOKEN_TYPE_END) {
+  if (current->type != TOKEN_TYPE_DO) {
     try {
-      stmts.push_back(parseStatement());
+      stmts.push_back(parseControlStatement());
     } catch(ParseError e) {
       errors.push_back(e);
     }
+  } else {
+    nextNoEol();
+    while (current->type != TOKEN_TYPE_EOF
+        && current->type != TOKEN_TYPE_END) {
+      try {
+        stmts.push_back(parseStatement());
+      } catch(ParseError e) {
+        errors.push_back(e);
+      }
 
-    nextNoEol(); // statements don't consume their final token
+      nextNoEol(); // statements don't consume their final token
+    }
   }
 
   if (current->type != TOKEN_TYPE_END) {

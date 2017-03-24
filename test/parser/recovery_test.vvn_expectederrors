@@ -6,10 +6,10 @@ Parse Error: missing is at end of function at function without a name
 Parse Error: missing function name at function declaration
 Parse Error: tried to parse a value, but got an unknown token at top level
 Error: Accessed a var that does not exist
-Parse Error: missing 'do' (or newline) at end of if condition at function ifNoDoNoSemi
 Parse Error: missing semicolon (or newline) at end of return at function ifNoDoNoSemi
-Parse Error: missing 'do' (or newline) at end of for condition at function forNoDoNoSemi
+Parse Error: tried to parse a value, but got an unknown token at top level
 Parse Error: missing semicolon (or newline) at end of return at function forNoDoNoSemi
+Parse Error: tried to parse a value, but got an unknown token at top level
 Parse Error: missing semicolon (or newline) at end of return at function danglingValueEvaluates
 Parse Error: tried to parse a value, but got an unknown token at function danglingOpEvaluates
 Parse Error: missing semicolon (or newline) at end of return at function danglingOpEvaluates

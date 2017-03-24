@@ -462,7 +462,7 @@ structure. It is not unique to else if, as you can also do else for.
   end
 ```
 
-and the same logic will soon be applied to `if` and `for` as well:
+and the same logic will applies to `if` and `for` as well:
 
 ```
   if x for y
@@ -475,8 +475,7 @@ and the same logic will soon be applied to `if` and `for` as well:
   end
 ```
 
-So I guess for the moment `else if` is kinda special. But no more special than
-`else for`.
+So `else if` is not special. All control structures can be blended as desired!
 
 ## Performance
 
