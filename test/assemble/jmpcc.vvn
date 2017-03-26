@@ -1,0 +1,650 @@
+fn jmpTrue
+  if true
+    ret 1
+  end
+  0
+end
+
+fn jmpFalse
+  if false
+    ret 0
+  end
+  ret 1
+end
+
+fn jmpElseFalse
+  if false
+    ret 0
+  else
+    ret 1
+  end
+end
+
+fn jmpForTrue
+  for true
+    ret 1
+  end
+  0
+end
+
+fn jmpForFalse
+  for false
+    ret 0
+  end
+  ret 1
+end
+
+fn jmpArgsEq of x, y is
+  if x == y
+    ret 1
+  else
+    ret 0
+  end
+end
+
+fn jmpArgsEqAsVar of x, y is
+  var eq = x == y
+  if eq
+    ret 1
+  else
+    ret 0
+  end
+end
+
+fn jmpArgsIneq of x, y is
+  if x != y
+    ret 1
+  else
+    ret 0
+  end
+end
+
+fn jmpArgsIneqAsVar of x, y is
+  var eq = x != y
+  if eq
+    ret 1
+  else
+    ret 0
+  end
+end
+
+fn jmpArgsEqAsVarNot of x, y is
+  var eq = x == y
+  if !eq
+    ret 1
+  else
+    ret 0
+  end
+end
+
+fn jmpArgsIneqAsVarNot of x, y is
+  var eq = x != y
+  if !eq
+    ret 1
+  else
+    ret 0
+  end
+end
+
+fn jmpArgsIneqNot of x, y is
+  if !(x != y)
+    ret 1
+  else
+    ret 0
+  end
+end
+
+fn jmpArgsEqNot of x, y is
+  if !(x == y)
+    ret 1
+  else
+    ret 0
+  end
+end
+
+fn jmpArgEq0 of x is
+  if x == 0
+    ret 1
+  else
+    ret 0
+  end
+end
+
+fn jmpArgEq1 of x is
+  if x == 1
+    ret 1
+  else
+    ret 0
+  end
+end
+
+fn jmpArgEqFalse of x is
+  if x == false
+    ret 1
+  else
+    ret 0
+  end
+end
+
+fn jmpArgEqTrue of x is
+  if x == true
+    ret 1
+  else
+    ret 0
+  end
+end
+
+fn jmpArgEqFoo of x is
+  if x == "foo"
+    ret 1
+  else
+    ret 0
+  end
+end
+
+fn jmpArgNotEq0 of x is
+  if x != 0
+    ret 1
+  else
+    ret 0
+  end
+end
+
+fn jmpArgNotEq1 of x is
+  if x != 1
+    ret 1
+  else
+    ret 0
+  end
+end
+
+fn jmpArgNotEqFalse of x is
+  if x != false
+    ret 1
+  else
+    ret 0
+  end
+end
+
+fn jmpArgNotEqTrue of x is
+  if x != true
+    ret 1
+  else
+    ret 0
+  end
+end
+
+fn jmpArgNotEqFoo of x is
+  if x != "foo"
+    ret 1
+  else
+    ret 0
+  end
+end
+
+fn cmpGtArgs of x, y is
+  if x > y
+    ret 1
+  else
+    ret 0
+  end
+end
+
+fn cmpGteArgs of x, y is
+  if x >= y
+    ret 1
+  else
+    ret 0
+  end
+end
+
+fn cmpLtArgs of x, y is
+  if x < y
+    ret 1
+  else
+    ret 0
+  end
+end
+
+fn cmpLteArgs of x, y is
+  if x <= y
+    ret 1
+  else
+    ret 0
+  end
+end
+
+fn cmpGt5 of x is
+  if x > 5
+    ret 1
+  else
+    ret 0
+  end
+end
+
+fn cmpGte5 of x is
+  if x >= 5
+    ret 1
+  else
+    ret 0
+  end
+end
+
+fn cmpLt5 of x is
+  if x < 5
+    ret 1
+  else
+    ret 0
+  end
+end
+
+fn cmpLte5 of x is
+  if x <= 5
+    ret 1
+  else
+    ret 0
+  end
+end
+
+fn cmp5Gt of x is
+  if 5 > x
+    ret 1
+  else
+    ret 0
+  end
+end
+
+fn cmp5Gte of x is
+  if 5 >= x
+    ret 1
+  else
+    ret 0
+  end
+end
+
+fn cmp5Lt of x is
+  if 5 < x
+    ret 1
+  else
+    ret 0
+  end
+end
+
+fn cmp5Lte of x is
+  if 5 <= x
+    ret 1
+  else
+    ret 0
+  end
+end
+
+fn cmpNotGtArgs of x, y is
+  if !(x > y)
+    ret 1
+  else
+    ret 0
+  end
+end
+
+fn cmpNotGteArgs of x, y is
+  if !(x >= y)
+    ret 1
+  else
+    ret 0
+  end
+end
+
+fn cmpNotLtArgs of x, y is
+  if !(x < y)
+    ret 1
+  else
+    ret 0
+  end
+end
+
+fn cmpNotLteArgs of x, y is
+  if !(x <= y)
+    ret 1
+  else
+    ret 0
+  end
+end
+
+fn cmp5NotGt of x is
+  if !(5 > x)
+    ret 1
+  else
+    ret 0
+  end
+end
+
+fn cmp5NotGte of x is
+  if !(5 >= x)
+    ret 1
+  else
+    ret 0
+  end
+end
+
+fn cmp5NotLt of x is
+  if !(5 < x)
+    ret 1
+  else
+    ret 0
+  end
+end
+
+fn cmp5NotLte of x is
+  if !(5 <= x)
+    ret 1
+  else
+    ret 0
+  end
+end
+
+var i = 0
+for i < 10
+  i = i + 1
+  assert(jmpTrue() == 1)
+  assert(jmpFalse() == 1)
+  assert(jmpElseFalse() == 1)
+  assert(jmpForTrue() == 1)
+  assert(jmpForFalse() == 1)
+
+  assert(jmpArgsEq() == 1) // voids
+  assert(jmpArgsEq(false) == 0) // voids
+  assert(jmpArgsEq(0) == 0) // voids
+  assert(jmpArgsEq(1, 0) == 0)
+  assert(jmpArgsEq(0, 0) == 1)
+  assert(jmpArgsEq("foo", "bar") == 0)
+  assert(jmpArgsEq("foo", "foo") == 1)
+  assert(jmpArgsEq("foo", 0) == 0)
+  assert(jmpArgsEq(0, "foo") == 0)
+
+  // unboxed lookalikes
+  assert(jmpArgsEq(0, false) == 0)
+  assert(jmpArgsEq(false, 0) == 0)
+  assert(jmpArgsEq(1, true) == 0)
+  assert(jmpArgsEq(true, 1) == 0)
+  assert(jmpArgsEq(true, true) == 1)
+  assert(jmpArgsEq(false, false) == 1)
+
+  assert(jmpArgsEqAsVar() == 1) // voids
+  assert(jmpArgsEqAsVar(false) == 0) // voids
+  assert(jmpArgsEqAsVar(0) == 0) // voids
+  assert(jmpArgsEqAsVar(1, 0) == 0)
+  assert(jmpArgsEqAsVar(0, 0) == 1)
+  assert(jmpArgsEqAsVar("foo", "bar") == 0)
+  assert(jmpArgsEqAsVar("foo", "foo") == 1)
+  assert(jmpArgsEqAsVar("foo", 0) == 0)
+  assert(jmpArgsEqAsVar(0, "foo") == 0)
+  assert(jmpArgsEqAsVar(0, false) == 0)
+  assert(jmpArgsEqAsVar(false, 0) == 0)
+  assert(jmpArgsEqAsVar(1, true) == 0)
+  assert(jmpArgsEqAsVar(true, 1) == 0)
+  assert(jmpArgsEqAsVar(true, true) == 1)
+  assert(jmpArgsEqAsVar(false, false) == 1)
+
+  assert(jmpArgsIneq() == 0) // voids
+  assert(jmpArgsIneq(false) == 1) // voids
+  assert(jmpArgsIneq(0) == 1) // voids
+  assert(jmpArgsIneq(1, 0) == 1)
+  assert(jmpArgsIneq(0, 0) == 0)
+  assert(jmpArgsIneq("foo", "bar") == 1)
+  assert(jmpArgsIneq("foo", "foo") == 0)
+  assert(jmpArgsIneq("foo", 0) == 1)
+  assert(jmpArgsIneq(0, "foo") == 1)
+  assert(jmpArgsIneq(0, false) == 1)
+  assert(jmpArgsIneq(false, 0) == 1)
+  assert(jmpArgsIneq(1, true) == 1)
+  assert(jmpArgsIneq(true, 1) == 1)
+  assert(jmpArgsIneq(true, true) == 0)
+  assert(jmpArgsIneq(false, false) == 0)
+
+  assert(jmpArgsIneqAsVar() == 0) // voids
+  assert(jmpArgsIneqAsVar(false) == 1) // voids
+  assert(jmpArgsIneqAsVar(0) == 1) // voids
+  assert(jmpArgsIneqAsVar(1, 0) == 1)
+  assert(jmpArgsIneqAsVar(0, 0) == 0)
+  assert(jmpArgsIneqAsVar("foo", "bar") == 1)
+  assert(jmpArgsIneqAsVar("foo", "foo") == 0)
+  assert(jmpArgsIneqAsVar("foo", 0) == 1)
+  assert(jmpArgsIneqAsVar(0, "foo") == 1)
+  assert(jmpArgsIneqAsVar(0, false) == 1)
+  assert(jmpArgsIneqAsVar(false, 0) == 1)
+  assert(jmpArgsIneqAsVar(1, true) == 1)
+  assert(jmpArgsIneqAsVar(true, 1) == 1)
+  assert(jmpArgsIneqAsVar(true, true) == 0)
+  assert(jmpArgsIneqAsVar(false, false) == 0)
+
+  assert(jmpArgsEqAsVarNot() == 0) // voids
+  assert(jmpArgsEqAsVarNot(false) == 1) // voids
+  assert(jmpArgsEqAsVarNot(0) == 1) // voids
+  assert(jmpArgsEqAsVarNot(1, 0) == 1)
+  assert(jmpArgsEqAsVarNot(0, 0) == 0)
+  assert(jmpArgsEqAsVarNot("foo", "bar") == 1)
+  assert(jmpArgsEqAsVarNot("foo", "foo") == 0)
+  assert(jmpArgsEqAsVarNot("foo", 0) == 1)
+  assert(jmpArgsEqAsVarNot(0, "foo") == 1)
+  assert(jmpArgsEqAsVarNot(0, false) == 1)
+  assert(jmpArgsEqAsVarNot(false, 0) == 1)
+  assert(jmpArgsEqAsVarNot(1, true) == 1)
+  assert(jmpArgsEqAsVarNot(true, 1) == 1)
+  assert(jmpArgsEqAsVarNot(true, true) == 0)
+  assert(jmpArgsEqAsVarNot(false, false) == 0)
+
+  assert(jmpArgsIneqAsVarNot() == 1) // voids
+  assert(jmpArgsIneqAsVarNot(false) == 0) // voids
+  assert(jmpArgsIneqAsVarNot(0) == 0) // voids
+  assert(jmpArgsIneqAsVarNot(1, 0) == 0)
+  assert(jmpArgsIneqAsVarNot(0, 0) == 1)
+  assert(jmpArgsIneqAsVarNot("foo", "bar") == 0)
+  assert(jmpArgsIneqAsVarNot("foo", "foo") == 1)
+  assert(jmpArgsIneqAsVarNot("foo", 0) == 0)
+  assert(jmpArgsIneqAsVarNot(0, "foo") == 0)
+  assert(jmpArgsIneqAsVarNot(0, false) == 0)
+  assert(jmpArgsIneqAsVarNot(false, 0) == 0)
+  assert(jmpArgsIneqAsVarNot(1, true) == 0)
+  assert(jmpArgsIneqAsVarNot(true, 1) == 0)
+  assert(jmpArgsIneqAsVarNot(true, true) == 1)
+  assert(jmpArgsIneqAsVarNot(false, false) == 1)
+
+  assert(jmpArgsIneqNot() == 1) // voids
+  assert(jmpArgsIneqNot(false) == 0) // voids
+  assert(jmpArgsIneqNot(0) == 0) // voids
+  assert(jmpArgsIneqNot(1, 0) == 0)
+  assert(jmpArgsIneqNot(0, 0) == 1)
+  assert(jmpArgsIneqNot("foo", "bar") == 0)
+  assert(jmpArgsIneqNot("foo", "foo") == 1)
+  assert(jmpArgsIneqNot("foo", 0) == 0)
+  assert(jmpArgsIneqNot(0, "foo") == 0)
+  assert(jmpArgsIneqNot(0, false) == 0)
+  assert(jmpArgsIneqNot(false, 0) == 0)
+  assert(jmpArgsIneqNot(1, true) == 0)
+  assert(jmpArgsIneqNot(true, 1) == 0)
+  assert(jmpArgsIneqNot(true, true) == 1)
+  assert(jmpArgsIneqNot(false, false) == 1)
+
+  assert(jmpArgsEqNot() == 0) // voids
+  assert(jmpArgsEqNot(false) == 1) // voids
+  assert(jmpArgsEqNot(0) == 1) // voids
+  assert(jmpArgsEqNot(1, 0) == 1)
+  assert(jmpArgsEqNot(0, 0) == 0)
+  assert(jmpArgsEqNot("foo", "bar") == 1)
+  assert(jmpArgsEqNot("foo", "foo") == 0)
+  assert(jmpArgsEqNot("foo", 0) == 1)
+  assert(jmpArgsEqNot(0, "foo") == 1)
+  assert(jmpArgsEqNot(0, false) == 1)
+  assert(jmpArgsEqNot(false, 0) == 1)
+  assert(jmpArgsEqNot(1, true) == 1)
+  assert(jmpArgsEqNot(true, 1) == 1)
+  assert(jmpArgsEqNot(true, true) == 0)
+  assert(jmpArgsEqNot(false, false) == 0)
+
+  assert(jmpArgEq0(0) == 1)
+  assert(jmpArgEq0(1) == 0)
+  assert(jmpArgEq0(false) == 0)
+  assert(jmpArgEq0() == 0) // void
+  assert(jmpArgEq0("foo") == 0)
+
+  assert(jmpArgEq1(0) == 0)
+  assert(jmpArgEq1(1) == 1)
+  assert(jmpArgEq1(true) == 0)
+  assert(jmpArgEq1("foo") == 0)
+
+  assert(jmpArgEqFalse(false) == 1)
+  assert(jmpArgEqFalse() == 0) // void
+  assert(jmpArgEqFalse(0) == 0)
+  assert(jmpArgEqFalse(true) == 0)
+  assert(jmpArgEqFalse("foo") == 0)
+
+  assert(jmpArgEqTrue(true) == 1)
+  assert(jmpArgEqTrue(false) == 0)
+  assert(jmpArgEqTrue(1) == 0)
+  assert(jmpArgEqTrue("foo") == 0)
+
+  assert(jmpArgEqFoo(0) == 0)
+  assert(jmpArgEqFoo(1) == 0)
+  assert(jmpArgEqFoo(true) == 0)
+  assert(jmpArgEqFoo(false) == 0)
+  assert(jmpArgEqFoo("foo") == 1)
+
+  assert(jmpArgNotEq0(0) == 0)
+  assert(jmpArgNotEq0(1) == 1)
+  assert(jmpArgNotEq0(false) == 1)
+  assert(jmpArgNotEq0() == 1) // void
+  assert(jmpArgNotEq0("foo") == 1)
+
+  assert(jmpArgNotEq1(0) == 1)
+  assert(jmpArgNotEq1(1) == 0)
+  assert(jmpArgNotEq1(true) == 1)
+  assert(jmpArgNotEq1("foo") == 1)
+
+  assert(jmpArgNotEqFalse() == 1) // void
+  assert(jmpArgNotEqFalse(false) == 0)
+  assert(jmpArgNotEqFalse(0) == 1)
+  assert(jmpArgNotEqFalse(true) == 1)
+  assert(jmpArgNotEqFalse("foo") == 1)
+
+  assert(jmpArgNotEqTrue(true) == 0)
+  assert(jmpArgNotEqTrue(false) == 1)
+  assert(jmpArgNotEqTrue(1) == 1)
+  assert(jmpArgNotEqTrue("foo") == 1)
+
+  assert(jmpArgNotEqFoo(0) == 1)
+  assert(jmpArgNotEqFoo(1) == 1)
+  assert(jmpArgNotEqFoo(true) == 1)
+  assert(jmpArgNotEqFoo(false) == 1)
+  assert(jmpArgNotEqFoo("foo") == 0)
+
+  assert(cmpGtArgs(0, 5) == 0)
+  assert(cmpGtArgs(4, 5) == 0)
+  assert(cmpGtArgs(5, 5) == 0)
+  assert(cmpGtArgs(6, 5) == 1)
+  assert(cmpGtArgs(10, 5) == 1)
+  assert(cmpGteArgs(0, 5) == 0)
+  assert(cmpGteArgs(4, 5) == 0)
+  assert(cmpGteArgs(5, 5) == 1)
+  assert(cmpGteArgs(6, 5) == 1)
+  assert(cmpGteArgs(10, 5) == 1)
+
+  assert(cmpLtArgs(0, 5) == 1)
+  assert(cmpLtArgs(4, 5) == 1)
+  assert(cmpLtArgs(5, 5) == 0)
+  assert(cmpLtArgs(6, 5) == 0)
+  assert(cmpLtArgs(10, 5) == 0)
+  assert(cmpLteArgs(0, 5) == 1)
+  assert(cmpLteArgs(4, 5) == 1)
+  assert(cmpLteArgs(5, 5) == 1)
+  assert(cmpLteArgs(6, 5) == 0)
+  assert(cmpLteArgs(10, 5) == 0)
+
+  assert(cmpGt5(0) == 0)
+  assert(cmpGt5(4) == 0)
+  assert(cmpGt5(5) == 0)
+  assert(cmpGt5(6) == 1)
+  assert(cmpGt5(10) == 1)
+  assert(cmpGte5(0) == 0)
+  assert(cmpGte5(4) == 0)
+  assert(cmpGte5(5) == 1)
+  assert(cmpGte5(6) == 1)
+  assert(cmpGte5(10) == 1)
+
+  assert(cmpLt5(0) == 1)
+  assert(cmpLt5(4) == 1)
+  assert(cmpLt5(5) == 0)
+  assert(cmpLt5(6) == 0)
+  assert(cmpLt5(10) == 0)
+  assert(cmpLte5(0) == 1)
+  assert(cmpLte5(4) == 1)
+  assert(cmpLte5(5) == 1)
+  assert(cmpLte5(6) == 0)
+  assert(cmpLte5(10) == 0)
+
+  assert(cmp5Gt(0) == 1)
+  assert(cmp5Gt(4) == 1)
+  assert(cmp5Gt(5) == 0)
+  assert(cmp5Gt(6) == 0)
+  assert(cmp5Gt(10) == 0)
+  assert(cmp5Gte(0) == 1)
+  assert(cmp5Gte(4) == 1)
+  assert(cmp5Gte(5) == 1)
+  assert(cmp5Gte(6) == 0)
+  assert(cmp5Gte(10) == 0)
+
+  assert(cmp5Lt(0) == 0)
+  assert(cmp5Lt(4) == 0)
+  assert(cmp5Lt(5) == 0)
+  assert(cmp5Lt(6) == 1)
+  assert(cmp5Lt(10) == 1)
+  assert(cmp5Lte(0) == 0)
+  assert(cmp5Lte(4) == 0)
+  assert(cmp5Lte(5) == 1)
+  assert(cmp5Lte(6) == 1)
+  assert(cmp5Lte(10) == 1)
+
+  assert(cmpNotGtArgs(0, 5) == 1)
+  assert(cmpNotGtArgs(4, 5) == 1)
+  assert(cmpNotGtArgs(5, 5) == 1)
+  assert(cmpNotGtArgs(6, 5) == 0)
+  assert(cmpNotGtArgs(10, 5) == 0)
+  assert(cmpNotGteArgs(0, 5) == 1)
+  assert(cmpNotGteArgs(4, 5) == 1)
+  assert(cmpNotGteArgs(5, 5) == 0)
+  assert(cmpNotGteArgs(6, 5) == 0)
+  assert(cmpNotGteArgs(10, 5) == 0)
+
+  assert(cmpNotLtArgs(0, 5) == 0)
+  assert(cmpNotLtArgs(4, 5) == 0)
+  assert(cmpNotLtArgs(5, 5) == 1)
+  assert(cmpNotLtArgs(6, 5) == 1)
+  assert(cmpNotLtArgs(10, 5) == 1)
+  assert(cmpNotLteArgs(0, 5) == 0)
+  assert(cmpNotLteArgs(4, 5) == 0)
+  assert(cmpNotLteArgs(5, 5) == 0)
+  assert(cmpNotLteArgs(6, 5) == 1)
+  assert(cmpNotLteArgs(10, 5) == 1)
+
+  assert(cmp5NotGt(0) == 0)
+  assert(cmp5NotGt(4) == 0)
+  assert(cmp5NotGt(5) == 1)
+  assert(cmp5NotGt(6) == 1)
+  assert(cmp5NotGt(10) == 1)
+  assert(cmp5NotGte(0) == 0)
+  assert(cmp5NotGte(4) == 0)
+  assert(cmp5NotGte(5) == 0)
+  assert(cmp5NotGte(6) == 1)
+  assert(cmp5NotGte(10) == 1)
+
+  assert(cmp5NotLt(0) == 1)
+  assert(cmp5NotLt(4) == 1)
+  assert(cmp5NotLt(5) == 1)
+  assert(cmp5NotLt(6) == 0)
+  assert(cmp5NotLt(10) == 0)
+  assert(cmp5NotLte(0) == 1)
+  assert(cmp5NotLte(4) == 1)
+  assert(cmp5NotLte(5) == 0)
+  assert(cmp5NotLte(6) == 0)
+  assert(cmp5NotLte(10) == 0)
+
+end

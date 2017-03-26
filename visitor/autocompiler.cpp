@@ -27,7 +27,11 @@ void AutoCompiler::visitIfStatement(IfStatement<TypedLocationInfo>& stmt) {
     error.typecheckBool(vRegs.top(), stmt.condition->resolvedData);
     cc.cmp(vRegs.top().r32(), 0);
     vRegs.pop();
-    cc.je(lfalse);
+    if (jc.jmpFalse) {
+      cc.je(lfalse);
+    } else {
+      cc.jne(lfalse);
+    }
   }
 
   for(vector<unique_ptr<Statement<TypedLocationInfo> > >::iterator it = stmt.trueStatements.begin();
@@ -63,7 +67,11 @@ void AutoCompiler::visitForCondition(ForCondition<TypedLocationInfo>& stmt) {
     error.typecheckBool(vRegs.top(), stmt.condition->resolvedData);
     cc.cmp(vRegs.top().r32(), 0);
     vRegs.pop();
-    cc.je(lafter);
+    if (jc.jmpFalse) {
+      cc.je(lafter);
+    } else {
+      cc.jne(lafter);
+    }
   }
 
   for(vector<unique_ptr<Statement<TypedLocationInfo> > >::iterator it = stmt.statements.begin();
@@ -328,10 +336,6 @@ void AutoCompiler::visitFuncDecl(FuncDecl<TypedLocationInfo>& decl) {
 }
 
 void AutoCompiler::generateTypeShapePrelog(FuncDecl<TypedLocationInfo>& decl, FunctionUsage* usage) {
-  if (!decl.args.size()) {
-    return;
-  }
-
   optimizeLabel = cc.newLabel();
   X86Gp count = cc.newInt32();
   cc.mov(count, asmjit::x86::dword_ptr((uint64_t) &usage->count));
@@ -377,10 +381,6 @@ void AutoCompiler::generateTypeShapePrelog(FuncDecl<TypedLocationInfo>& decl, Fu
 }
 
 void AutoCompiler::generateOptimizeProlog(FuncDecl<TypedLocationInfo>& decl, FuncSignature& sig) {
-  if (!decl.args.size()) {
-    return;
-  }
-
   cc.bind(optimizeLabel);
   X86Gp funcsReg = cc.newUInt64();
   X86Gp declReg = cc.newUInt64();
@@ -392,16 +392,8 @@ void AutoCompiler::generateOptimizeProlog(FuncDecl<TypedLocationInfo>& decl, Fun
   recompileCall->setArg(1, declReg);
   recompileCall->setRet(0, optimizedAddr);
 
-  // hack bugfix workaround
-  //vector<X86Gp> argWorkarounds;
-  //for (int i = 0; i < decl.args.size(); ++i) {
-  //  X86Gp argRegWorkaround = cc.newUInt64();
-  //  cc.mov(argRegWorkaround, argRegs[i]);
-  //  argWorkarounds.push_back(argRegWorkaround);
-  //}
   CCFuncCall* optimizedCall = cc.call(optimizedAddr, sig);
   for (int i = 0; i < decl.args.size(); ++i) {
-    //optimizedCall->setArg(i, argWorkarounds[i]);
     optimizedCall->setArg(i, argRegs[i]);
   }
   X86Gp optimizedRet = cc.newUInt64();

@@ -360,24 +360,24 @@ void InstructionCombiner::visitDivInstr(DivInstr& instr) {
 
 void InstructionCombiner::visitNotInstr(NotInstr& instr) {
   if (instr.inputs[0]->tag == INSTR_CMPGT) {
-    CmpLtInstr* lt = new CmpLtInstr(instr.inputs[0]->inputs[0], instr.inputs[0]->inputs[1]);
-    instr.append(lt);
-    instr.replaceUsagesWith(lt);
-    performedWork = true;
-  } else if (instr.inputs[0]->tag == INSTR_CMPGTE) {
     CmpLteInstr* lte = new CmpLteInstr(instr.inputs[0]->inputs[0], instr.inputs[0]->inputs[1]);
     instr.append(lte);
     instr.replaceUsagesWith(lte);
     performedWork = true;
-  } else if (instr.inputs[0]->tag == INSTR_CMPLT) {
-    CmpGtInstr* gt = new CmpGtInstr(instr.inputs[0]->inputs[0], instr.inputs[0]->inputs[1]);
-    instr.append(gt);
-    instr.replaceUsagesWith(gt);
+  } else if (instr.inputs[0]->tag == INSTR_CMPGTE) {
+    CmpLtInstr* lt = new CmpLtInstr(instr.inputs[0]->inputs[0], instr.inputs[0]->inputs[1]);
+    instr.append(lt);
+    instr.replaceUsagesWith(lt);
     performedWork = true;
-  } else if (instr.inputs[0]->tag == INSTR_CMPLTE) {
+  } else if (instr.inputs[0]->tag == INSTR_CMPLT) {
     CmpGteInstr* gte = new CmpGteInstr(instr.inputs[0]->inputs[0], instr.inputs[0]->inputs[1]);
     instr.append(gte);
     instr.replaceUsagesWith(gte);
+    performedWork = true;
+  } else if (instr.inputs[0]->tag == INSTR_CMPLTE) {
+    CmpGtInstr* gt = new CmpGtInstr(instr.inputs[0]->inputs[0], instr.inputs[0]->inputs[1]);
+    instr.append(gt);
+    instr.replaceUsagesWith(gt);
     performedWork = true;
   } else if (instr.inputs[0]->tag == INSTR_CMPEQ) {
     CmpIneqInstr* ineq = new CmpIneqInstr(instr.inputs[0]->inputs[0], instr.inputs[0]->inputs[1]);
@@ -401,7 +401,7 @@ void InstructionCombiner::visitCmpEqInstr(CmpEqInstr& instr) {
   }
 
   if (instr.inputs[0]->type != VAIVEN_STATIC_TYPE_UNKNOWN
-      && instr.inputs[0]->type != VAIVEN_STATIC_TYPE_UNKNOWN
+      && instr.inputs[1]->type != VAIVEN_STATIC_TYPE_UNKNOWN
       && instr.inputs[0]->type != instr.inputs[1]->type) {
     ConstantInstr* constantInstr = new ConstantInstr(Value(false));
     instr.append(constantInstr);

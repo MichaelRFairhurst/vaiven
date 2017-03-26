@@ -321,6 +321,9 @@ void Emitter::visitCmpLteInstr(CmpLteInstr& instr) {
 void Emitter::doCmpEqInstr(CmpEqInstr& instr) {
   if (instr.hasConstRhs) {
     cc.cmp(instr.inputs[0]->out.r32(), instr.constI32Rhs);
+  } else if (!instr.inputs[0]->isBoxed
+      && instr.inputs[0]->type & (VAIVEN_STATIC_TYPE_INT | VAIVEN_STATIC_TYPE_BOOL)) {
+    cc.cmp(instr.inputs[0]->out.r32(), instr.inputs[1]->out.r32());
   } else {
     cc.cmp(instr.inputs[0]->out, instr.inputs[1]->out);
   }
@@ -329,6 +332,9 @@ void Emitter::doCmpEqInstr(CmpEqInstr& instr) {
 void Emitter::doCmpIneqInstr(CmpIneqInstr& instr) {
   if (instr.hasConstRhs) {
     cc.cmp(instr.inputs[0]->out.r32(), instr.constI32Rhs);
+  } else if (!instr.inputs[0]->isBoxed
+      && instr.inputs[0]->type & (VAIVEN_STATIC_TYPE_INT | VAIVEN_STATIC_TYPE_BOOL)) {
+    cc.cmp(instr.inputs[0]->out.r32(), instr.inputs[1]->out.r32());
   } else {
     cc.cmp(instr.inputs[0]->out, instr.inputs[1]->out);
   }

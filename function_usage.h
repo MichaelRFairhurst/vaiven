@@ -18,7 +18,7 @@ const short OBJECT_SHAPE = 0x40;
 const short PRIMITIVE_TAG_SHIFT = 48;
 const short POINTER_TAG_SHIFT = 4;
 
-const int HOT_COUNT = 2;
+const int HOT_COUNT = 10;
 
 class ArgumentShape {
   public:

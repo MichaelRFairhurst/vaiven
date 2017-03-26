@@ -45,7 +45,11 @@ void UnusedCodeEliminator::visitPhiInstr(PhiInstr& instr) {
 }
 
 void UnusedCodeEliminator::visitArgInstr(ArgInstr& instr) {
-  visitPureInstr(instr);
+  // Can't remove type guards willy-nilly
+  // TODO track when we can remove type guards
+  if (instr.type == VAIVEN_STATIC_TYPE_UNKNOWN) {
+    visitPureInstr(instr);
+  }
 }
 
 void UnusedCodeEliminator::visitConstantInstr(ConstantInstr& instr) {

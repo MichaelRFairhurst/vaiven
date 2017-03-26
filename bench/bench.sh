@@ -55,6 +55,10 @@ run_cmd_bench fibdart "dart fib_45.dart"
 compare fibvvn fibdart
 compare fibvvn fibjs
 
+run_cmd_bench lcfvvn "cat lowest_common_factor.vvn | ../vvn"
+run_cmd_bench lcfjs "js lowest_common_factor.js"
+compare lcfvvn lcfjs
+
 echo
 echo interp/cc/hot comparison
 echo

@@ -58,12 +58,12 @@ class JumpingCompiler : public Visitor<TypedLocationInfo> {
   virtual void visitVarDecl(VarDecl<TypedLocationInfo>& varDecl);
 
   bool didJmp;
+  bool jmpFalse;
 
   protected:
   X86Compiler& cc;
   AutoCompiler& compiler;
   asmjit::Label label;
-  bool jmpFalse;
 
 };
 

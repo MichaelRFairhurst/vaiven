@@ -22,7 +22,7 @@ fn isObject of str is
   str == object()
 end
 
-fn basicStrOps of varSoItCanOptimze is
+fn basicStrOps 
   assert("foo" == "foo")
   assert("foo" != "fo")
   assert("foo" == "fo" + "o")
@@ -40,7 +40,6 @@ fn basicStrOps of varSoItCanOptimze is
   assert(isFoo("fo" + "o"))
   assert(isFoo("f" + "o" + "o"))
   assert(!isFoo("fo"))
-  assert(!isFoo(4))
   assert(!isFoo(true))
   assert(!isFoo(false))
   assert(!isFoo([]))
@@ -48,6 +47,7 @@ fn basicStrOps of varSoItCanOptimze is
 end
 
 "make it hot"
+basicStrOps()
 basicStrOps()
 basicStrOps()
 basicStrOps()

@@ -1,0 +1,24 @@
+fn isEvenlyDivisible of val, div, lim is
+  if div > lim
+    ret true
+  else if val / div * div != val // is not evenly divisible
+    ret false
+  end
+
+  isEvenlyDivisible(val, div + 1, lim)
+end
+
+fn test of lim is
+  var val = 10
+  for !isEvenlyDivisible(val, 2, lim)
+    val += 2
+  end
+
+  val
+end
+
+test(1)
+test(5)
+test(10)
+test(15)
+test(20)
