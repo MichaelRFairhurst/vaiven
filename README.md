@@ -508,6 +508,31 @@ For instance, the recursion based test currently does a better job reducing
 polymorphic + overhead, and finishes in 0.000 seconds (too low to measure) vs
 about 20 second for the equivalent interpreted code on my system.
 
+## Optimizations
+
+Vaiven currently performs the following optimizations on your code:
+
+* Instruction combining (x * 1 == x, x * 4 / 2 == x * 2, ...)
+* Constant propagation (3 * 4 == 12...)
+* Dead code elimination (including branches which can't be taken)
+* Type profiling guided optimizations via guarded specializations
+* Typecheck/boxing/unboxing elimination
+* Function inlining
+* Recursive function inlining (essentially akin to loop unrolling)
+* Tail call recursion (including jumping past guards)
+* Basic jump threading (not range-based yet, just jumps to jumps ignoring
+conditions)
+
+and generates otherwise clean asm
+* boolean values are massaged into jmpcc calls
+* argument counts are known statically and compiled with the right behavior
+hardcoded
+* all tagged values are 64 bit using an inverse punboxing system
+* some bounds checking elimination for instance in list initialization
+
+And vaiven uses asmjit's register allocation with basic coalescing added on top,
+which is a very good though not great (yet!) register allocator.
+
 ## Under the hood: Optimization tips
 
 Firstly, anything that will be executed more than once should be put in a
