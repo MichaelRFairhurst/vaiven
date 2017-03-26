@@ -10,7 +10,7 @@ class Emitter : public ForwardVisitor {
 
   public:
   Emitter(asmjit::X86Compiler& cc, Functions& funcs, asmjit::Label funcLabel, string funcName, ErrorCompiler& error, asmjit::Label deoptimizeLabel)
-      : cc(cc), funcs(funcs), funcLabel(funcLabel), funcName(funcName), error(error), deoptimizeLabel(deoptimizeLabel) {};
+      : cc(cc), funcs(funcs), funcLabel(funcLabel), funcName(funcName), error(error), deoptimizeLabel(deoptimizeLabel), afterGuardsLabel(funcLabel) {};
 
   void visitPhiInstr(PhiInstr& instr);
   void visitArgInstr(ArgInstr& instr);
@@ -58,6 +58,8 @@ class Emitter : public ForwardVisitor {
   asmjit::X86Compiler& cc;
   asmjit::Label funcLabel;
   asmjit::Label deoptimizeLabel;
+  asmjit::Label afterGuardsLabel;
+  vector<ArgInstr*> args;
   string funcName;
   Functions& funcs;
 };

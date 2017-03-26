@@ -10,6 +10,7 @@ void Emitter::visitPhiInstr(PhiInstr& instr) {
 }
 
 void Emitter::visitArgInstr(ArgInstr& instr) {
+  args.push_back(&instr);
   X86Gp checkArg = cc.newInt64();
   if (instr.type == VAIVEN_STATIC_TYPE_INT) {
     cc.mov(checkArg, instr.out);
@@ -47,6 +48,8 @@ void Emitter::visitArgInstr(ArgInstr& instr) {
     cc.cmp(checkArg.r32(), GCABLE_TYPE_OBJECT);
     cc.jne(deoptimizeLabel);
   }
+  afterGuardsLabel = cc.newLabel();
+  cc.bind(afterGuardsLabel);
 }
 
 void Emitter::visitConstantInstr(ConstantInstr& instr) {
@@ -60,6 +63,55 @@ void Emitter::visitConstantInstr(ConstantInstr& instr) {
 }
 
 void Emitter::visitCallInstr(CallInstr& instr) {
+  if (!instr.func.isNative
+      && instr.func.ast->name == funcName
+      && instr.next != NULL
+      && instr.next->tag == INSTR_RET
+      && instr.next->inputs[0] == &instr) {
+    // crappy tail recursion algorithm
+    vector<ArgInstr*>::iterator argsIt = args.begin();
+    vector<Instruction*>::iterator inputsIt = instr.inputs.begin();
+    bool matchesGuards = true;
+
+    while (argsIt != args.end()) {
+      if (inputsIt != instr.inputs.end()) {
+        if ((*argsIt)->type != (*inputsIt)->type) {
+          matchesGuards = false;
+          break;
+        }
+        ++inputsIt;
+      } else {
+        if ((*argsIt)->type != VAIVEN_STATIC_TYPE_VOID) {
+          matchesGuards = false;
+          break;
+        }
+      }
+      ++argsIt;
+    }
+
+    if (matchesGuards) {
+      argsIt = args.begin();
+      inputsIt = instr.inputs.begin();
+
+      while (argsIt != args.end()) {
+        if (inputsIt != instr.inputs.end()) {
+          if ((*argsIt)->out != (*inputsIt)->out) {
+            cc.mov((*argsIt)->out, (*inputsIt)->out);
+          }
+          ++inputsIt;
+        } else {
+          if ((*argsIt)->type != VAIVEN_STATIC_TYPE_VOID) {
+            cc.mov((*argsIt)->out, VOID);
+          }
+        }
+        ++argsIt;
+      }
+
+      cc.jmp(afterGuardsLabel);
+      return;
+    }
+  }
+
   int argc = instr.func.argc;
   int paramc = instr.inputs.size();
   vector<X86Gp> voidRegs;
