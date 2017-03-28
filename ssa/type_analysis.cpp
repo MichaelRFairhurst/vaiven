@@ -6,6 +6,7 @@ void TypeAnalysis::emit(Instruction* instr) {
   if (lastInstr == NULL) {
     instr->next = curBlock->head.release();;
     curBlock->head.reset(instr);
+    instr->block = curBlock;
   } else {
     lastInstr->append(instr);
   }
@@ -43,9 +44,16 @@ void TypeAnalysis::visitPhiInstr(PhiInstr& instr) {
         ++it) {
       
       // visit it early, since phis can precede their inputs
-      (*it)->accept(*this);
+      // make sure subsequent typechecks follow the phi
+      // INVARIANT: Won't loop forever if it stops at PHIs
+      if ((*it)->tag != INSTR_PHI) {
+        Instruction* saveLastInstr = lastInstr;
+        lastInstr = &instr;
+        (*it)->accept(*this);
+        lastInstr = saveLastInstr;
+      }
 
-      if (!(*it)->isBoxed) {
+      if (!(*it)->isBoxed || (*it)->tag == INSTR_PHI) {
         BoxInstr* boxed = new BoxInstr(*it);
         // For loops, the input can be after the phi. Therefore ake care that we
         // box after the input, not before the phi.

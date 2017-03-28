@@ -23,6 +23,8 @@ SSA_OBJECTS = \
 	ssa/jmp_threader.o \
 	ssa/inliner.o \
 	ssa/function_merge.o \
+	ssa/dominator_builder.o \
+	ssa/loop_invariant.o \
 
 ASMJIT_OBJECTS = \
 	asmjit/src/asmjit/base/arch.o \
@@ -73,7 +75,7 @@ MAIN_OBJECTS = \
 DEBUGCXXFLAGS := -O0 -g -DSSA_DIAGNOSTICS -DDISASSEMBLY_DIAGNOSTICS -DOPTIMIZATION_DIAGNOSTICS -DINLINING_DIAGNOSTICS
 RELEASECXXFLAGS := -O3 -DNDEBUG
 PROFILECXXFLAGS := -O3 -g -DNDEBUG
-CXXFLAGS := -DASMJIT_EMBED -std=c++11 -fno-omit-frame-pointer ${PROFILECXXFLAGS}
+CXXFLAGS := -DASMJIT_EMBED -std=c++11 -fno-omit-frame-pointer ${PROFILECXXFLAGS} -DDISASSEMBLY_DIAGNOSTICS -DOPTIMIZATION_DIAGNOSTICS -DSSA_DIAGNOSTICS
 
 vvn : ${MAIN_OBJECTS} ${VISITOR_OBJECTS} ${ASMJIT_OBJECTS} ${SSA_OBJECTS}
 	g++ $^ -o vvn

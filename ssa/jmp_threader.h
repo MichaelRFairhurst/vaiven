@@ -8,6 +8,8 @@ namespace vaiven { namespace ssa {
 class JmpThreader : public ForwardVisitor {
 
   public:
+  JmpThreader() : requiresRebuildDominators(false) {};
+
   void visitPhiInstr(PhiInstr& instr);
   void visitArgInstr(ArgInstr& instr);
   void visitConstantInstr(ConstantInstr& instr);
@@ -48,6 +50,8 @@ class JmpThreader : public ForwardVisitor {
 
   void visitConditionalBlockExit(ConditionalBlockExit& exit);
   void visitUnconditionalBlockExit(UnconditionalBlockExit& exit);
+
+  bool requiresRebuildDominators;
 };
 
 }}

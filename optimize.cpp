@@ -19,6 +19,8 @@
 #include "ssa/constant_inliner.h"
 #include "ssa/jmp_threader.h"
 #include "ssa/inliner.h"
+#include "ssa/dominator_builder.h"
+#include "ssa/loop_invariant.h"
 
 #include <iostream>
 #include <stdint.h>
@@ -106,6 +108,13 @@ void vaiven::performOptimize(ast::FuncDecl<TypedLocationInfo>& decl, Functions& 
   builder.head.accept(printer); printer.varIds.clear();
 #endif
 
+  ssa::DominatorBuilder dbuilder;
+  dbuilder.firstBuild(builder.head);
+#ifdef SSA_DIAGNOSTICS
+  std::cout << "dominator builder" << std::endl;
+  builder.head.accept(printer); printer.varIds.clear();
+#endif
+
   ssa::TypeAnalysis typeAnalysis;
   builder.head.accept(typeAnalysis);
 #ifdef SSA_DIAGNOSTICS
@@ -114,28 +123,41 @@ void vaiven::performOptimize(ast::FuncDecl<TypedLocationInfo>& decl, Functions& 
 #endif
 
   while(true) {
-    ssa::ConstantPropagator constant_prop;
-    builder.head.accept(constant_prop);
+    ssa::ConstantPropagator constantProp;
+    builder.head.accept(constantProp);
 #ifdef SSA_DIAGNOSTICS
     std::cout << "constant prop" << std::endl;
     builder.head.accept(printer); printer.varIds.clear();
 #endif
 
-    ssa::InstructionCombiner instr_comb;
-    builder.head.accept(instr_comb);
+    ssa::InstructionCombiner instrComb;
+    builder.head.accept(instrComb);
 #ifdef SSA_DIAGNOSTICS
     std::cout << "instr comb" << std::endl;
     builder.head.accept(printer); printer.varIds.clear();
 #endif
 
-    ssa::UnusedCodeEliminator unused_code_elim;
-    builder.head.accept(unused_code_elim);
+    ssa::LoopInvariantCodeMover loopInvariant;
+    builder.head.accept(loopInvariant);
+    if (loopInvariant.requiresRebuildDominators) {
+      dbuilder.reset(builder.head);
+    }
+#ifdef SSA_DIAGNOSTICS
+    std::cout << "licm" << std::endl;
+    builder.head.accept(printer); printer.varIds.clear();
+#endif
+
+    ssa::UnusedCodeEliminator unusedCodeElim;
+    builder.head.accept(unusedCodeElim);
+    if (unusedCodeElim.requiresRebuildDominators) {
+      dbuilder.reset(builder.head);
+    }
 #ifdef SSA_DIAGNOSTICS
     std::cout << "unused val elim" << std::endl;
     builder.head.accept(printer); printer.varIds.clear();
 #endif
 
-    if (!unused_code_elim.performedWork && !instr_comb.performedWork && !constant_prop.performedWork) {
+    if (!unusedCodeElim.performedWork && !instrComb.performedWork && !constantProp.performedWork && !loopInvariant.performedWork) {
       break;
     }
 
@@ -150,20 +172,26 @@ void vaiven::performOptimize(ast::FuncDecl<TypedLocationInfo>& decl, Functions& 
 
   ssa::JmpThreader jmpThreader;
   builder.head.accept(jmpThreader);
+  if (jmpThreader.requiresRebuildDominators) {
+    dbuilder.reset(builder.head);
+  }
 #ifdef SSA_DIAGNOSTICS
   std::cout << "jmp threading" << std::endl;
   builder.head.accept(printer); printer.varIds.clear();
 #endif
 
   while(true) {
-    ssa::UnusedCodeEliminator unused_code_elim;
-    builder.head.accept(unused_code_elim);
+    ssa::UnusedCodeEliminator unusedCodeElim;
+    builder.head.accept(unusedCodeElim);
+    if (unusedCodeElim.requiresRebuildDominators) {
+      dbuilder.reset(builder.head);
+    }
 #ifdef SSA_DIAGNOSTICS
     std::cout << "unused val elim" << std::endl;
     builder.head.accept(printer); printer.varIds.clear();
 #endif
 
-    if (!unused_code_elim.performedWork) {
+    if (!unusedCodeElim.performedWork) {
       break;
     }
   }

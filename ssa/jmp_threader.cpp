@@ -97,12 +97,19 @@ void JmpThreader::visitJmpCcInstr(JmpCcInstr& instr) {
 
 void JmpThreader::visitUnconditionalBlockExit(UnconditionalBlockExit& exit) {
   while (exit.toGoTo->head == NULL) {
-    //if (exit.toGoTo->exits.size() == 0 && exit.toGoTo->next != NULL) {
-    //  exit.toGoTo = &*exit.toGoTo->next;
-    //} else
     if (exit.toGoTo->exits.size() == 1
           && exit.toGoTo->exits[0]->tag == BLOCK_EXIT_UNCONDITIONAL) {
+      // INVARIANT: We don't need to check if curBlock has multiple pointers
+      // into this block before we unlink them, because all exits to this dead
+      // block will be threaded, and its safe to erase mulitple times, insert
+      // multiple times.
+      exit.toGoTo->immPredecessors.erase(curBlock);
       exit.toGoTo = exit.toGoTo->exits[0]->toGoTo;
+      exit.toGoTo->immPredecessors.insert(curBlock);
+
+      // we don't actually do this yet though because no optimizations depend
+      // on it
+      requiresRebuildDominators = true;
     } else {
       break;
     }
@@ -112,12 +119,19 @@ void JmpThreader::visitUnconditionalBlockExit(UnconditionalBlockExit& exit) {
 
 void JmpThreader::visitConditionalBlockExit(ConditionalBlockExit& exit) {
   while (exit.toGoTo->head == NULL) {
-    //if (exit.toGoTo->exits.size() == 0 && exit.toGoTo->next != NULL) {
-    //  exit.toGoTo = &*exit.toGoTo->next;
-    //} else
     if (exit.toGoTo->exits.size() == 1
           && exit.toGoTo->exits[0]->tag == BLOCK_EXIT_UNCONDITIONAL) {
+      // INVARIANT: We don't need to check if curBlock has multiple pointers
+      // into this block before we unlink them, because all exits to this dead
+      // block will be threaded, and its safe to erase mulitple times, insert
+      // multiple times.
+      exit.toGoTo->immPredecessors.erase(curBlock);
       exit.toGoTo = exit.toGoTo->exits[0]->toGoTo;
+      exit.toGoTo->immPredecessors.insert(curBlock);
+
+      // we don't actually do this yet though because no optimizations depend
+      // on it
+      requiresRebuildDominators = true;
     } else {
       break;
     }

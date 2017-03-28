@@ -1,20 +1,16 @@
-#ifndef VAIVEN_VISITOR_HEADER_SSA_UNUSED_CODE
-#define VAIVEN_VISITOR_HEADER_SSA_UNUSED_CODE
+#ifndef VAIVEN_VISITOR_HEADER_SSA_LOOP_INVARIANT
+#define VAIVEN_VISITOR_HEADER_SSA_LOOP_INVARIANT
+
 #include "forward_visitor.h"
-
 #include <map>
-#include <set>
-
-using std::map;
-using std::set;
 
 namespace vaiven { namespace ssa {
 
-// TODO should be a backwards visitor...
-class UnusedCodeEliminator : public ForwardVisitor {
-
+class LoopInvariantCodeMover : public ForwardVisitor {
   public:
-  UnusedCodeEliminator() : performedWork(false), requiresRebuildDominators(false) {};
+  LoopInvariantCodeMover() : requiresRebuildDominators(false), performedWork(false) {};
+
+  void visitPureInstruction(Instruction& instr);
 
   void visitPhiInstr(PhiInstr& instr);
   void visitArgInstr(ArgInstr& instr);
@@ -47,19 +43,12 @@ class UnusedCodeEliminator : public ForwardVisitor {
   void visitErrInstr(ErrInstr& instr);
   void visitRetInstr(RetInstr& instr);
   void visitJmpCcInstr(JmpCcInstr& instr);
-  void visitConditionalBlockExit(ConditionalBlockExit& exit);
   void visitBlock(Block& block);
 
-  bool performedWork;
+  Block* currentLoopHeader;
+  Instruction* writePoint;
   bool requiresRebuildDominators;
-
-  void visitPureInstr(Instruction& instr);
-  void remove(Instruction* instr);
-
-  private:
-  map<Block*, Block*> backRefs;
-  set<Block*> usedBlocks;
-  set<Block*> allBlocks;
+  bool performedWork;
 };
 
 }}

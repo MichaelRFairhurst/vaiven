@@ -52,12 +52,13 @@ enum InstructionType {
 };
 
 class SsaVisitor;
+class Block;
 
 class Instruction {
 
   public:
   Instruction(InstructionType tag, VaivenStaticType type, bool isBoxed)
-    : tag(tag), type(type), isBoxed(isBoxed), next(NULL) {};
+    : tag(tag), type(type), isBoxed(isBoxed), next(NULL), block(NULL) {};
 
   virtual void accept(SsaVisitor& visitor)=0;
 
@@ -73,6 +74,8 @@ class Instruction {
   set<Instruction*> usages;
   Instruction* next;
   asmjit::X86Gp out;
+
+  Block* block;
 };
 
 class ArgInstr;

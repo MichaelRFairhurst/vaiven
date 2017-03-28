@@ -28,6 +28,7 @@ void Instruction::replaceUsagesWith(Instruction* newInstr) {
 }
 
 void Instruction::append(Instruction* toAppend) {
+  toAppend->block = block;
   Instruction* toFollow = next;
   toAppend->next = toFollow;
   next = toAppend;

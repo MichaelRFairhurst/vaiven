@@ -12,6 +12,7 @@ void SsaBuilder::emit(Instruction* next) {
     writePoint->next = next;
   }
   cur = next;
+  cur->block = curBlock;
   writePoint = cur;
 }
 

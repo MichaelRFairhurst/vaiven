@@ -154,6 +154,22 @@ void PrintVisitor::visitJmpCcInstr(JmpCcInstr& instr) {
 
 void PrintVisitor::visitBlock(Block& block) {
   cout << "block " << &block << endl;
+  if (block.loopHeaderWithBlocks.size()) {
+    cout << "which is a loop header for: ";
+    for (set<Block*>::iterator it = block.loopHeaderWithBlocks.begin();
+        it != block.loopHeaderWithBlocks.end();
+        ++it) {
+      cout << *it << ", ";
+    }
+    cout << endl;
+  }
+    cout << "with dominators ";
+    for (set<Block*>::iterator it = block.dominators.begin();
+        it != block.dominators.end();
+        ++it) {
+      cout << *it << ", ";
+    }
+    cout << endl;
   ForwardVisitor::visitBlock(block);
 }
 

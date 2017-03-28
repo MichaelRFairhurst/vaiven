@@ -1,5 +1,7 @@
 #include "unused_code.h"
 
+#include <unordered_set>
+
 using namespace vaiven::ssa;
 using namespace std;
 using namespace asmjit;
@@ -221,20 +223,32 @@ void UnusedCodeEliminator::visitBlock(Block& block) {
 
   if (block.exits.size() && lastInstr != NULL && (lastInstr->tag == INSTR_RET || lastInstr->tag == INSTR_ERR)) {
     // all exits are dead code
+    for (vector<unique_ptr<BlockExit>>::iterator it = block.exits.begin();
+        it != block.exits.end();
+        ++it) {
+      (*it)->toGoTo->immPredecessors.erase(&block);
+    }
     block.exits.clear();
     performedWork = true;
+    requiresRebuildDominators = true;
   }
 
+  unordered_set<Block*> stillGoesToBlocks;
   vector<unique_ptr<BlockExit>>::iterator it = block.exits.begin();
   while (it != block.exits.end()) {
+    stillGoesToBlocks.insert((*it)->toGoTo);
     if ((*it)->tag == BLOCK_EXIT_UNCONDITIONAL) {
       (*it)->accept(*this);
       usedBlocks.insert((*it)->toGoTo);
       ++it;
 
       if (it != block.exits.end()) {
+        if (stillGoesToBlocks.find((*it)->toGoTo) == stillGoesToBlocks.end()) {
+          (*it)->toGoTo->immPredecessors.erase(&block);
+        }
         block.exits.erase(it, block.exits.end());
         performedWork = true;
+        requiresRebuildDominators = true;
       }
       break;
     } else {
@@ -254,12 +268,17 @@ void UnusedCodeEliminator::visitBlock(Block& block) {
           block.exits.erase(it, block.exits.end());
 
           performedWork = true;
+          requiresRebuildDominators = true;
           break;
         } else {
           // never jmp
+          if (stillGoesToBlocks.find((*it)->toGoTo) == stillGoesToBlocks.end()) {
+            (*it)->toGoTo->immPredecessors.erase(&block);
+          }
           it = block.exits.erase(it);
 
           performedWork = true;
+          requiresRebuildDominators = true;
           continue;
         }
       }
@@ -282,6 +301,13 @@ void UnusedCodeEliminator::visitBlock(Block& block) {
       }
 
       Block* unusedBlock = *it;
+
+      for (vector<unique_ptr<BlockExit>>::iterator exIt = unusedBlock->exits.begin();
+          exIt != unusedBlock->exits.end();
+          ++exIt) {
+        (*exIt)->toGoTo->immPredecessors.erase(unusedBlock);
+      }
+
       Block* priorBlock = backRefs[unusedBlock];
       Block* nextBlock = &*unusedBlock->next;
 

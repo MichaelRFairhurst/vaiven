@@ -18,6 +18,13 @@ class Block {
   asmjit::Label label;
   unique_ptr<Instruction> head;
   unique_ptr<Block> next;
+
+  // don't use unordered set, harder to intersect
+  set<Block*> immPredecessors;
+  set<Block*> allPredecessors;
+  set<Block*> dominators;
+
+  set<Block*> loopHeaderWithBlocks;
   
   vector<unique_ptr<BlockExit>> exits;
 
