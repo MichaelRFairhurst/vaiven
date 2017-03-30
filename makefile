@@ -25,6 +25,7 @@ SSA_OBJECTS = \
 	ssa/function_merge.o \
 	ssa/dominator_builder.o \
 	ssa/loop_invariant.o \
+	ssa/common_subexpression.o \
 
 ASMJIT_OBJECTS = \
 	asmjit/src/asmjit/base/arch.o \

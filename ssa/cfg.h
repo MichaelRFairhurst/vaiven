@@ -22,6 +22,7 @@ class Block {
   // don't use unordered set, harder to intersect
   set<Block*> immPredecessors;
   set<Block*> allPredecessors;
+  set<Block*> backReferences;
   set<Block*> dominators;
 
   set<Block*> loopHeaderWithBlocks;

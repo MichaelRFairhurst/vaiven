@@ -70,57 +70,57 @@ class Value {
     internals.raw = VOID;
   }
 
-  inline bool isInt() {
+  inline bool isInt() const {
     return internals.raw >> VALUE_TAG_SHIFT == INT_TAG_SHIFTED;
   }
 
-  inline bool isPtr() {
+  inline bool isPtr() const {
     return internals.raw <= MAX_PTR;
   }
 
-  inline bool isDouble() {
+  inline bool isDouble() const {
     return internals.raw >= MIN_DBL;
   }
 
-  inline bool isBool() {
+  inline bool isBool() const {
     return internals.raw >> VALUE_TAG_SHIFT == BOOL_TAG_SHIFTED;
   }
 
-  inline bool isTrue() {
+  inline bool isTrue() const {
     return internals.raw == TRUE;
   }
 
-  inline bool isFalse() {
+  inline bool isFalse() const {
     return internals.raw == FALSE;
   }
 
-  inline bool isVoid() {
+  inline bool isVoid() const {
     return internals.raw == VOID;
   }
 
-  inline int32_t getInt() {
+  inline int32_t getInt() const {
     return internals.withHeader.asInt;
   }
 
-  inline Gcable* getPtr() {
+  inline Gcable* getPtr() const {
     return internals.asPtr;
   }
     
-  inline bool getDouble() {
+  inline bool getDouble() const {
     Value val = *this;
     val.internals.raw = ~val.internals.raw;
     return val.internals.asDouble;
   }
 
-  inline bool getBool() {
+  inline bool getBool() const {
     return internals.withHeader.asInt;
   }
 
-  inline uint64_t getRaw() {
+  inline uint64_t getRaw() const {
     return internals.raw;
   }
 
-  VaivenStaticType getStaticType();
+  VaivenStaticType getStaticType() const;
 };
 
 }

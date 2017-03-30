@@ -522,8 +522,8 @@ Vaiven currently performs the following optimizations on your code:
 * Tail call recursion (including jumping past guards)
 * Basic jump threading (not range-based yet, just jumps to jumps ignoring
 conditions)
-* Basic loop invariant code motion (can get mixed up by phis, makes extra
-blocks)
+* Basic loop invariant code motion (can get mixed up by phis)
+* Basic common subexpression elimination
 
 and generates otherwise clean asm
 * boolean values are massaged into jmpcc calls
@@ -599,7 +599,6 @@ make use of these tricks.
 * &&, || with short circuiting
 * stack traces
 * imports
-* postfix function syntax
 * void return
 * for over lists (and objects?)
 * larger std library
@@ -611,7 +610,6 @@ parseInt before array access
 
 ### Performance:
 
-* Common Subexpression Elimination
 * Bounds check elimination
 * Inlining native functions
 * track "constant" lists and objects

@@ -7,10 +7,10 @@ void LoopInvariantCodeMover::visitPureInstruction(Instruction& instr) {
       it != instr.inputs.end();
       ++it) {
     Block* block = (*it)->block;
-    set<Block*> headerPredecessors = currentLoopHeader->allPredecessors;
+    set<Block*> headerDominators = currentPreHeader->dominators;
 
-    if (block != currentLoopHeader
-      && headerPredecessors.find(block) == headerPredecessors.end()) {
+    if (block != currentPreHeader
+      && headerDominators.find(block) == headerDominators.end()) {
       // abort
       return;
     }
@@ -34,12 +34,16 @@ void LoopInvariantCodeMover::visitPureInstruction(Instruction& instr) {
 
   instr.next = NULL;
 
-  if (currentLoopHeader->head.get() == NULL) {
-    currentLoopHeader->head.reset(&instr);
+  if (currentPreHeader->head.get() == NULL) {
+    currentPreHeader->head.reset(&instr);
+    instr.block = currentPreHeader;
     writePoint = &instr;
   } else {
-    writePoint->next = &instr;
+    writePoint->append(&instr);
+    writePoint = &instr;
   }
+
+  performedWork = true;
 }
 
 void LoopInvariantCodeMover::visitPhiInstr(PhiInstr& instr) {
@@ -170,39 +174,51 @@ void LoopInvariantCodeMover::visitBlock(Block& block) {
   Block* prevBlock = curBlock;
   curBlock = &block;
   if (block.loopHeaderWithBlocks.size() > 0) {
-    if (block.immPredecessors.size() == 1) {
-      currentLoopHeader = prevBlock;
-    } else {
-      currentLoopHeader = new Block();
-      currentLoopHeader->next.reset(prevBlock->next.release());
-      prevBlock->next.reset(currentLoopHeader);
-      currentLoopHeader->exits.push_back(unique_ptr<BlockExit>(new UnconditionalBlockExit(&block)));
+    set<Block*> incomingForwardEdges;
+    for (set<Block*>::iterator it = block.immPredecessors.begin();
+        it != block.immPredecessors.end();
+        ++it) {
+      if ((*it)->allPredecessors.find(&block) != (*it)->allPredecessors.end()) {
+        continue;
+      }
 
-      for (set<Block*>::iterator it = block.immPredecessors.begin();
-          it != block.immPredecessors.end();
+      incomingForwardEdges.insert(*it);
+    }
+
+    if (incomingForwardEdges.size() == 1) {
+      currentPreHeader = prevBlock;
+    } else {
+      currentPreHeader = new Block();
+      currentPreHeader->next.reset(prevBlock->next.release());
+      prevBlock->next.reset(currentPreHeader);
+      currentPreHeader->exits.push_back(unique_ptr<BlockExit>(new UnconditionalBlockExit(&block)));
+
+      for (set<Block*>::iterator it = incomingForwardEdges.begin();
+          it != incomingForwardEdges.end();
           ++it) {
         for (vector<unique_ptr<BlockExit>>::iterator exIt = (*it)->exits.begin();
             exIt != (*it)->exits.end();
             ++exIt) {
           if ((*exIt)->toGoTo == &block) {
-            (*exIt)->toGoTo = currentLoopHeader;
+            (*exIt)->toGoTo = currentPreHeader;
           }
         }
       }
 
-      currentLoopHeader->immPredecessors = block.immPredecessors;
-      currentLoopHeader->allPredecessors = block.allPredecessors;
-      currentLoopHeader->dominators = block.dominators;
-      block.immPredecessors.clear();
-      block.immPredecessors.insert(currentLoopHeader);
-      block.allPredecessors.insert(currentLoopHeader);
-      block.dominators.insert(currentLoopHeader);
+      currentPreHeader->immPredecessors = incomingForwardEdges;
+      currentPreHeader->allPredecessors = block.allPredecessors;
+      currentPreHeader->dominators = block.dominators;
+      block.immPredecessors.erase(incomingForwardEdges.begin(), incomingForwardEdges.end());
+      block.immPredecessors.insert(currentPreHeader);
+      block.allPredecessors.insert(currentPreHeader);
+      block.dominators.insert(currentPreHeader);
 
-      // mostly ok, but later blocks won't have the new header in allPredecessors
+      // mostly ok, but later blocks won't have the new pre-header in
+      // allPredecessors / dominators
       requiresRebuildDominators = true;
     }
 
-    writePoint = currentLoopHeader->head.get();
+    writePoint = currentPreHeader->head.get();
     while (writePoint != NULL && writePoint->next != NULL) {
       writePoint = writePoint->next;
     }

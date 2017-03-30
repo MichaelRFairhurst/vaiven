@@ -69,6 +69,8 @@ void UnusedCodeEliminator::visitTypecheckInstr(TypecheckInstr& instr) {
   if (instr.inputs[0]->type == instr.type) {
     instr.replaceUsagesWith(instr.inputs[0]);
     remove(&instr);
+  } else if (instr.safelyDeletable) {
+    visitPureInstr(instr);
   }
 }
 

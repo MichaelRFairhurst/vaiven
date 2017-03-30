@@ -17,6 +17,9 @@ class DominatorBuilder {
   void rebuild(Block& firstBlock);
 
   void reset(Block& firstBlock);
+
+  private:
+  void rebuildBlock(Block* curBlock);
 };
 
 }}

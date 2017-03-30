@@ -45,7 +45,7 @@ class LoopInvariantCodeMover : public ForwardVisitor {
   void visitJmpCcInstr(JmpCcInstr& instr);
   void visitBlock(Block& block);
 
-  Block* currentLoopHeader;
+  Block* currentPreHeader;
   Instruction* writePoint;
   bool requiresRebuildDominators;
   bool performedWork;

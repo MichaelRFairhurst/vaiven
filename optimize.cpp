@@ -21,6 +21,7 @@
 #include "ssa/inliner.h"
 #include "ssa/dominator_builder.h"
 #include "ssa/loop_invariant.h"
+#include "ssa/common_subexpression.h"
 
 #include <iostream>
 #include <stdint.h>
@@ -147,6 +148,13 @@ void vaiven::performOptimize(ast::FuncDecl<TypedLocationInfo>& decl, Functions& 
     builder.head.accept(printer); printer.varIds.clear();
 #endif
 
+    ssa::CommonSubexpressionEliminator commonSubElim;
+    builder.head.accept(commonSubElim);
+#ifdef SSA_DIAGNOSTICS
+    std::cout << "cse" << std::endl;
+    builder.head.accept(printer); printer.varIds.clear();
+#endif
+
     ssa::UnusedCodeEliminator unusedCodeElim;
     builder.head.accept(unusedCodeElim);
     if (unusedCodeElim.requiresRebuildDominators) {
@@ -157,7 +165,7 @@ void vaiven::performOptimize(ast::FuncDecl<TypedLocationInfo>& decl, Functions& 
     builder.head.accept(printer); printer.varIds.clear();
 #endif
 
-    if (!unusedCodeElim.performedWork && !instrComb.performedWork && !constantProp.performedWork && !loopInvariant.performedWork) {
+    if (!unusedCodeElim.performedWork && !instrComb.performedWork && !constantProp.performedWork && !loopInvariant.performedWork && !commonSubElim.performedWork) {
       break;
     }
 

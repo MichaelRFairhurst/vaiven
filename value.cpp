@@ -3,7 +3,7 @@
 
 using namespace vaiven;
 
-VaivenStaticType Value::getStaticType() {
+VaivenStaticType Value::getStaticType() const {
   return isInt()
       ? VAIVEN_STATIC_TYPE_INT
       : isBool()

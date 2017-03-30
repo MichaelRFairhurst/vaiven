@@ -96,11 +96,13 @@ void TypeAnalysis::typecheckInput(Instruction& instr, VaivenStaticType expectedT
   if (instr.inputs[input]->type == VAIVEN_STATIC_TYPE_UNKNOWN) {
     // TODO cache this so we don't have to detect it with CSE
     TypecheckInstr* checkInstr = new TypecheckInstr(instr.inputs[input], expectedType);
+    instr.inputs[input]->usages.insert(checkInstr);
     emit(checkInstr);
     // edge case: x + x. But this will be solved later in this function.
     instr.inputs[input]->usages.erase(&instr);
-    instr.inputs[input]->usages.insert(checkInstr);
+    checkInstr->usages.insert(&instr);
     instr.inputs[input] = checkInstr;
+
   } else if (instr.inputs[input]->type != expectedType) {
     if (expectedType == VAIVEN_STATIC_TYPE_INT) {
       emit(new ErrInstr(EXPECTED_INT));

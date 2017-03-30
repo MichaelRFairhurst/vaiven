@@ -210,10 +210,12 @@ class CallInstr : public Instruction {
 class TypecheckInstr : public Instruction {
   public:
   TypecheckInstr(Instruction* what, VaivenStaticType checkType)
-      : Instruction(INSTR_TYPECHECK, checkType, false) {
+      : Instruction(INSTR_TYPECHECK, checkType, false), safelyDeletable(false) {
     inputs.push_back(what);
     what->usages.insert(this);
   };
+
+  bool safelyDeletable;
 
   void accept(SsaVisitor& visitor) {
     visitor.visitTypecheckInstr(*this);
