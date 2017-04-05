@@ -3,7 +3,6 @@
 #include "stdio.h"
 #include <iostream>
 
-#include "visitor/usage_applier.h"
 #include "asmjit/src/asmjit/asmjit.h"
 #include "ast/all.h"
 #include "value.h"
@@ -43,7 +42,7 @@ public:
   }
 };
 
-OverkillFunc vaiven::optimize(vaiven::Functions& funcs, ast::FuncDecl<vaiven::TypedLocationInfo>& funcDecl) {
+OverkillFunc vaiven::optimize(vaiven::Functions& funcs, ast::FuncDecl<>& funcDecl) {
   if (funcs.funcs.find(funcDecl.name) == funcs.funcs.end()) {
     throw "func not known";
   }
@@ -51,9 +50,6 @@ OverkillFunc vaiven::optimize(vaiven::Functions& funcs, ast::FuncDecl<vaiven::Ty
 #ifdef OPTIMIZATION_DIAGNOSTICS
   std::cout << "optimizing " << funcDecl.name << std::endl;
 #endif
-
-  vaiven::visitor::UsageApplier applier(*funcs.funcs[funcDecl.name]->usage);
-  funcDecl.accept(applier);
   
   performOptimize(funcDecl, funcs, *funcs.funcs[funcDecl.name]->usage);
 
@@ -63,7 +59,7 @@ OverkillFunc vaiven::optimize(vaiven::Functions& funcs, ast::FuncDecl<vaiven::Ty
   return funcs.funcs[funcDecl.name]->fptr;
 }
 
-void vaiven::performOptimize(ast::FuncDecl<TypedLocationInfo>& decl, Functions& funcs, FunctionUsage& usageInfo) {
+void vaiven::performOptimize(ast::FuncDecl<>& decl, Functions& funcs, FunctionUsage& usageInfo) {
   CodeHolder codeHolder;
   codeHolder.init(funcs.runtime.getCodeInfo());
 

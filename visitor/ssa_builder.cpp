@@ -16,7 +16,7 @@ void SsaBuilder::emit(Instruction* next) {
   writePoint = cur;
 }
 
-void SsaBuilder::visitIfStatement(IfStatement<TypedLocationInfo>& stmt) {
+void SsaBuilder::visitIfStatement(IfStatement<>& stmt) {
   stmt.condition->accept(*this);
   emit(new NotInstr(cur));
   JmpCcInstr* jmp = new JmpCcInstr(cur);
@@ -39,7 +39,7 @@ void SsaBuilder::visitIfStatement(IfStatement<TypedLocationInfo>& stmt) {
   {
     ScopeFrame<Instruction*> initScope(scope);
     curBlock = trueBlock;
-    for(vector<unique_ptr<Statement<TypedLocationInfo> > >::iterator it = stmt.trueStatements.begin();
+    for(vector<unique_ptr<Statement<> > >::iterator it = stmt.trueStatements.begin();
         it != stmt.trueStatements.end();
         ++it) {
       (*it)->accept(*this);
@@ -62,7 +62,7 @@ void SsaBuilder::visitIfStatement(IfStatement<TypedLocationInfo>& stmt) {
   {
     ScopeFrame<Instruction*> initScope(scope);
     curBlock = falseBlock;
-    for(vector<unique_ptr<Statement<TypedLocationInfo> > >::iterator it = stmt.falseStatements.begin();
+    for(vector<unique_ptr<Statement<> > >::iterator it = stmt.falseStatements.begin();
         it != stmt.falseStatements.end();
         ++it) {
       (*it)->accept(*this);
@@ -116,7 +116,7 @@ void SsaBuilder::visitIfStatement(IfStatement<TypedLocationInfo>& stmt) {
   isReturnable = false;
 }
 
-void SsaBuilder::visitForCondition(ForCondition<TypedLocationInfo>& stmt) {
+void SsaBuilder::visitForCondition(ForCondition<>& stmt) {
   unordered_set<string> prevVarsToPhi = varsToPhi;
   map<string, Instruction*> scopeStatePreFor;
   scope.fill(scopeStatePreFor);
@@ -154,7 +154,7 @@ void SsaBuilder::visitForCondition(ForCondition<TypedLocationInfo>& stmt) {
   {
     ScopeFrame<Instruction*> initScope(scope);
     curBlock = bodyBlock;
-    for(vector<unique_ptr<Statement<TypedLocationInfo> > >::iterator it = stmt.statements.begin();
+    for(vector<unique_ptr<Statement<> > >::iterator it = stmt.statements.begin();
         it != stmt.statements.end();
         ++it) {
       (*it)->accept(*this);
@@ -188,14 +188,14 @@ void SsaBuilder::visitForCondition(ForCondition<TypedLocationInfo>& stmt) {
   isReturnable = false;
 }
 
-void SsaBuilder::visitReturnStatement(ReturnStatement<TypedLocationInfo>& stmt) {
+void SsaBuilder::visitReturnStatement(ReturnStatement<>& stmt) {
   stmt.expr->accept(*this);
   Instruction* retVal = cur;
   emit(new RetInstr(retVal));
   isReturnable = false;
 }
 
-void SsaBuilder::visitVarDecl(VarDecl<TypedLocationInfo>& varDecl) {
+void SsaBuilder::visitVarDecl(VarDecl<>& varDecl) {
   varDecl.expr->accept(*this);
   if (scope.contains(varDecl.varname)) {
     emit(new ErrInstr(DUPLICATE_VAR));
@@ -205,7 +205,7 @@ void SsaBuilder::visitVarDecl(VarDecl<TypedLocationInfo>& varDecl) {
   isReturnable = false;
 }
 
-void SsaBuilder::visitFuncCallExpression(FuncCallExpression<TypedLocationInfo>& expr) {
+void SsaBuilder::visitFuncCallExpression(FuncCallExpression<>& expr) {
   vector<Instruction*> inputs;
   for (int i = 0; i < expr.parameters.size(); ++i) {
     expr.parameters[i]->accept(*this);
@@ -237,7 +237,7 @@ void SsaBuilder::visitFuncCallExpression(FuncCallExpression<TypedLocationInfo>& 
   emit(call);
 }
 
-void SsaBuilder::visitListLiteralExpression(ListLiteralExpression<TypedLocationInfo>& expr) {
+void SsaBuilder::visitListLiteralExpression(ListLiteralExpression<>& expr) {
   ListInitInstr* instr = new ListInitInstr();
   for (int i = 0; i < expr.items.size(); ++i) {
     expr.items[i]->accept(*this);
@@ -248,7 +248,7 @@ void SsaBuilder::visitListLiteralExpression(ListLiteralExpression<TypedLocationI
   emit(instr);
 }
 
-void SsaBuilder::visitDynamicAccessExpression(DynamicAccessExpression<TypedLocationInfo>& expr) {
+void SsaBuilder::visitDynamicAccessExpression(DynamicAccessExpression<>& expr) {
   expr.subject->accept(*this);
   Instruction* subject = cur;
   expr.property->accept(*this);
@@ -256,7 +256,7 @@ void SsaBuilder::visitDynamicAccessExpression(DynamicAccessExpression<TypedLocat
   emit(new DynamicAccessInstr(subject, property));
 }
 
-void SsaBuilder::visitDynamicStoreExpression(DynamicStoreExpression<TypedLocationInfo>& expr) {
+void SsaBuilder::visitDynamicStoreExpression(DynamicStoreExpression<>& expr) {
   expr.subject->accept(*this);
   Instruction* subject = cur;
   expr.property->accept(*this);
@@ -292,13 +292,13 @@ void SsaBuilder::visitDynamicStoreExpression(DynamicStoreExpression<TypedLocatio
   emit(new DynamicStoreInstr(subject, property, rhs));
 }
 
-void SsaBuilder::visitStaticAccessExpression(StaticAccessExpression<TypedLocationInfo>& expr) {
+void SsaBuilder::visitStaticAccessExpression(StaticAccessExpression<>& expr) {
   expr.subject->accept(*this);
   Instruction* subject = cur;
   emit(new ObjectAccessInstr(subject, &expr.property));
 }
 
-void SsaBuilder::visitStaticStoreExpression(StaticStoreExpression<TypedLocationInfo>& expr) {
+void SsaBuilder::visitStaticStoreExpression(StaticStoreExpression<>& expr) {
   expr.subject->accept(*this);
   Instruction* subject = cur;
   expr.rhs->accept(*this);
@@ -332,7 +332,7 @@ void SsaBuilder::visitStaticStoreExpression(StaticStoreExpression<TypedLocationI
   emit(new ObjectStoreInstr(subject, &expr.property, rhs));
 }
 
-void SsaBuilder::visitFuncDecl(FuncDecl<TypedLocationInfo>& decl) {
+void SsaBuilder::visitFuncDecl(FuncDecl<>& decl) {
   for (int i = 0; i < decl.args.size(); ++i) {
     ArgInstr* arg = new ArgInstr(i, usageInfo.argShapes[i].getStaticType());
     emit(arg); // part of the instruction stream for ownership purposes
@@ -342,7 +342,7 @@ void SsaBuilder::visitFuncDecl(FuncDecl<TypedLocationInfo>& decl) {
   // if we have no statements, we must ret void
   isReturnable = false;
 
-  for(vector<unique_ptr<Statement<TypedLocationInfo> > >::iterator it = decl.statements.begin();
+  for(vector<unique_ptr<Statement<> > >::iterator it = decl.statements.begin();
       it != decl.statements.end();
       ++it) {
     (*it)->accept(*this);
@@ -357,16 +357,16 @@ void SsaBuilder::visitFuncDecl(FuncDecl<TypedLocationInfo>& decl) {
   }
 }
 
-void SsaBuilder::visitExpressionStatement(ExpressionStatement<TypedLocationInfo>& stmt) {
+void SsaBuilder::visitExpressionStatement(ExpressionStatement<>& stmt) {
   stmt.expr->accept(*this);
   isReturnable = true;
 }
 
-void SsaBuilder::visitBlock(Block<TypedLocationInfo>& block) {
+void SsaBuilder::visitBlock(Block<>& block) {
   throw "not supported";
 }
 
-void SsaBuilder::visitAssignmentExpression(AssignmentExpression<TypedLocationInfo>& expr) {
+void SsaBuilder::visitAssignmentExpression(AssignmentExpression<>& expr) {
   expr.expr->accept(*this);
   if (!scope.contains(expr.varname)) {
     emit(new ErrInstr(NO_SUCH_VAR));
@@ -398,7 +398,7 @@ void SsaBuilder::visitAssignmentExpression(AssignmentExpression<TypedLocationInf
   scope.replace(expr.varname, cur);
 }
 
-void SsaBuilder::visitAdditionExpression(AdditionExpression<TypedLocationInfo>& expr) {
+void SsaBuilder::visitAdditionExpression(AdditionExpression<>& expr) {
   expr.left->accept(*this);
   Instruction* lhs = cur;
   expr.right->accept(*this);
@@ -406,7 +406,7 @@ void SsaBuilder::visitAdditionExpression(AdditionExpression<TypedLocationInfo>& 
   emit(new AddInstr(lhs, rhs));
 }
 
-void SsaBuilder::visitSubtractionExpression(SubtractionExpression<TypedLocationInfo>& expr) {
+void SsaBuilder::visitSubtractionExpression(SubtractionExpression<>& expr) {
   expr.left->accept(*this);
   Instruction* lhs = cur;
   expr.right->accept(*this);
@@ -414,7 +414,7 @@ void SsaBuilder::visitSubtractionExpression(SubtractionExpression<TypedLocationI
   emit(new SubInstr(lhs, rhs));
 }
 
-void SsaBuilder::visitMultiplicationExpression(MultiplicationExpression<TypedLocationInfo>& expr) {
+void SsaBuilder::visitMultiplicationExpression(MultiplicationExpression<>& expr) {
   expr.left->accept(*this);
   Instruction* lhs = cur;
   expr.right->accept(*this);
@@ -422,7 +422,7 @@ void SsaBuilder::visitMultiplicationExpression(MultiplicationExpression<TypedLoc
   emit(new MulInstr(lhs, rhs));
 }
 
-void SsaBuilder::visitDivisionExpression(DivisionExpression<TypedLocationInfo>& expr) {
+void SsaBuilder::visitDivisionExpression(DivisionExpression<>& expr) {
   expr.left->accept(*this);
   Instruction* lhs = cur;
   expr.right->accept(*this);
@@ -430,19 +430,19 @@ void SsaBuilder::visitDivisionExpression(DivisionExpression<TypedLocationInfo>& 
   emit(new DivInstr(lhs, rhs));
 }
 
-void SsaBuilder::visitIntegerExpression(IntegerExpression<TypedLocationInfo>& expr) {
+void SsaBuilder::visitIntegerExpression(IntegerExpression<>& expr) {
   emit(new ConstantInstr(Value(expr.value)));
 }
 
-void SsaBuilder::visitDoubleExpression(DoubleExpression<TypedLocationInfo>& expr) {
+void SsaBuilder::visitDoubleExpression(DoubleExpression<>& expr) {
   emit(new ConstantInstr(Value(expr.value)));
 }
 
-void SsaBuilder::visitStringExpression(StringExpression<TypedLocationInfo>& expr) {
+void SsaBuilder::visitStringExpression(StringExpression<>& expr) {
   emit(new ConstantInstr(Value(expr.value)));
 }
 
-void SsaBuilder::visitVariableExpression(VariableExpression<TypedLocationInfo>& expr) {
+void SsaBuilder::visitVariableExpression(VariableExpression<>& expr) {
   if (scope.contains(expr.id)) {
     // don't emit the instruction, just place it as the cur so other instructions
     // can reference it
@@ -452,17 +452,17 @@ void SsaBuilder::visitVariableExpression(VariableExpression<TypedLocationInfo>& 
   }
 }
 
-void SsaBuilder::visitBoolLiteral(BoolLiteral<TypedLocationInfo>& expr) {
+void SsaBuilder::visitBoolLiteral(BoolLiteral<>& expr) {
   emit(new ConstantInstr(Value(expr.value)));
 }
 
-void SsaBuilder::visitNotExpression(NotExpression<TypedLocationInfo>& expr) {
+void SsaBuilder::visitNotExpression(NotExpression<>& expr) {
   expr.expr->accept(*this);
   Instruction* inner = cur;
   emit(new NotInstr(inner));
 }
 
-void SsaBuilder::visitInequalityExpression(InequalityExpression<TypedLocationInfo>& expr) {
+void SsaBuilder::visitInequalityExpression(InequalityExpression<>& expr) {
   expr.left->accept(*this);
   Instruction* lhs = cur;
   expr.right->accept(*this);
@@ -470,7 +470,7 @@ void SsaBuilder::visitInequalityExpression(InequalityExpression<TypedLocationInf
   emit(new CmpIneqInstr(lhs, rhs));
 }
 
-void SsaBuilder::visitEqualityExpression(EqualityExpression<TypedLocationInfo>& expr) {
+void SsaBuilder::visitEqualityExpression(EqualityExpression<>& expr) {
   expr.left->accept(*this);
   Instruction* lhs = cur;
   expr.right->accept(*this);
@@ -478,7 +478,7 @@ void SsaBuilder::visitEqualityExpression(EqualityExpression<TypedLocationInfo>& 
   emit(new CmpEqInstr(lhs, rhs));
 }
 
-void SsaBuilder::visitGtExpression(GtExpression<TypedLocationInfo>& expr) {
+void SsaBuilder::visitGtExpression(GtExpression<>& expr) {
   expr.left->accept(*this);
   Instruction* lhs = cur;
   expr.right->accept(*this);
@@ -486,7 +486,7 @@ void SsaBuilder::visitGtExpression(GtExpression<TypedLocationInfo>& expr) {
   emit(new CmpGtInstr(lhs, rhs));
 }
 
-void SsaBuilder::visitGteExpression(GteExpression<TypedLocationInfo>& expr) {
+void SsaBuilder::visitGteExpression(GteExpression<>& expr) {
   expr.left->accept(*this);
   Instruction* lhs = cur;
   expr.right->accept(*this);
@@ -494,7 +494,7 @@ void SsaBuilder::visitGteExpression(GteExpression<TypedLocationInfo>& expr) {
   emit(new CmpGteInstr(lhs, rhs));
 }
 
-void SsaBuilder::visitLtExpression(LtExpression<TypedLocationInfo>& expr) {
+void SsaBuilder::visitLtExpression(LtExpression<>& expr) {
   expr.left->accept(*this);
   Instruction* lhs = cur;
   expr.right->accept(*this);
@@ -502,7 +502,7 @@ void SsaBuilder::visitLtExpression(LtExpression<TypedLocationInfo>& expr) {
   emit(new CmpLtInstr(lhs, rhs));
 }
 
-void SsaBuilder::visitLteExpression(LteExpression<TypedLocationInfo>& expr) {
+void SsaBuilder::visitLteExpression(LteExpression<>& expr) {
   expr.left->accept(*this);
   Instruction* lhs = cur;
   expr.right->accept(*this);

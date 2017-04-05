@@ -7,6 +7,13 @@ using namespace std;
 
 void RegAlloc::reuseInputRegIfPossible(Instruction& instr) {
   if (instr.inputs.size() > 0 && instr.inputs[0]->usages.size() == 1) {
+    // edge case: typecheck may have no other usages, but it shares a register
+    // with something that may have other usages.
+    if (instr.inputs[0]->tag == INSTR_TYPECHECK
+        && instr.inputs[0]->inputs[0]->usages.size() > 1) {
+      instr.out = cc.newUInt64();
+      return;
+    }
     instr.out = instr.inputs[0]->out;
   } else {
     instr.out = cc.newUInt64();

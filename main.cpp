@@ -7,7 +7,6 @@
 #include "firstcompile.h"
 #include "visitor/print_visitor.h"
 #include "visitor/interpreter.h"
-#include "visitor/location_resolver.h"
 
 #include <stdint.h>
 
@@ -62,13 +61,9 @@ void printExpressionStream(Parser& parser) {
     }
 
     if (!parser.lastLogicalGroupWasEvaluatable) {
-      visitor::LocationResolver locResolver;
-      cur->accept(locResolver);
-      unique_ptr<ast::Node<TypedLocationInfo> > resolved(locResolver.nodeCopyStack.top());
-
       try {
-        firstCompile(funcs, static_cast<ast::FuncDecl<TypedLocationInfo>&>(*resolved));
-        resolved.release(); // Functions owns pointer now
+        firstCompile(funcs, static_cast<ast::FuncDecl<>&>(*cur));
+        cur.release(); // Functions owns pointer now
       } catch (DuplicateFunctionError e) {
         cout << "function " << e.name << " already defined" << endl;
       }

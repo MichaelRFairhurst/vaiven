@@ -9,11 +9,11 @@
 
 namespace vaiven {
 
-void firstCompile(vaiven::Functions& funcs, ast::FuncDecl<vaiven::TypedLocationInfo>& funcDecl);
+void firstCompile(vaiven::Functions& funcs, ast::FuncDecl<>& funcDecl);
 
-void firstOptimizations(ast::FuncDecl<TypedLocationInfo>& decl, Functions& funcs, FunctionUsage& usageInfo, asmjit::X86Compiler& cc, vector<asmjit::X86Gp>& argRegs, ErrorCompiler& error, asmjit::Label funcLabel);
-void generateOptimizeEpilog(ast::FuncDecl<TypedLocationInfo>& decl, asmjit::FuncSignature& sig, asmjit::X86Compiler& cc, asmjit::Label& optimizeLabel, vector<asmjit::X86Gp>& argRegs, Functions& funcs);
-void generateTypeShapeProlog(ast::FuncDecl<TypedLocationInfo>& decl, FunctionUsage* usage, asmjit::X86Compiler& cc, asmjit::Label* optimizeLabel, vector<asmjit::X86Gp>& argRegs);
+void firstOptimizations(ast::FuncDecl<>& decl, Functions& funcs, FunctionUsage& usageInfo, asmjit::X86Compiler& cc, vector<asmjit::X86Gp>& argRegs, ErrorCompiler& error, asmjit::Label funcLabel);
+void generateOptimizeEpilog(ast::FuncDecl<>& decl, asmjit::FuncSignature& sig, asmjit::X86Compiler& cc, asmjit::Label& optimizeLabel, vector<asmjit::X86Gp>& argRegs, Functions& funcs);
+void generateTypeShapeProlog(ast::FuncDecl<>& decl, FunctionUsage* usage, asmjit::X86Compiler& cc, asmjit::Label* optimizeLabel, vector<asmjit::X86Gp>& argRegs);
 
 }
 

@@ -7,9 +7,9 @@
 
 namespace vaiven {
 
-OverkillFunc optimize(vaiven::Functions& funcs, ast::FuncDecl<vaiven::TypedLocationInfo>& funcDecl);
+OverkillFunc optimize(vaiven::Functions& funcs, ast::FuncDecl<>& funcDecl);
 
-void performOptimize(ast::FuncDecl<TypedLocationInfo>& decl, Functions& funcs, FunctionUsage& usageInfo);
+void performOptimize(ast::FuncDecl<>& decl, Functions& funcs, FunctionUsage& usageInfo);
 
 }
 

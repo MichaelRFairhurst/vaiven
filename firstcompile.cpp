@@ -4,7 +4,6 @@
 #include <iostream>
 
 #include "optimize.h"
-#include "visitor/usage_applier.h"
 #include "asmjit/src/asmjit/asmjit.h"
 #include "ast/all.h"
 #include "value.h"
@@ -43,7 +42,7 @@ public:
   }
 };
 
-void vaiven::firstCompile(vaiven::Functions& funcs, ast::FuncDecl<vaiven::TypedLocationInfo>& funcDecl) {
+void vaiven::firstCompile(vaiven::Functions& funcs, ast::FuncDecl<>& funcDecl) {
 #ifdef FIRST_COMPILE_DIAGNOSTICS
   std::cout << "compiling " << funcDecl.name << std::endl;
 #endif
@@ -107,7 +106,7 @@ void vaiven::firstCompile(vaiven::Functions& funcs, ast::FuncDecl<vaiven::TypedL
 #endif
 }
 
-void vaiven::firstOptimizations(ast::FuncDecl<TypedLocationInfo>& decl, Functions& funcs, FunctionUsage& usageInfo, asmjit::X86Compiler& cc, vector<X86Gp>& argRegs, ErrorCompiler& error, Label funcLabel) {
+void vaiven::firstOptimizations(ast::FuncDecl<>& decl, Functions& funcs, FunctionUsage& usageInfo, asmjit::X86Compiler& cc, vector<X86Gp>& argRegs, ErrorCompiler& error, Label funcLabel) {
   SsaBuilder builder(usageInfo, funcs);
   decl.accept(builder);
 #ifdef SSA_DIAGNOSTICS
@@ -181,7 +180,7 @@ void vaiven::firstOptimizations(ast::FuncDecl<TypedLocationInfo>& decl, Function
 #endif
 }
 
-void vaiven::generateTypeShapeProlog(FuncDecl<TypedLocationInfo>& decl, FunctionUsage* usage, asmjit::X86Compiler& cc, asmjit::Label* optimizeLabel, vector<X86Gp>& argRegs) {
+void vaiven::generateTypeShapeProlog(FuncDecl<>& decl, FunctionUsage* usage, asmjit::X86Compiler& cc, asmjit::Label* optimizeLabel, vector<X86Gp>& argRegs) {
   *optimizeLabel = cc.newLabel();
   X86Gp count = cc.newInt32();
   cc.mov(count, asmjit::x86::dword_ptr((uint64_t) &usage->count));
@@ -226,7 +225,7 @@ void vaiven::generateTypeShapeProlog(FuncDecl<TypedLocationInfo>& decl, Function
   }
 }
 
-void vaiven::generateOptimizeEpilog(FuncDecl<TypedLocationInfo>& decl, FuncSignature& sig, asmjit::X86Compiler& cc, Label& optimizeLabel, vector<X86Gp>& argRegs, Functions& funcs) {
+void vaiven::generateOptimizeEpilog(FuncDecl<>& decl, FuncSignature& sig, asmjit::X86Compiler& cc, Label& optimizeLabel, vector<X86Gp>& argRegs, Functions& funcs) {
   cc.bind(optimizeLabel);
   X86Gp funcsReg = cc.newUInt64();
   X86Gp declReg = cc.newUInt64();

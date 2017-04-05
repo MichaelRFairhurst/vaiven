@@ -23,42 +23,42 @@ using std::map;
 using std::string;
 using std::unordered_set;
 
-class SsaBuilder : public Visitor<TypedLocationInfo> {
+class SsaBuilder : public Visitor<> {
 
   public:
   SsaBuilder(FunctionUsage& usageInfo, Functions& funcs)
       : usageInfo(usageInfo), funcs(funcs), curBlock(&head), cur(NULL), writePoint(NULL) {};
 
-  virtual void visitAssignmentExpression(AssignmentExpression<TypedLocationInfo>& expr);
-  virtual void visitAdditionExpression(AdditionExpression<TypedLocationInfo>& expr);
-  virtual void visitSubtractionExpression(SubtractionExpression<TypedLocationInfo>& expr);
-  virtual void visitMultiplicationExpression(MultiplicationExpression<TypedLocationInfo>& expr);
-  virtual void visitDivisionExpression(DivisionExpression<TypedLocationInfo>& expr);
-  virtual void visitIntegerExpression(IntegerExpression<TypedLocationInfo>& expr);
-  virtual void visitDoubleExpression(DoubleExpression<TypedLocationInfo>& expr);
-  virtual void visitStringExpression(StringExpression<TypedLocationInfo>& expr);
-  virtual void visitVariableExpression(VariableExpression<TypedLocationInfo>& expr);
-  virtual void visitBoolLiteral(BoolLiteral<TypedLocationInfo>& expr);
-  virtual void visitNotExpression(NotExpression<TypedLocationInfo>& expr);
-  virtual void visitEqualityExpression(EqualityExpression<TypedLocationInfo>& expr);
-  virtual void visitInequalityExpression(InequalityExpression<TypedLocationInfo>& expr);
-  virtual void visitGtExpression(GtExpression<TypedLocationInfo>& expr);
-  virtual void visitGteExpression(GteExpression<TypedLocationInfo>& expr);
-  virtual void visitLtExpression(LtExpression<TypedLocationInfo>& expr);
-  virtual void visitLteExpression(LteExpression<TypedLocationInfo>& expr);
-  virtual void visitFuncCallExpression(FuncCallExpression<TypedLocationInfo>& expr);
-  virtual void visitListLiteralExpression(ListLiteralExpression<TypedLocationInfo>& expr);
-  virtual void visitDynamicAccessExpression(DynamicAccessExpression<TypedLocationInfo>& expr);
-  virtual void visitDynamicStoreExpression(DynamicStoreExpression<TypedLocationInfo>& expr);
-  virtual void visitStaticAccessExpression(StaticAccessExpression<TypedLocationInfo>& expr);
-  virtual void visitStaticStoreExpression(StaticStoreExpression<TypedLocationInfo>& expr);
-  virtual void visitExpressionStatement(ExpressionStatement<TypedLocationInfo>& stmt);
-  virtual void visitIfStatement(IfStatement<TypedLocationInfo>& stmt);
-  virtual void visitForCondition(ForCondition<TypedLocationInfo>& stmt);
-  virtual void visitReturnStatement(ReturnStatement<TypedLocationInfo>& stmt);
-  virtual void visitBlock(Block<TypedLocationInfo>& expr);
-  virtual void visitFuncDecl(FuncDecl<TypedLocationInfo>& funcDecl);
-  virtual void visitVarDecl(VarDecl<TypedLocationInfo>& varDecl);
+  virtual void visitAssignmentExpression(AssignmentExpression<>& expr);
+  virtual void visitAdditionExpression(AdditionExpression<>& expr);
+  virtual void visitSubtractionExpression(SubtractionExpression<>& expr);
+  virtual void visitMultiplicationExpression(MultiplicationExpression<>& expr);
+  virtual void visitDivisionExpression(DivisionExpression<>& expr);
+  virtual void visitIntegerExpression(IntegerExpression<>& expr);
+  virtual void visitDoubleExpression(DoubleExpression<>& expr);
+  virtual void visitStringExpression(StringExpression<>& expr);
+  virtual void visitVariableExpression(VariableExpression<>& expr);
+  virtual void visitBoolLiteral(BoolLiteral<>& expr);
+  virtual void visitNotExpression(NotExpression<>& expr);
+  virtual void visitEqualityExpression(EqualityExpression<>& expr);
+  virtual void visitInequalityExpression(InequalityExpression<>& expr);
+  virtual void visitGtExpression(GtExpression<>& expr);
+  virtual void visitGteExpression(GteExpression<>& expr);
+  virtual void visitLtExpression(LtExpression<>& expr);
+  virtual void visitLteExpression(LteExpression<>& expr);
+  virtual void visitFuncCallExpression(FuncCallExpression<>& expr);
+  virtual void visitListLiteralExpression(ListLiteralExpression<>& expr);
+  virtual void visitDynamicAccessExpression(DynamicAccessExpression<>& expr);
+  virtual void visitDynamicStoreExpression(DynamicStoreExpression<>& expr);
+  virtual void visitStaticAccessExpression(StaticAccessExpression<>& expr);
+  virtual void visitStaticStoreExpression(StaticStoreExpression<>& expr);
+  virtual void visitExpressionStatement(ExpressionStatement<>& stmt);
+  virtual void visitIfStatement(IfStatement<>& stmt);
+  virtual void visitForCondition(ForCondition<>& stmt);
+  virtual void visitReturnStatement(ReturnStatement<>& stmt);
+  virtual void visitBlock(Block<>& expr);
+  virtual void visitFuncDecl(FuncDecl<>& funcDecl);
+  virtual void visitVarDecl(VarDecl<>& varDecl);
 
   void emit(ssa::Instruction* next);
 

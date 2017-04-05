@@ -20,13 +20,7 @@ class ErrorCompiler {
     noVarErrorLabel(cc.newLabel()), dupVarErrorLabel(cc.newLabel()) {}
 
   void generateTypeErrorEpilog();
-  void typecheckInt(asmjit::X86Gp vreg, TypedLocationInfo& info);
-  void typecheckInt(asmjit::X86Gp vreg);
-  void typecheckBool(asmjit::X86Gp vreg, TypedLocationInfo& info);
-  void typecheckBool(asmjit::X86Gp vreg);
-
   X86Compiler& cc;
-
 
   void intTypeError();
   void boolTypeError();

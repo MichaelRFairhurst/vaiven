@@ -3,8 +3,6 @@
 
 #include "asmjit/src/asmjit/asmjit.h"
 
-#include "location.h"
-
 namespace vaiven {
 
 enum VaivenStaticType {
@@ -16,20 +14,6 @@ enum VaivenStaticType {
   VAIVEN_STATIC_TYPE_OBJECT,
   VAIVEN_STATIC_TYPE_LIST,
   VAIVEN_STATIC_TYPE_UNKNOWN,
-};
-
-class TypedLocationInfo {
-
-  public:
-  TypedLocationInfo(Location location, VaivenStaticType type, bool isBoxed)
-    : location(location), type(type), isBoxed(isBoxed) {};
-
-  TypedLocationInfo() : location(), type(VAIVEN_STATIC_TYPE_UNKNOWN) {};
-
-  VaivenStaticType type;
-  Location location;
-  bool isBoxed;
-
 };
 
 }

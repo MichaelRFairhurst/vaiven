@@ -26,7 +26,7 @@ class Function {
   Function(asmjit::JitRuntime* runtime,
       int argc,
       unique_ptr<FunctionUsage> usage,
-      ast::FuncDecl<TypedLocationInfo>* ast)
+      ast::FuncDecl<>* ast)
     : runtime(runtime), argc(argc), usage(std::move(usage)), ast(ast), isPure(false), isNative(false) {};
 
   ~Function() {
@@ -42,7 +42,7 @@ class Function {
   OverkillFunc fptr;
   OverkillFunc slowfptr;
   unique_ptr<FunctionUsage> usage;
-  unique_ptr<ast::FuncDecl<TypedLocationInfo> > ast;
+  unique_ptr<ast::FuncDecl<> > ast;
 
   private:
   asmjit::JitRuntime* runtime;
@@ -66,7 +66,7 @@ class Functions {
   }
 
   void prepareFunc(string name, int argc, unique_ptr<FunctionUsage> usage,
-      ast::FuncDecl<TypedLocationInfo>* ast) {
+      ast::FuncDecl<>* ast) {
     if (funcs.find(name) != funcs.end()) {
       throw DuplicateFunctionError(name);
     }

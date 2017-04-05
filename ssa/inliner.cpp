@@ -91,7 +91,7 @@ void Inliner::visitCallInstr(CallInstr& instr) {
 
   currentWorstSize += func.worstSize - callOverheadGuess;
 
-  FuncDecl<TypedLocationInfo>& funcDecl = *func.ast;
+  FuncDecl<>& funcDecl = *func.ast;
 
   Block* returnPoint = new Block();
   PhiInstr* resultPhi = new PhiInstr();
@@ -110,7 +110,7 @@ void Inliner::visitCallInstr(CallInstr& instr) {
     }
   }
 
-  for(vector<unique_ptr<Statement<TypedLocationInfo> > >::iterator it = funcDecl.statements.begin();
+  for(vector<unique_ptr<Statement<> > >::iterator it = funcDecl.statements.begin();
       it != funcDecl.statements.end();
       ++it) {
     (*it)->accept(buildInlineCode);
