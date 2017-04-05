@@ -33,6 +33,7 @@ class JumpingCompiler : public Visitor<TypedLocationInfo> {
   virtual void visitMultiplicationExpression(MultiplicationExpression<TypedLocationInfo>& expr);
   virtual void visitDivisionExpression(DivisionExpression<TypedLocationInfo>& expr);
   virtual void visitIntegerExpression(IntegerExpression<TypedLocationInfo>& expr);
+  virtual void visitDoubleExpression(DoubleExpression<TypedLocationInfo>& expr);
   virtual void visitStringExpression(StringExpression<TypedLocationInfo>& expr);
   virtual void visitVariableExpression(VariableExpression<TypedLocationInfo>& expr);
   virtual void visitBoolLiteral(BoolLiteral<TypedLocationInfo>& expr);

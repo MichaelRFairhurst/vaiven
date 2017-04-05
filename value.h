@@ -106,7 +106,7 @@ class Value {
     return internals.asPtr;
   }
     
-  inline bool getDouble() const {
+  inline double getDouble() const {
     Value val = *this;
     val.internals.raw = ~val.internals.raw;
     return val.internals.asDouble;

@@ -21,6 +21,8 @@ void vaiven::init_std(Functions& funcs) {
 Value vaiven::print(Value value) {
   if (value.isInt()) {
     cout << "Int: " << value.getInt() << endl << endl;
+  } else if (value.isDouble()) {
+    cout << "Double: " << value.getDouble() << endl << endl;
   } else {
     cout << toStringCpp(value) << endl << endl;
   }
@@ -136,8 +138,18 @@ Value* vaiven::getListContainerUnchecked(GcableList* list) {
 }
 
 Value vaiven::add(Value lhs, Value rhs) {
-  if (lhs.isInt() && rhs.isInt()) {
-    return Value(lhs.getInt() + rhs.getInt());
+  if (lhs.isInt()) {
+    if (rhs.isInt()) {
+      return Value(lhs.getInt() + rhs.getInt());
+    } else if (rhs.isDouble()) {
+      return Value(lhs.getInt() + rhs.getDouble());
+    }
+  } else if (lhs.isDouble()) {
+    if (rhs.isInt()) {
+      return Value(lhs.getDouble() + rhs.getInt());
+    } else if (rhs.isDouble()) {
+      return Value(lhs.getDouble() + rhs.getDouble());
+    }
   } else if (lhs.isPtr() && lhs.getPtr()->getType() == GCABLE_TYPE_STRING) {
     if (rhs.isPtr() && rhs.getPtr()->getType() == GCABLE_TYPE_STRING) {
       GcableString* strleft = (GcableString*) lhs.getPtr();
@@ -145,7 +157,126 @@ Value vaiven::add(Value lhs, Value rhs) {
       return addStrUnchecked(strleft, strright);
     }
   }
-  expectedStrOrInt();
+  expectedStrOrIntOrDouble();
+}
+
+Value vaiven::sub(Value lhs, Value rhs) {
+  if (lhs.isInt()) {
+    if (rhs.isInt()) {
+      return Value(lhs.getInt() - rhs.getInt());
+    } else if (rhs.isDouble()) {
+      return Value(lhs.getInt() - rhs.getDouble());
+    }
+  } else if (lhs.isDouble()) {
+    if (rhs.isInt()) {
+      return Value(lhs.getDouble() - rhs.getInt());
+    } else if (rhs.isDouble()) {
+      return Value(lhs.getDouble() - rhs.getDouble());
+    }
+  }
+  expectedIntOrDouble();
+}
+
+Value vaiven::mul(Value lhs, Value rhs) {
+  if (lhs.isInt()) {
+    if (rhs.isInt()) {
+      return Value(lhs.getInt() * rhs.getInt());
+    } else if (rhs.isDouble()) {
+      return Value(lhs.getInt() * rhs.getDouble());
+    }
+  } else if (lhs.isDouble()) {
+    if (rhs.isInt()) {
+      return Value(lhs.getDouble() * rhs.getInt());
+    } else if (rhs.isDouble()) {
+      return Value(lhs.getDouble() * rhs.getDouble());
+    }
+  }
+  expectedIntOrDouble();
+}
+
+Value vaiven::div(Value lhs, Value rhs) {
+  if (lhs.isInt()) {
+    if (rhs.isInt()) {
+      return Value(lhs.getInt() / rhs.getInt());
+    } else if (rhs.isDouble()) {
+      return Value(lhs.getInt() / rhs.getDouble());
+    }
+  } else if (lhs.isDouble()) {
+    if (rhs.isInt()) {
+      return Value(lhs.getDouble() / rhs.getInt());
+    } else if (rhs.isDouble()) {
+      return Value(lhs.getDouble() / rhs.getDouble());
+    }
+  }
+  expectedIntOrDouble();
+}
+
+Value vaiven::gt(Value lhs, Value rhs) {
+  if (lhs.isInt()) {
+    if (rhs.isInt()) {
+      return Value(lhs.getInt() > rhs.getInt());
+    } else if (rhs.isDouble()) {
+      return Value(lhs.getInt() > rhs.getDouble());
+    }
+  } else if (lhs.isDouble()) {
+    if (rhs.isInt()) {
+      return Value(lhs.getDouble() > rhs.getInt());
+    } else if (rhs.isDouble()) {
+      return Value(lhs.getDouble() > rhs.getDouble());
+    }
+  }
+  expectedIntOrDouble();
+}
+
+Value vaiven::gte(Value lhs, Value rhs) {
+  if (lhs.isInt()) {
+    if (rhs.isInt()) {
+      return Value(lhs.getInt() >= rhs.getInt());
+    } else if (rhs.isDouble()) {
+      return Value(lhs.getInt() >= rhs.getDouble());
+    }
+  } else if (lhs.isDouble()) {
+    if (rhs.isInt()) {
+      return Value(lhs.getDouble() >= rhs.getInt());
+    } else if (rhs.isDouble()) {
+      return Value(lhs.getDouble() >= rhs.getDouble());
+    }
+  }
+  expectedIntOrDouble();
+}
+
+Value vaiven::lt(Value lhs, Value rhs) {
+  if (lhs.isInt()) {
+    if (rhs.isInt()) {
+      return Value(lhs.getInt() < rhs.getInt());
+    } else if (rhs.isDouble()) {
+      return Value(lhs.getInt() < rhs.getDouble());
+    }
+  } else if (lhs.isDouble()) {
+    if (rhs.isInt()) {
+      return Value(lhs.getDouble() < rhs.getInt());
+    } else if (rhs.isDouble()) {
+      return Value(lhs.getDouble() < rhs.getDouble());
+    }
+  }
+  expectedIntOrDouble();
+}
+
+Value vaiven::lte(Value lhs, Value rhs) {
+  if (lhs.isInt()) {
+    if (rhs.isInt()) {
+      return Value(lhs.getInt() <= rhs.getInt());
+    } else if (rhs.isDouble()) {
+      return Value(lhs.getInt() <= rhs.getDouble());
+    }
+  } else if (lhs.isDouble()) {
+    if (rhs.isInt()) {
+      return Value(lhs.getDouble() <= rhs.getInt());
+    } else if (rhs.isDouble()) {
+      return Value(lhs.getDouble() <= rhs.getDouble());
+    }
+  }
+  expectedIntOrDouble();
 }
 
 Value vaiven::addStrUnchecked(GcableString* lhs, GcableString* rhs) {
@@ -333,6 +464,10 @@ string vaiven::toStringCpp(Value subject) {
   
   if (subject.isVoid()) {
     return "void";
+  }
+
+  if (subject.isDouble()) {
+    return std::to_string(subject.getDouble());
   }
 
   return std::to_string(subject.getInt());

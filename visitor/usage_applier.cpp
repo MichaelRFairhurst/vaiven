@@ -121,6 +121,9 @@ void UsageApplier::visitDivisionExpression(DivisionExpression<TypedLocationInfo>
 void UsageApplier::visitIntegerExpression(IntegerExpression<TypedLocationInfo>& expr) {
 }
 
+void UsageApplier::visitDoubleExpression(DoubleExpression<TypedLocationInfo>& expr) {
+}
+
 void UsageApplier::visitStringExpression(StringExpression<TypedLocationInfo>& expr) {
 }
 

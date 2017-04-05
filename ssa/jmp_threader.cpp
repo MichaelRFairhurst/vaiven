@@ -96,9 +96,11 @@ void JmpThreader::visitJmpCcInstr(JmpCcInstr& instr) {
 }
 
 void JmpThreader::visitUnconditionalBlockExit(UnconditionalBlockExit& exit) {
+  Block* infiniteLoopDetect = exit.toGoTo;
   while (exit.toGoTo->head == NULL) {
     if (exit.toGoTo->exits.size() == 1
-          && exit.toGoTo->exits[0]->tag == BLOCK_EXIT_UNCONDITIONAL) {
+          && exit.toGoTo->exits[0]->tag == BLOCK_EXIT_UNCONDITIONAL
+          && exit.toGoTo != infiniteLoopDetect) {
       // INVARIANT: We don't need to check if curBlock has multiple pointers
       // into this block before we unlink them, because all exits to this dead
       // block will be threaded, and its safe to erase mulitple times, insert
@@ -118,9 +120,11 @@ void JmpThreader::visitUnconditionalBlockExit(UnconditionalBlockExit& exit) {
 }
 
 void JmpThreader::visitConditionalBlockExit(ConditionalBlockExit& exit) {
+  Block* infiniteLoopDetect = exit.toGoTo;
   while (exit.toGoTo->head == NULL) {
     if (exit.toGoTo->exits.size() == 1
-          && exit.toGoTo->exits[0]->tag == BLOCK_EXIT_UNCONDITIONAL) {
+          && exit.toGoTo->exits[0]->tag == BLOCK_EXIT_UNCONDITIONAL
+          && exit.toGoTo != infiniteLoopDetect) {
       // INVARIANT: We don't need to check if curBlock has multiple pointers
       // into this block before we unlink them, because all exits to this dead
       // block will be threaded, and its safe to erase mulitple times, insert

@@ -434,6 +434,10 @@ void SsaBuilder::visitIntegerExpression(IntegerExpression<TypedLocationInfo>& ex
   emit(new ConstantInstr(Value(expr.value)));
 }
 
+void SsaBuilder::visitDoubleExpression(DoubleExpression<TypedLocationInfo>& expr) {
+  emit(new ConstantInstr(Value(expr.value)));
+}
+
 void SsaBuilder::visitStringExpression(StringExpression<TypedLocationInfo>& expr) {
   emit(new ConstantInstr(Value(expr.value)));
 }

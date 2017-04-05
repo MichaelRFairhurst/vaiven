@@ -33,7 +33,7 @@ void vaiven::ErrorCompiler::dupVarError() {
   hasDupVarError = true;
 }
 
-void vaiven::ErrorCompiler::generateTypeErrorProlog() {
+void vaiven::ErrorCompiler::generateTypeErrorEpilog() {
   if (hasIntTypeError) {
     cc.bind(intTypeErrorLabel);
     cc.call((size_t) &expectedInt, FuncSignature0<void>());

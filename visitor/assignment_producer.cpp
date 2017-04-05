@@ -75,6 +75,9 @@ void AssignmentProducer::visitDivisionExpression(DivisionExpression<>& expr) {
 void AssignmentProducer::visitIntegerExpression(IntegerExpression<>& expr) {
 }
 
+void AssignmentProducer::visitDoubleExpression(DoubleExpression<>& expr) {
+}
+
 void AssignmentProducer::visitStringExpression(StringExpression<>& expr) {
 }
 

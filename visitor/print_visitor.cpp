@@ -174,6 +174,10 @@ void PrintVisitor::visitIntegerExpression(IntegerExpression<>& expr) {
   cout << expr.value;
 }
 
+void PrintVisitor::visitDoubleExpression(DoubleExpression<>& expr) {
+  cout << expr.value;
+}
+
 void PrintVisitor::visitStringExpression(StringExpression<>& expr) {
   cout << expr.value->str;
 }

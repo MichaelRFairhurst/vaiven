@@ -148,31 +148,19 @@ void Interpreter::visitDynamicStoreExpression(DynamicStoreExpression<>& expr) {
       break;
     }
     case ast::kPreAssignmentOpSub: {
-      Value lhs = vaiven::get(subject, property);
-      if (!rhs.isInt() || !lhs.isInt()) {
-        expectedInt();
-      }
-      Value result = Value(lhs.getInt() - rhs.getInt());
+      Value result = vaiven::sub(vaiven::get(subject, property), rhs);
       vaiven::set(subject, property, result);
       stack.push(result);
       break;
     }
     case ast::kPreAssignmentOpMul: {
-      Value lhs = vaiven::get(subject, property);
-      if (!rhs.isInt() || !lhs.isInt()) {
-        expectedInt();
-      }
-      Value result = Value(lhs.getInt() * rhs.getInt());
+      Value result = vaiven::mul(vaiven::get(subject, property), rhs);
       vaiven::set(subject, property, result);
       stack.push(result);
       break;
     }
     case ast::kPreAssignmentOpDiv: {
-      Value lhs = vaiven::get(subject, property);
-      if (!rhs.isInt() || !lhs.isInt()) {
-        expectedInt();
-      }
-      Value result = Value(lhs.getInt() / rhs.getInt());
+      Value result = vaiven::div(vaiven::get(subject, property), rhs);
       vaiven::set(subject, property, result);
       stack.push(result);
       break;
@@ -206,31 +194,19 @@ void Interpreter::visitStaticStoreExpression(StaticStoreExpression<>& expr) {
       break;
     }
     case ast::kPreAssignmentOpSub: {
-      Value lhs = vaiven::objectAccessChecked(subject, expr.property);
-      if (!rhs.isInt() || !lhs.isInt()) {
-        expectedInt();
-      }
-      Value result = Value(lhs.getInt() - rhs.getInt());
+      Value result = vaiven::sub(vaiven::objectAccessChecked(subject, expr.property), rhs);
       vaiven::objectStoreUnchecked((GcableObject*) subject.getPtr(), expr.property, result);
       stack.push(result);
       break;
     }
     case ast::kPreAssignmentOpMul: {
-      Value lhs = vaiven::objectAccessChecked(subject, expr.property);
-      if (!rhs.isInt() || !lhs.isInt()) {
-        expectedInt();
-      }
-      Value result = Value(lhs.getInt() * rhs.getInt());
+      Value result = vaiven::mul(vaiven::objectAccessChecked(subject, expr.property), rhs);
       vaiven::objectStoreUnchecked((GcableObject*) subject.getPtr(), expr.property, result);
       stack.push(result);
       break;
     }
     case ast::kPreAssignmentOpDiv: {
-      Value lhs = vaiven::objectAccessChecked(subject, expr.property);
-      if (!rhs.isInt() || !lhs.isInt()) {
-        expectedInt();
-      }
-      Value result = Value(lhs.getInt() / rhs.getInt());
+      Value result = vaiven::div(vaiven::objectAccessChecked(subject, expr.property), rhs);
       vaiven::objectStoreUnchecked((GcableObject*) subject.getPtr(), expr.property, result);
       stack.push(result);
       break;
@@ -333,33 +309,27 @@ void Interpreter::visitAssignmentExpression(AssignmentExpression<>& expr) {
       case ast::kPreAssignmentOpSub: {
         Value left = scope.get(expr.varname);
         Value right = stack.top();
-        if (!right.isInt() || !left.isInt()) {
-          expectedInt();
-        }
-        Value result = Value(left.getInt() - right.getInt());
+        Value result = vaiven::sub(left, right);
         scope.replace(expr.varname, result);
+        stack.pop();
         stack.push(result);
         break;
       }
       case ast::kPreAssignmentOpMul: {
         Value left = scope.get(expr.varname);
         Value right = stack.top();
-        if (!right.isInt() || !left.isInt()) {
-          expectedInt();
-        }
-        Value result = Value(left.getInt() * right.getInt());
+        Value result = vaiven::mul(left, right);
         scope.replace(expr.varname, result);
+        stack.pop();
         stack.push(result);
         break;
       }
       case ast::kPreAssignmentOpDiv: {
         Value left = scope.get(expr.varname);
         Value right = stack.top();
-        if (!right.isInt() || !left.isInt()) {
-          expectedInt();
-        }
-        Value result = Value(left.getInt() / right.getInt());
+        Value result = vaiven::div(left, right);
         scope.replace(expr.varname, result);
+        stack.pop();
         stack.push(result);
         break;
       }
@@ -381,32 +351,27 @@ void Interpreter::visitSubtractionExpression(SubtractionExpression<>& expr) {
   expr.right->accept(*this);
   Value right = stack.top(); stack.pop();
   Value left = stack.top(); stack.pop();
-  if (!right.isInt() || !left.isInt()) {
-    expectedInt();
-  }
-  stack.push(left.getInt() - right.getInt());
+  stack.push(sub(left, right));
 }
 void Interpreter::visitMultiplicationExpression(MultiplicationExpression<>& expr) {
   expr.left->accept(*this);
   expr.right->accept(*this);
   Value right = stack.top(); stack.pop();
   Value left = stack.top(); stack.pop();
-  if (!right.isInt() || !left.isInt()) {
-    expectedInt();
-  }
-  stack.push(left.getInt() * right.getInt());
+  stack.push(mul(left, right));
 }
 void Interpreter::visitDivisionExpression(DivisionExpression<>& expr) {
   expr.left->accept(*this);
   expr.right->accept(*this);
   Value right = stack.top(); stack.pop();
   Value left = stack.top(); stack.pop();
-  if (!right.isInt() || !left.isInt()) {
-    expectedInt();
-  }
-  stack.push(left.getInt() / right.getInt());
+  stack.push(div(left, right));
 }
 void Interpreter::visitIntegerExpression(IntegerExpression<>& expr) {
+  stack.push(Value(expr.value));
+}
+
+void Interpreter::visitDoubleExpression(DoubleExpression<>& expr) {
   stack.push(Value(expr.value));
 }
 
@@ -458,10 +423,7 @@ void Interpreter::visitGtExpression(GtExpression<>& expr) {
   expr.right->accept(*this);
   Value right = stack.top(); stack.pop();
   Value left = stack.top(); stack.pop();
-  if (!right.isInt() || !left.isInt()) {
-    expectedInt();
-  }
-  stack.push(Value(left.getInt() > right.getInt()));
+  stack.push(gt(left, right));
 }
 
 void Interpreter::visitGteExpression(GteExpression<>& expr) {
@@ -469,10 +431,7 @@ void Interpreter::visitGteExpression(GteExpression<>& expr) {
   expr.right->accept(*this);
   Value right = stack.top(); stack.pop();
   Value left = stack.top(); stack.pop();
-  if (!right.isInt() || !left.isInt()) {
-    expectedInt();
-  }
-  stack.push(Value(left.getInt() >= right.getInt()));
+  stack.push(gte(left, right));
 }
 
 void Interpreter::visitLtExpression(LtExpression<>& expr) {
@@ -480,10 +439,7 @@ void Interpreter::visitLtExpression(LtExpression<>& expr) {
   expr.right->accept(*this);
   Value right = stack.top(); stack.pop();
   Value left = stack.top(); stack.pop();
-  if (!right.isInt() || !left.isInt()) {
-    expectedInt();
-  }
-  stack.push(Value(left.getInt() < right.getInt()));
+  stack.push(lt(left, right));
 }
 
 void Interpreter::visitLteExpression(LteExpression<>& expr) {
@@ -491,8 +447,5 @@ void Interpreter::visitLteExpression(LteExpression<>& expr) {
   expr.right->accept(*this);
   Value right = stack.top(); stack.pop();
   Value left = stack.top(); stack.pop();
-  if (!right.isInt() || !left.isInt()) {
-    expectedInt();
-  }
-  stack.push(Value(left.getInt() <= right.getInt()));
+  stack.push(lte(left, right));
 }

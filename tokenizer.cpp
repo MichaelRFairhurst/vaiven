@@ -499,23 +499,40 @@ unique_ptr<Token> Tokenizer::nextOr(TokenType newlineType) {
 
     default:
       if (isNumChar(c)) {
-        int val = c - '0';
-	char next = input.peek();
-	while (isNumChar(next)) {
-	  val = val * 10 + (next - '0');
+        int ival = c - '0';
+	      char next = input.peek();
+	      while (isNumChar(next)) {
+	        ival = ival * 10 + (next - '0');
           input.get();
           next = input.peek();
-	}
-	if (next == '.') {
-	  // todo doubles
-        }
+	      }
 
-        return unique_ptr<Token>(new IntegerToken(TOKEN_TYPE_INTEGER, val));
+	      if (next == '.') {
+          input.get();
+	        next = input.peek();
+          double dval = ival;
+          double factor = 0.1;
+	        while (isNumChar(next)) {
+	          dval += double(next - '0') * factor;
+            factor /= 10;
+            input.get();
+            next = input.peek();
+	        }
+
+          // int fallback: 1.foo() is foo(1) not foo(1.)
+          if (factor != 0.1 || !isIdStartChar(next)) {
+            return unique_ptr<Token>(new DoubleToken(TOKEN_TYPE_DOUBLE, dval));
+          } else {
+            input.putback('.');
+          }
+        }
+        
+        return unique_ptr<Token>(new IntegerToken(TOKEN_TYPE_INTEGER, ival));
       }
       if (isIdStartChar(c)) {
-	vector<char> buffer;
-	buffer.reserve(ID_BUFFER_RESERVE_SIZE);
-	buffer.push_back(c);
+	      vector<char> buffer;
+	      buffer.reserve(ID_BUFFER_RESERVE_SIZE);
+	      buffer.push_back(c);
 
         return tokenizeId(buffer);
       }
@@ -534,4 +551,8 @@ StringToken* vaiven::StringToken::copy() {
 
 IntegerToken* vaiven::IntegerToken::copy() {
   return new IntegerToken(*this);
+}
+
+DoubleToken* vaiven::DoubleToken::copy() {
+  return new DoubleToken(*this);
 }

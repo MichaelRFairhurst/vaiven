@@ -4,10 +4,9 @@
 #include "type_info.h"
 #include "runtime_error.h"
 #include "std.h"
+#include "firstcompile.h"
 #include "visitor/print_visitor.h"
 #include "visitor/interpreter.h"
-#include "visitor/compiler.h"
-#include "visitor/autocompiler.h"
 #include "visitor/location_resolver.h"
 
 #include <stdint.h>
@@ -46,8 +45,6 @@ public:
 void printExpressionStream(Parser& parser) {
   Functions funcs;
   init_std(funcs);
-  FileLogger logger(stdout);
-  PrintErrorHandler eh;
   unique_ptr<ast::Node<> > cur = parser.parseLogicalGroup();
   visitor::Interpreter interpreter(funcs);
 
@@ -69,19 +66,9 @@ void printExpressionStream(Parser& parser) {
       cur->accept(locResolver);
       unique_ptr<ast::Node<TypedLocationInfo> > resolved(locResolver.nodeCopyStack.top());
 
-      CodeHolder codeHolder;
-      codeHolder.init(funcs.runtime.getCodeInfo());
-#ifdef DISASSEMBLY_DIAGNOSTICS
-      codeHolder.setErrorHandler(&eh);
-      codeHolder.setLogger(&logger);
-#endif
-      X86Assembler assembler(&codeHolder);
-      X86Compiler cc(&codeHolder);
-      //visitor::Compiler compiler(assembler, codeHolder, funcs);
       try {
-        visitor::AutoCompiler compiler(cc, codeHolder, funcs);
-        compiler.compile(*resolved);
-        resolved.release(); // compiler owns pointer now
+        firstCompile(funcs, static_cast<ast::FuncDecl<TypedLocationInfo>&>(*resolved));
+        resolved.release(); // Functions owns pointer now
       } catch (DuplicateFunctionError e) {
         cout << "function " << e.name << " already defined" << endl;
       }

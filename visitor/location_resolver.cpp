@@ -265,6 +265,9 @@ void LocationResolver::visitAdditionExpression(AdditionExpression<>& expr) {
   if (lhs->resolvedData.type == VAIVEN_STATIC_TYPE_INT
       && rhs->resolvedData.type == VAIVEN_STATIC_TYPE_INT) {
     loc = TypedLocationInfo(Location::spilled(), VAIVEN_STATIC_TYPE_INT, false);
+  } else if (lhs->resolvedData.type == VAIVEN_STATIC_TYPE_DOUBLE
+      && rhs->resolvedData.type == VAIVEN_STATIC_TYPE_DOUBLE) {
+    loc = TypedLocationInfo(Location::spilled(), VAIVEN_STATIC_TYPE_DOUBLE, false);
   } else if (lhs->resolvedData.type == VAIVEN_STATIC_TYPE_STRING
       && rhs->resolvedData.type == VAIVEN_STATIC_TYPE_STRING) {
     loc = TypedLocationInfo(Location::spilled(), VAIVEN_STATIC_TYPE_STRING, true);
@@ -275,6 +278,7 @@ void LocationResolver::visitAdditionExpression(AdditionExpression<>& expr) {
   copy->resolvedData = loc;
   exprCopyStack.push(copy.release());
 }
+
 void LocationResolver::visitSubtractionExpression(SubtractionExpression<>& expr) {
   expr.left->accept(*this);
   expr.right->accept(*this);
@@ -282,11 +286,21 @@ void LocationResolver::visitSubtractionExpression(SubtractionExpression<>& expr)
   exprCopyStack.pop();
   unique_ptr<Expression<TypedLocationInfo> > lhs(move(exprCopyStack.top()));
   exprCopyStack.pop();
-  TypedLocationInfo loc(Location::spilled(), VAIVEN_STATIC_TYPE_INT, false);
+  TypedLocationInfo loc;
+  if (lhs->resolvedData.type == VAIVEN_STATIC_TYPE_INT
+      && rhs->resolvedData.type == VAIVEN_STATIC_TYPE_INT) {
+    loc = TypedLocationInfo(Location::spilled(), VAIVEN_STATIC_TYPE_INT, false);
+  } else if (lhs->resolvedData.type == VAIVEN_STATIC_TYPE_DOUBLE
+      && rhs->resolvedData.type == VAIVEN_STATIC_TYPE_DOUBLE) {
+    loc = TypedLocationInfo(Location::spilled(), VAIVEN_STATIC_TYPE_DOUBLE, false);
+  } else {
+    loc = TypedLocationInfo(Location::spilled(), VAIVEN_STATIC_TYPE_UNKNOWN, true);
+  }
   unique_ptr<Expression<TypedLocationInfo> > copy(new SubtractionExpression<TypedLocationInfo>(move(lhs), move(rhs)));
   copy->resolvedData = loc;
   exprCopyStack.push(copy.release());
 }
+
 void LocationResolver::visitMultiplicationExpression(MultiplicationExpression<>& expr) {
   expr.left->accept(*this);
   expr.right->accept(*this);
@@ -294,11 +308,21 @@ void LocationResolver::visitMultiplicationExpression(MultiplicationExpression<>&
   exprCopyStack.pop();
   unique_ptr<Expression<TypedLocationInfo> > lhs(move(exprCopyStack.top()));
   exprCopyStack.pop();
-  TypedLocationInfo loc(Location::spilled(), VAIVEN_STATIC_TYPE_INT, false);
+  TypedLocationInfo loc;
+  if (lhs->resolvedData.type == VAIVEN_STATIC_TYPE_INT
+      && rhs->resolvedData.type == VAIVEN_STATIC_TYPE_INT) {
+    loc = TypedLocationInfo(Location::spilled(), VAIVEN_STATIC_TYPE_INT, false);
+  } else if (lhs->resolvedData.type == VAIVEN_STATIC_TYPE_DOUBLE
+      && rhs->resolvedData.type == VAIVEN_STATIC_TYPE_DOUBLE) {
+    loc = TypedLocationInfo(Location::spilled(), VAIVEN_STATIC_TYPE_DOUBLE, false);
+  } else {
+    loc = TypedLocationInfo(Location::spilled(), VAIVEN_STATIC_TYPE_UNKNOWN, true);
+  }
   unique_ptr<Expression<TypedLocationInfo> > copy(new MultiplicationExpression<TypedLocationInfo>(move(lhs), move(rhs)));
   copy->resolvedData = loc;
   exprCopyStack.push(copy.release());
 }
+
 void LocationResolver::visitDivisionExpression(DivisionExpression<>& expr) {
   expr.left->accept(*this);
   expr.right->accept(*this);
@@ -306,8 +330,17 @@ void LocationResolver::visitDivisionExpression(DivisionExpression<>& expr) {
   exprCopyStack.pop();
   unique_ptr<Expression<TypedLocationInfo> > lhs(move(exprCopyStack.top()));
   exprCopyStack.pop();
+  TypedLocationInfo loc;
+  if (lhs->resolvedData.type == VAIVEN_STATIC_TYPE_INT
+      && rhs->resolvedData.type == VAIVEN_STATIC_TYPE_INT) {
+    loc = TypedLocationInfo(Location::spilled(), VAIVEN_STATIC_TYPE_INT, false);
+  } else if (lhs->resolvedData.type == VAIVEN_STATIC_TYPE_DOUBLE
+      && rhs->resolvedData.type == VAIVEN_STATIC_TYPE_DOUBLE) {
+    loc = TypedLocationInfo(Location::spilled(), VAIVEN_STATIC_TYPE_DOUBLE, false);
+  } else {
+    loc = TypedLocationInfo(Location::spilled(), VAIVEN_STATIC_TYPE_UNKNOWN, true);
+  }
   unique_ptr<Expression<TypedLocationInfo> > copy(new DivisionExpression<TypedLocationInfo>(move(lhs), move(rhs)));
-  TypedLocationInfo loc(Location::spilled(), VAIVEN_STATIC_TYPE_INT, false);
   copy->resolvedData = loc;
   exprCopyStack.push(copy.release());
 }
@@ -319,6 +352,13 @@ void LocationResolver::visitIntegerExpression(IntegerExpression<>& expr) {
   exprCopyStack.push(copy.release());
 }
 
+void LocationResolver::visitDoubleExpression(DoubleExpression<>& expr) {
+  TypedLocationInfo immediate(Location::imm(expr.value), VAIVEN_STATIC_TYPE_DOUBLE, true);
+  unique_ptr<Expression<TypedLocationInfo> > copy(new DoubleExpression<TypedLocationInfo>(expr.value));
+  copy->resolvedData = immediate;
+  exprCopyStack.push(copy.release());
+}
+
 void LocationResolver::visitStringExpression(StringExpression<>& expr) {
   TypedLocationInfo immediate(Location::imm((uint64_t) &expr.value), VAIVEN_STATIC_TYPE_STRING, true);
   // copy the string because at destruct it starts to be GCed
@@ -326,6 +366,7 @@ void LocationResolver::visitStringExpression(StringExpression<>& expr) {
   copy->resolvedData = immediate;
   exprCopyStack.push(copy.release());
 }
+
 void LocationResolver::visitVariableExpression(VariableExpression<>& expr) {
   if (argIndexes.find(expr.id) == argIndexes.end()) {
     unique_ptr<Expression<TypedLocationInfo> > copy(new VariableExpression<TypedLocationInfo>(expr.id));

@@ -759,6 +759,13 @@ void AutoCompiler::visitIntegerExpression(IntegerExpression<TypedLocationInfo>& 
   vRegs.push(var);
 }
 
+void AutoCompiler::visitDoubleExpression(DoubleExpression<TypedLocationInfo>& expr) {
+  // should only happen when in a stmt by itself
+  X86Gp var = cc.newInt64();
+  cc.mov(var, Value(expr.value).getRaw());
+  vRegs.push(var);
+}
+
 void AutoCompiler::visitStringExpression(StringExpression<TypedLocationInfo>& expr) {
   // should only happen when in a stmt by itself
   X86Gp var = cc.newInt64();

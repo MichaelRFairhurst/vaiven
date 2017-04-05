@@ -31,6 +31,7 @@ enum TokenType {
   TOKEN_TYPE_TRUE,
   TOKEN_TYPE_FALSE,
   TOKEN_TYPE_INTEGER,
+  TOKEN_TYPE_DOUBLE,
   TOKEN_TYPE_DOT,
   TOKEN_TYPE_PLUS,
   TOKEN_TYPE_MINUS,
@@ -106,6 +107,15 @@ class IntegerToken : public Token {
   int value;
   virtual ~IntegerToken() {};
   IntegerToken* copy();
+};
+
+class DoubleToken : public Token {
+  public:
+  DoubleToken(TokenType type, double value) : value(value), Token(type) {}
+  TokenType type;
+  double value;
+  virtual ~DoubleToken() {};
+  DoubleToken* copy();
 };
 
 }

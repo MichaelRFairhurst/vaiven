@@ -1,11 +1,11 @@
-Error: Got a wrong type in an operation for ints/strings
-Error: Got a wrong type in an operation for ints/strings
-Error: Got a wrong type in an operation for ints/strings
-Error: Got a wrong type in an operation for ints/strings
-Error: Got a wrong type in an operation for ints/strings
-Error: Got a wrong type in an operation for ints/strings
-Error: Got a wrong type in an operation for ints/strings
-Error: Got a wrong type in an operation for ints/strings
-Error: Got a wrong type in an operation for ints/strings
-Error: Got a wrong type in an operation for ints/strings
-Error: Got a wrong type in an operation for ints/strings
+Error: Got a non-string in a string operation
+Error: Got a non-string in a string operation
+Error: Got a non-string in a string operation
+Error: Got a non-string in a string operation
+Error: Got a non-string in a string operation
+Error: Got a non-string in a string operation
+Error: Got a wrong type in an operation for ints/strings/doubles
+Error: Got a wrong type in an operation for ints/strings/doubles
+Error: Got a wrong type in an operation for ints/strings/doubles
+Error: Got a wrong type in an operation for ints/strings/doubles
+Error: Got a wrong type in an operation for ints/strings/doubles

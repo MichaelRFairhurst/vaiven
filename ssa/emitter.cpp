@@ -58,13 +58,14 @@ void Emitter::visitConstantInstr(ConstantInstr& instr) {
   } else if (instr.val.isInt() || instr.val.isBool() || instr.val.isVoid()) {
     cc.mov(instr.out.r32(), instr.val.getInt());
   } else {
-    cc.mov(instr.out, instr.val.getDouble());
+    cc.mov(instr.out, instr.val.getRaw()); // or getDouble?
   }
 }
 
 void Emitter::visitCallInstr(CallInstr& instr) {
   if (!instr.func.isNative
       && instr.func.ast->name == funcName
+      && instr.func.usage->count > 0
       && instr.next != NULL
       && instr.next->tag == INSTR_RET
       && instr.next->inputs[0] == &instr) {
@@ -131,7 +132,8 @@ void Emitter::visitCallInstr(CallInstr& instr) {
   sig.init(CallConv::kIdHost, TypeIdOf<int64_t>::kTypeId, sigArgs, argc);
 
   CCFuncCall* call;
-  if (instr.funcName == funcName) {
+  if (instr.funcName == funcName && instr.func.usage->count > 0) {
+    // only call the funcLabel directly if its optimized
     call = cc.call(funcLabel, sig);
   } else if (instr.func.isNative) {
     call = cc.call((uint64_t) instr.func.fptr, sig);
@@ -169,7 +171,7 @@ void Emitter::visitTypecheckInstr(TypecheckInstr& instr) {
   } else if (instr.type == VAIVEN_STATIC_TYPE_STRING) {
     cc.mov(checkReg, MAX_PTR);
     cc.cmp(instr.out, checkReg);
-    cc.jg(deoptimizeLabel);
+    cc.jg(error.stringTypeErrorLabel);
     cc.mov(checkReg.r32(), x86::dword_ptr(instr.out));
     cc.cmp(checkReg.r32(), GCABLE_TYPE_STRING);
     cc.jne(error.stringTypeErrorLabel);
@@ -269,22 +271,24 @@ void Emitter::visitNotInstr(NotInstr& instr) {
 }
 
 void Emitter::visitCmpEqInstr(CmpEqInstr& instr) {
-  if (instr.inputs[0]->type == VAIVEN_STATIC_TYPE_STRING
-    && instr.inputs[1]->type == VAIVEN_STATIC_TYPE_STRING) {
-    CCFuncCall* call = cc.call((uint64_t) vaiven::cmpStrUnchecked, FuncSignature2<uint64_t, uint64_t, uint64_t>());
-    call->setArg(0, instr.inputs[0]->out);
-    call->setArg(1, instr.inputs[1]->out);
-    call->setRet(0, instr.out);
-    return;
-  } else if (instr.inputs[0]->type == VAIVEN_STATIC_TYPE_STRING
-    || instr.inputs[1]->type == VAIVEN_STATIC_TYPE_STRING
-    || instr.inputs[0]->type == VAIVEN_STATIC_TYPE_UNKNOWN
-    || instr.inputs[1]->type == VAIVEN_STATIC_TYPE_UNKNOWN) {
-    CCFuncCall* call = cc.call((uint64_t) vaiven::cmpUnboxed, FuncSignature2<uint64_t, uint64_t, uint64_t>());
-    call->setArg(0, instr.inputs[0]->out);
-    call->setArg(1, instr.inputs[1]->out);
-    call->setRet(0, instr.out);
-    return;
+  if (!instr.hasConstRhs) {
+    if (instr.inputs[0]->type == VAIVEN_STATIC_TYPE_STRING
+      && instr.inputs[1]->type == VAIVEN_STATIC_TYPE_STRING) {
+      CCFuncCall* call = cc.call((uint64_t) vaiven::cmpStrUnchecked, FuncSignature2<uint64_t, uint64_t, uint64_t>());
+      call->setArg(0, instr.inputs[0]->out);
+      call->setArg(1, instr.inputs[1]->out);
+      call->setRet(0, instr.out);
+      return;
+    } else if (instr.inputs[0]->type == VAIVEN_STATIC_TYPE_STRING
+      || instr.inputs[1]->type == VAIVEN_STATIC_TYPE_STRING
+      || instr.inputs[0]->type == VAIVEN_STATIC_TYPE_UNKNOWN
+      || instr.inputs[1]->type == VAIVEN_STATIC_TYPE_UNKNOWN) {
+      CCFuncCall* call = cc.call((uint64_t) vaiven::cmpUnboxed, FuncSignature2<uint64_t, uint64_t, uint64_t>());
+      call->setArg(0, instr.inputs[0]->out);
+      call->setArg(1, instr.inputs[1]->out);
+      call->setRet(0, instr.out);
+      return;
+    }
   }
 
   if (instr.isBoxed) {
@@ -298,22 +302,24 @@ void Emitter::visitCmpEqInstr(CmpEqInstr& instr) {
 }
 
 void Emitter::visitCmpIneqInstr(CmpIneqInstr& instr) {
-  if (instr.inputs[0]->type == VAIVEN_STATIC_TYPE_STRING
-    && instr.inputs[1]->type == VAIVEN_STATIC_TYPE_STRING) {
-    CCFuncCall* call = cc.call((uint64_t) vaiven::inverseCmpStrUnchecked, FuncSignature2<uint64_t, uint64_t, uint64_t>());
-    call->setArg(0, instr.inputs[0]->out);
-    call->setArg(1, instr.inputs[1]->out);
-    call->setRet(0, instr.out);
-    return;
-  } else if (instr.inputs[0]->type == VAIVEN_STATIC_TYPE_STRING
-    || instr.inputs[1]->type == VAIVEN_STATIC_TYPE_STRING
-    || instr.inputs[0]->type == VAIVEN_STATIC_TYPE_UNKNOWN
-    || instr.inputs[1]->type == VAIVEN_STATIC_TYPE_UNKNOWN) {
-    CCFuncCall* call = cc.call((uint64_t) vaiven::inverseCmpUnboxed, FuncSignature2<uint64_t, uint64_t, uint64_t>());
-    call->setArg(0, instr.inputs[0]->out);
-    call->setArg(1, instr.inputs[1]->out);
-    call->setRet(0, instr.out);
-    return;
+  if (!instr.hasConstRhs) {
+    if (instr.inputs[0]->type == VAIVEN_STATIC_TYPE_STRING
+      && instr.inputs[1]->type == VAIVEN_STATIC_TYPE_STRING) {
+      CCFuncCall* call = cc.call((uint64_t) vaiven::inverseCmpStrUnchecked, FuncSignature2<uint64_t, uint64_t, uint64_t>());
+      call->setArg(0, instr.inputs[0]->out);
+      call->setArg(1, instr.inputs[1]->out);
+      call->setRet(0, instr.out);
+      return;
+    } else if (instr.inputs[0]->type == VAIVEN_STATIC_TYPE_STRING
+      || instr.inputs[1]->type == VAIVEN_STATIC_TYPE_STRING
+      || instr.inputs[0]->type == VAIVEN_STATIC_TYPE_UNKNOWN
+      || instr.inputs[1]->type == VAIVEN_STATIC_TYPE_UNKNOWN) {
+      CCFuncCall* call = cc.call((uint64_t) vaiven::inverseCmpUnboxed, FuncSignature2<uint64_t, uint64_t, uint64_t>());
+      call->setArg(0, instr.inputs[0]->out);
+      call->setArg(1, instr.inputs[1]->out);
+      call->setRet(0, instr.out);
+      return;
+    }
   }
 
   if (instr.isBoxed) {

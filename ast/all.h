@@ -5,6 +5,7 @@
 #include "multiplication_expression.h"
 #include "division_expression.h"
 #include "integer_expression.h"
+#include "double_expression.h"
 #include "string_expression.h"
 #include "variable_expression.h"
 #include "bool_literal.h"

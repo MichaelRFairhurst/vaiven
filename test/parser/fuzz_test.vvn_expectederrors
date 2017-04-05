@@ -128,7 +128,7 @@ Parse Error: tried to parse a value, but got an unknown token at top level
 Parse Error: missing semicolon (or newline) at end of expression at top level
 Error: Accessed a var that does not exist
 Parse Error: missing semicolon (or newline) at end of expression at top level
-Error: Got a non-integer in an integer operation
+Error: Got a wrong type in an operation for ints/doubles
 Parse Error: missing semicolon (or newline) at end of expression at top level
 Error: Accessed a var that does not exist
 Parse Error: missing semicolon (or newline) at end of return at top level
@@ -200,7 +200,7 @@ Parse Error: missing semicolon (or newline) at end of expression at top level
 Parse Error: tried to parse a value, but got an unknown token at top level
 Parse Error: missing semicolon (or newline) at end of expression at top level
 Parse Error: missing close paren for subexpression at top level
-Error: Got a non-integer in an integer operation
+Error: Got a wrong type in an operation for ints/doubles
 Parse Error: tried to parse a value, but got an unknown token at top level
 Parse Error: missing semicolon (or newline) at end of return at top level
 Error: Accessed a var that does not exist
@@ -861,7 +861,7 @@ Parse Error: missing semicolon (or newline) at end of expression at top level
 Parse Error: missing semicolon (or newline) at end of expression at top level
 Parse Error: missing semicolon (or newline) at end of expression at top level
 Parse Error: missing semicolon (or newline) at end of return at top level
-Error: Got a non-integer in an integer operation
+Error: Got a wrong type in an operation for ints/doubles
 Parse Error: missing semicolon (or newline) at end of expression at top level
 Parse Error: tried to parse a value, but got an unknown token at top level
 Parse Error: missing semicolon (or newline) at end of expression at top level
@@ -987,7 +987,7 @@ Parse Error: missing semicolon (or newline) at end of expression at top level
 Error: Accessed a var that does not exist
 Parse Error: missing semicolon (or newline) at end of expression at top level
 Parse Error: missing semicolon (or newline) at end of expression at top level
-Error: Got a non-integer in an integer operation
+Error: Got a wrong type in an operation for ints/doubles
 Parse Error: tried to parse a value, but got an unknown token at top level
 Parse Error: missing semicolon (or newline) at end of expression at top level
 Error: Accessed a var that does not exist
@@ -1087,7 +1087,7 @@ Parse Error: tried to parse a value, but got an unknown token at top level
 Error: Accessed a var that does not exist
 Parse Error: tried to parse a value, but got an unknown token at top level
 Parse Error: missing semicolon (or newline) at end of expression at top level
-Error: Got a non-integer in an integer operation
+Error: Got a wrong type in an operation for ints/doubles
 Parse Error: tried to parse a value, but got an unknown token at top level
 Parse Error: missing semicolon (or newline) at end of expression at top level
 Parse Error: tried to parse a value, but got an unknown token at top level

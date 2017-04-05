@@ -28,6 +28,7 @@
 
 using namespace asmjit;
 using namespace vaiven::visitor;
+using namespace vaiven::ast;
 
 using namespace vaiven;
 using namespace asmjit;
@@ -223,7 +224,7 @@ void vaiven::performOptimize(ast::FuncDecl<TypedLocationInfo>& decl, Functions& 
   
   cc.ret(deoptimizedRet);
 
-  error.generateTypeErrorProlog();
+  error.generateTypeErrorEpilog();
   cc.endFunc();
   cc.finalize();
 

@@ -7,7 +7,7 @@
 using namespace vaiven::ssa;
 using namespace vaiven::ast;
 
-const int STOP_INLINING_AT_SIZE = 2048; // ?
+const int STOP_INLINING_AT_SIZE = 1024; // ?
 const int MAX_INLINE_SIZE = 512; // ?
 const int WORST_INSTRUCTION_SIZE = 15; // wowowow
 const int BOX_COST = WORST_INSTRUCTION_SIZE * 2;

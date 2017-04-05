@@ -666,6 +666,12 @@ unique_ptr<ast::Expression<> > Parser::parseValue() {
     return unique_ptr<ast::Expression<> >(new ast::IntegerExpression<>(inttok->value));
   }
 
+  if (current->type == TOKEN_TYPE_DOUBLE) {
+    unique_ptr<DoubleToken> inttok(static_cast<DoubleToken*>(current->copy()));
+    next();
+    return unique_ptr<ast::Expression<> >(new ast::DoubleExpression<>(inttok->value));
+  }
+
   if (current->type == TOKEN_TYPE_STRING) {
     unique_ptr<StringToken> inttok(static_cast<StringToken*>(current->copy()));
     next();

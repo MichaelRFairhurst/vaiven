@@ -19,7 +19,7 @@ class ErrorCompiler {
     stringTypeErrorLabel(cc.newLabel()), noFuncErrorLabel(cc.newLabel()),
     noVarErrorLabel(cc.newLabel()), dupVarErrorLabel(cc.newLabel()) {}
 
-  void generateTypeErrorProlog();
+  void generateTypeErrorEpilog();
   void typecheckInt(asmjit::X86Gp vreg, TypedLocationInfo& info);
   void typecheckInt(asmjit::X86Gp vreg);
   void typecheckBool(asmjit::X86Gp vreg, TypedLocationInfo& info);

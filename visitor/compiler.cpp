@@ -308,6 +308,12 @@ void Compiler::visitIntegerExpression(IntegerExpression<TypedLocationInfo>& expr
   asm.mov(x86::rax, expr.value);
 }
 
+void Compiler::visitDoubleExpression(DoubleExpression<TypedLocationInfo>& expr) {
+  // should only happen when in a stmt by itself
+  // asm.mov(x86::rax, expr.value);
+  throw "doubles not yet supported";
+}
+
 void Compiler::visitStringExpression(StringExpression<TypedLocationInfo>& expr) {
   // should only happen when in a stmt by itself
   asm.mov(x86::rax, (uint64_t) &expr.value);

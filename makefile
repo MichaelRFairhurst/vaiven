@@ -2,12 +2,10 @@ VISITOR_OBJECTS = \
 	visitor/print_visitor.o \
 	visitor/interpreter.o \
 	visitor/compiler.o \
-	visitor/autocompiler.o \
 	visitor/location_resolver.o \
-	visitor/usage_applier.o \
-	visitor/jumping_compiler.o \
 	visitor/ssa_builder.o \
 	visitor/assignment_producer.o \
+	visitor/usage_applier.o \
 
 SSA_OBJECTS = \
 	ssa/ssa.o \
@@ -66,6 +64,7 @@ MAIN_OBJECTS = \
 	location.o \
 	runtime_error.o \
 	optimize.o \
+	firstcompile.o \
 	functions.o \
 	error_compiler.o \
 	std.o \
@@ -73,10 +72,10 @@ MAIN_OBJECTS = \
 	stack.o \
 	value.o \
 
-DEBUGCXXFLAGS := -O0 -g -DSSA_DIAGNOSTICS -DDISASSEMBLY_DIAGNOSTICS -DOPTIMIZATION_DIAGNOSTICS -DINLINING_DIAGNOSTICS
+DEBUGCXXFLAGS := -O0 -g -DSSA_DIAGNOSTICS -DDISASSEMBLY_DIAGNOSTICS -DOPTIMIZATION_DIAGNOSTICS -DINLINING_DIAGNOSTICS -DFIRST_COMPILE_DIAGNOSTICS
 RELEASECXXFLAGS := -O3 -DNDEBUG
 PROFILECXXFLAGS := -O3 -g -DNDEBUG
-CXXFLAGS := -DASMJIT_EMBED -std=c++11 -fno-omit-frame-pointer ${PROFILECXXFLAGS} -DDISASSEMBLY_DIAGNOSTICS -DOPTIMIZATION_DIAGNOSTICS -DSSA_DIAGNOSTICS
+CXXFLAGS := -DASMJIT_EMBED -std=c++11 -fno-omit-frame-pointer ${DEBUGCXXFLAGS}
 
 vvn : ${MAIN_OBJECTS} ${VISITOR_OBJECTS} ${ASMJIT_OBJECTS} ${SSA_OBJECTS}
 	g++ $^ -o vvn
