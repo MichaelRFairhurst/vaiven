@@ -20,10 +20,22 @@ void JmpThreader::visitTypecheckInstr(TypecheckInstr& instr) {
 void JmpThreader::visitBoxInstr(BoxInstr& instr) {
 }
 
+void JmpThreader::visitUnboxInstr(UnboxInstr& instr) {
+}
+
+void JmpThreader::visitToDoubleInstr(ToDoubleInstr& instr) {
+}
+
+void JmpThreader::visitIntToDoubleInstr(IntToDoubleInstr& instr) {
+}
+
 void JmpThreader::visitAddInstr(AddInstr& instr) {
 }
 
 void JmpThreader::visitIntAddInstr(IntAddInstr& instr) {
+}
+
+void JmpThreader::visitDoubleAddInstr(DoubleAddInstr& instr) {
 }
 
 void JmpThreader::visitStrAddInstr(StrAddInstr& instr) {
@@ -32,7 +44,19 @@ void JmpThreader::visitStrAddInstr(StrAddInstr& instr) {
 void JmpThreader::visitSubInstr(SubInstr& instr) {
 }
 
+void JmpThreader::visitIntSubInstr(IntSubInstr& instr) {
+}
+
+void JmpThreader::visitDoubleSubInstr(DoubleSubInstr& instr) {
+}
+
 void JmpThreader::visitMulInstr(MulInstr& instr) {
+}
+
+void JmpThreader::visitIntMulInstr(IntMulInstr& instr) {
+}
+
+void JmpThreader::visitDoubleMulInstr(DoubleMulInstr& instr) {
 }
 
 void JmpThreader::visitDivInstr(DivInstr& instr) {
@@ -44,19 +68,55 @@ void JmpThreader::visitNotInstr(NotInstr& instr) {
 void JmpThreader::visitCmpEqInstr(CmpEqInstr& instr) {
 }
 
+void JmpThreader::visitIntCmpEqInstr(IntCmpEqInstr& instr) {
+}
+
+void JmpThreader::visitDoubleCmpEqInstr(DoubleCmpEqInstr& instr) {
+}
+
 void JmpThreader::visitCmpIneqInstr(CmpIneqInstr& instr) {
+}
+
+void JmpThreader::visitIntCmpIneqInstr(IntCmpIneqInstr& instr) {
+}
+
+void JmpThreader::visitDoubleCmpIneqInstr(DoubleCmpIneqInstr& instr) {
 }
 
 void JmpThreader::visitCmpGtInstr(CmpGtInstr& instr) {
 }
 
+void JmpThreader::visitIntCmpGtInstr(IntCmpGtInstr& instr) {
+}
+
+void JmpThreader::visitDoubleCmpGtInstr(DoubleCmpGtInstr& instr) {
+}
+
 void JmpThreader::visitCmpGteInstr(CmpGteInstr& instr) {
+}
+
+void JmpThreader::visitIntCmpGteInstr(IntCmpGteInstr& instr) {
+}
+
+void JmpThreader::visitDoubleCmpGteInstr(DoubleCmpGteInstr& instr) {
 }
 
 void JmpThreader::visitCmpLtInstr(CmpLtInstr& instr) {
 }
 
+void JmpThreader::visitIntCmpLtInstr(IntCmpLtInstr& instr) {
+}
+
+void JmpThreader::visitDoubleCmpLtInstr(DoubleCmpLtInstr& instr) {
+}
+
 void JmpThreader::visitCmpLteInstr(CmpLteInstr& instr) {
+}
+
+void JmpThreader::visitIntCmpLteInstr(IntCmpLteInstr& instr) {
+}
+
+void JmpThreader::visitDoubleCmpLteInstr(DoubleCmpLteInstr& instr) {
 }
 
 void JmpThreader::visitDynamicAccessInstr(DynamicAccessInstr& instr) {
@@ -96,50 +156,46 @@ void JmpThreader::visitJmpCcInstr(JmpCcInstr& instr) {
 }
 
 void JmpThreader::visitUnconditionalBlockExit(UnconditionalBlockExit& exit) {
-  Block* infiniteLoopDetect = exit.toGoTo;
-  while (exit.toGoTo->head == NULL) {
-    if (exit.toGoTo->exits.size() == 1
-          && exit.toGoTo->exits[0]->tag == BLOCK_EXIT_UNCONDITIONAL
-          && exit.toGoTo != infiniteLoopDetect) {
-      // INVARIANT: We don't need to check if curBlock has multiple pointers
-      // into this block before we unlink them, because all exits to this dead
-      // block will be threaded, and its safe to erase mulitple times, insert
-      // multiple times.
-      exit.toGoTo->immPredecessors.erase(curBlock);
-      exit.toGoTo = exit.toGoTo->exits[0]->toGoTo;
-      exit.toGoTo->immPredecessors.insert(curBlock);
+  set<Block*> infiniteLoopDetect;
+  // TODO jump thread conditional exits
+  while (exit.toGoTo->head.get() == NULL
+      && exit.toGoTo->exits.size() == 1
+      && exit.toGoTo->exits[0]->tag == BLOCK_EXIT_UNCONDITIONAL
+      && infiniteLoopDetect.find(exit.toGoTo) == infiniteLoopDetect.end()) {
+    infiniteLoopDetect.insert(exit.toGoTo);
+    // INVARIANT: We don't need to check if curBlock has multiple pointers
+    // into this block before we unlink them, because all exits to this dead
+    // block will be threaded, and its safe to erase mulitple times, insert
+    // multiple times.
+    exit.toGoTo->immPredecessors.erase(curBlock);
+    exit.toGoTo = exit.toGoTo->exits[0]->toGoTo;
+    exit.toGoTo->immPredecessors.insert(curBlock);
 
-      // we don't actually do this yet though because no optimizations depend
-      // on it
-      requiresRebuildDominators = true;
-    } else {
-      break;
-    }
-    // TODO jump thread conditional exits
+    // we don't actually do this yet though because no optimizations depend
+    // on it
+    requiresRebuildDominators = true;
   }
 }
 
 void JmpThreader::visitConditionalBlockExit(ConditionalBlockExit& exit) {
-  Block* infiniteLoopDetect = exit.toGoTo;
-  while (exit.toGoTo->head == NULL) {
-    if (exit.toGoTo->exits.size() == 1
-          && exit.toGoTo->exits[0]->tag == BLOCK_EXIT_UNCONDITIONAL
-          && exit.toGoTo != infiniteLoopDetect) {
-      // INVARIANT: We don't need to check if curBlock has multiple pointers
-      // into this block before we unlink them, because all exits to this dead
-      // block will be threaded, and its safe to erase mulitple times, insert
-      // multiple times.
-      exit.toGoTo->immPredecessors.erase(curBlock);
-      exit.toGoTo = exit.toGoTo->exits[0]->toGoTo;
-      exit.toGoTo->immPredecessors.insert(curBlock);
+  set<Block*> infiniteLoopDetect;
+  // TODO jump thread conditional exits
+  while (exit.toGoTo->head.get() == NULL
+      && exit.toGoTo->exits.size() == 1
+      && exit.toGoTo->exits[0]->tag == BLOCK_EXIT_UNCONDITIONAL
+      && infiniteLoopDetect.find(exit.toGoTo) == infiniteLoopDetect.end()) {
+    infiniteLoopDetect.insert(exit.toGoTo);
+    // INVARIANT: We don't need to check if curBlock has multiple pointers
+    // into this block before we unlink them, because all exits to this dead
+    // block will be threaded, and its safe to erase mulitple times, insert
+    // multiple times.
+    exit.toGoTo->immPredecessors.erase(curBlock);
+    exit.toGoTo = exit.toGoTo->exits[0]->toGoTo;
+    exit.toGoTo->immPredecessors.insert(curBlock);
 
-      // we don't actually do this yet though because no optimizations depend
-      // on it
-      requiresRebuildDominators = true;
-    } else {
-      break;
-    }
-    // TODO jump thread conditional exits
+    // we don't actually do this yet though because no optimizations depend
+    // on it
+    requiresRebuildDominators = true;
   }
 
   if (exit.condition->tag != INSTR_JMPCC) {
@@ -150,80 +206,100 @@ void JmpThreader::visitConditionalBlockExit(ConditionalBlockExit& exit) {
   Instruction* condition = jmpInstr.inputs[0];
   Instruction* replacementInstr;
   switch(condition->tag) {
-    case INSTR_CMPEQ:
+    case INSTR_INT_CMPEQ:
     {
-      CmpEqInstr* conditionEq = static_cast<CmpEqInstr*>(condition);
+      IntCmpEqInstr* conditionEq = static_cast<IntCmpEqInstr*>(condition);
       if (conditionEq->hasConstRhs) {
-        replacementInstr = new CmpEqInstr(condition->inputs[0], conditionEq->constI32Rhs);
+        replacementInstr = new IntCmpEqInstr(condition->inputs[0], conditionEq->constI32Rhs);
       } else {
-        if (condition->inputs[0]->type == VAIVEN_STATIC_TYPE_STRING
-            || condition->inputs[0]->type == VAIVEN_STATIC_TYPE_UNKNOWN
-            || condition->inputs[1]->type == VAIVEN_STATIC_TYPE_STRING
-            || condition->inputs[1]->type == VAIVEN_STATIC_TYPE_UNKNOWN) {
-          // will be compiled as a call, test rax so we can do strcmp
-          // TODO check where exact type is unknown but can't be a string
-          return;
-        }
-        replacementInstr = new CmpEqInstr(condition->inputs[0], condition->inputs[1]);
+        replacementInstr = new IntCmpEqInstr(condition->inputs[0], condition->inputs[1]);
       }
       break;
     }
-    case INSTR_CMPINEQ:
+    case INSTR_INT_CMPINEQ:
     {
-      CmpIneqInstr* conditionIneq = static_cast<CmpIneqInstr*>(condition);
+      IntCmpIneqInstr* conditionIneq = static_cast<IntCmpIneqInstr*>(condition);
       if (conditionIneq->hasConstRhs) {
-        replacementInstr = new CmpIneqInstr(condition->inputs[0], conditionIneq->constI32Rhs);
+        replacementInstr = new IntCmpIneqInstr(condition->inputs[0], conditionIneq->constI32Rhs);
       } else {
-        if (condition->inputs[0]->type == VAIVEN_STATIC_TYPE_STRING
-            || condition->inputs[0]->type == VAIVEN_STATIC_TYPE_UNKNOWN
-            || condition->inputs[1]->type == VAIVEN_STATIC_TYPE_STRING
-            || condition->inputs[1]->type == VAIVEN_STATIC_TYPE_UNKNOWN) {
-          // will be compiled as a call, test rax so we can do strcmp
-          // TODO check where exact type is unknown but can't be a string
-          return;
-        }
-        replacementInstr = new CmpIneqInstr(condition->inputs[0], condition->inputs[1]);
+        replacementInstr = new IntCmpIneqInstr(condition->inputs[0], condition->inputs[1]);
       }
       break;
     }
-    case INSTR_CMPGT:
+    case INSTR_INT_CMPGT:
     {
-      CmpGtInstr* conditionGt = static_cast<CmpGtInstr*>(condition);
+      IntCmpGtInstr* conditionGt = static_cast<IntCmpGtInstr*>(condition);
       if (conditionGt->hasConstRhs) {
-        replacementInstr = new CmpGtInstr(condition->inputs[0], conditionGt->constRhs);
+        replacementInstr = new IntCmpGtInstr(condition->inputs[0], conditionGt->constRhs);
       } else {
-        replacementInstr = new CmpGtInstr(condition->inputs[0], condition->inputs[1]);
+        replacementInstr = new IntCmpGtInstr(condition->inputs[0], condition->inputs[1]);
       }
       break;
     }
-    case INSTR_CMPGTE:
+    case INSTR_INT_CMPGTE:
     {
-      CmpGteInstr* conditionGte = static_cast<CmpGteInstr*>(condition);
+      IntCmpGteInstr* conditionGte = static_cast<IntCmpGteInstr*>(condition);
       if (conditionGte->hasConstRhs) {
-        replacementInstr = new CmpGteInstr(condition->inputs[0], conditionGte->constRhs);
+        replacementInstr = new IntCmpGteInstr(condition->inputs[0], conditionGte->constRhs);
       } else {
-        replacementInstr = new CmpGteInstr(condition->inputs[0], condition->inputs[1]);
+        replacementInstr = new IntCmpGteInstr(condition->inputs[0], condition->inputs[1]);
       }
       break;
     }
-    case INSTR_CMPLT:
+    case INSTR_INT_CMPLT:
     {
-      CmpLtInstr* conditionLt = static_cast<CmpLtInstr*>(condition);
+      IntCmpLtInstr* conditionLt = static_cast<IntCmpLtInstr*>(condition);
       if (conditionLt->hasConstRhs) {
-        replacementInstr = new CmpLtInstr(condition->inputs[0], conditionLt->constRhs);
+        replacementInstr = new IntCmpLtInstr(condition->inputs[0], conditionLt->constRhs);
       } else {
-        replacementInstr = new CmpLtInstr(condition->inputs[0], condition->inputs[1]);
+        replacementInstr = new IntCmpLtInstr(condition->inputs[0], condition->inputs[1]);
       }
       break;
     }
-    case INSTR_CMPLTE:
+    case INSTR_INT_CMPLTE:
     {
-      CmpLteInstr* conditionLte = static_cast<CmpLteInstr*>(condition);
+      IntCmpLteInstr* conditionLte = static_cast<IntCmpLteInstr*>(condition);
       if (conditionLte->hasConstRhs) {
-        replacementInstr = new CmpLteInstr(condition->inputs[0], conditionLte->constRhs);
+        replacementInstr = new IntCmpLteInstr(condition->inputs[0], conditionLte->constRhs);
       } else {
-        replacementInstr = new CmpLteInstr(condition->inputs[0], condition->inputs[1]);
+        replacementInstr = new IntCmpLteInstr(condition->inputs[0], condition->inputs[1]);
       }
+      break;
+    }
+    case INSTR_DBL_CMPEQ:
+    {
+      DoubleCmpEqInstr* conditionEq = static_cast<DoubleCmpEqInstr*>(condition);
+      replacementInstr = new DoubleCmpEqInstr(condition->inputs[0], condition->inputs[1]);
+      break;
+    }
+    case INSTR_DBL_CMPINEQ:
+    {
+      DoubleCmpIneqInstr* conditionIneq = static_cast<DoubleCmpIneqInstr*>(condition);
+      replacementInstr = new DoubleCmpIneqInstr(condition->inputs[0], condition->inputs[1]);
+      break;
+    }
+    case INSTR_DBL_CMPGT:
+    {
+      DoubleCmpGtInstr* conditionGt = static_cast<DoubleCmpGtInstr*>(condition);
+      replacementInstr = new DoubleCmpGtInstr(condition->inputs[0], condition->inputs[1]);
+      break;
+    }
+    case INSTR_DBL_CMPGTE:
+    {
+      DoubleCmpGteInstr* conditionGte = static_cast<DoubleCmpGteInstr*>(condition);
+      replacementInstr = new DoubleCmpGteInstr(condition->inputs[0], condition->inputs[1]);
+      break;
+    }
+    case INSTR_DBL_CMPLT:
+    {
+      DoubleCmpLtInstr* conditionLt = static_cast<DoubleCmpLtInstr*>(condition);
+      replacementInstr = new DoubleCmpLtInstr(condition->inputs[0], condition->inputs[1]);
+      break;
+    }
+    case INSTR_DBL_CMPLTE:
+    {
+      DoubleCmpLteInstr* conditionLte = static_cast<DoubleCmpLteInstr*>(condition);
+      replacementInstr = new DoubleCmpLteInstr(condition->inputs[0], condition->inputs[1]);
       break;
     }
     case INSTR_NOT:

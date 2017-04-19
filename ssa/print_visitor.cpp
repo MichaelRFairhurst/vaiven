@@ -52,12 +52,28 @@ void PrintVisitor::visitBoxInstr(BoxInstr& instr) {
   printInstruction("box", &instr);
 }
 
+void PrintVisitor::visitUnboxInstr(UnboxInstr& instr) {
+  printInstruction("unbox", &instr);
+}
+
+void PrintVisitor::visitToDoubleInstr(ToDoubleInstr& instr) {
+  printInstruction("to dbl", &instr);
+}
+
+void PrintVisitor::visitIntToDoubleInstr(IntToDoubleInstr& instr) {
+  printInstruction("int to dbl", &instr);
+}
+
 void PrintVisitor::visitAddInstr(AddInstr& instr) {
   printInstruction("add", &instr);
 }
 
 void PrintVisitor::visitIntAddInstr(IntAddInstr& instr) {
   printInstruction("int add", &instr);
+}
+
+void PrintVisitor::visitDoubleAddInstr(DoubleAddInstr& instr) {
+  printInstruction("dbl add", &instr);
 }
 
 void PrintVisitor::visitStrAddInstr(StrAddInstr& instr) {
@@ -68,8 +84,24 @@ void PrintVisitor::visitSubInstr(SubInstr& instr) {
   printInstruction("sub", &instr);
 }
 
+void PrintVisitor::visitIntSubInstr(IntSubInstr& instr) {
+  printInstruction("int sub", &instr);
+}
+
+void PrintVisitor::visitDoubleSubInstr(DoubleSubInstr& instr) {
+  printInstruction("dbl sub", &instr);
+}
+
 void PrintVisitor::visitMulInstr(MulInstr& instr) {
   printInstruction("mul", &instr);
+}
+
+void PrintVisitor::visitIntMulInstr(IntMulInstr& instr) {
+  printInstruction("int mul", &instr);
+}
+
+void PrintVisitor::visitDoubleMulInstr(DoubleMulInstr& instr) {
+  printInstruction("dbl mul", &instr);
 }
 
 void PrintVisitor::visitDivInstr(DivInstr& instr) {
@@ -84,24 +116,72 @@ void PrintVisitor::visitCmpEqInstr(CmpEqInstr& instr) {
   printInstruction("==", &instr);
 }
 
+void PrintVisitor::visitIntCmpEqInstr(IntCmpEqInstr& instr) {
+  printInstruction("int ==", &instr);
+}
+
+void PrintVisitor::visitDoubleCmpEqInstr(DoubleCmpEqInstr& instr) {
+  printInstruction("dbl ==", &instr);
+}
+
 void PrintVisitor::visitCmpIneqInstr(CmpIneqInstr& instr) {
   printInstruction("!=", &instr);
+}
+
+void PrintVisitor::visitIntCmpIneqInstr(IntCmpIneqInstr& instr) {
+  printInstruction("int !=", &instr);
+}
+
+void PrintVisitor::visitDoubleCmpIneqInstr(DoubleCmpIneqInstr& instr) {
+  printInstruction("dbl !=", &instr);
 }
 
 void PrintVisitor::visitCmpGtInstr(CmpGtInstr& instr) {
   printInstruction("gt", &instr);
 }
 
+void PrintVisitor::visitIntCmpGtInstr(IntCmpGtInstr& instr) {
+  printInstruction("int gt", &instr);
+}
+
+void PrintVisitor::visitDoubleCmpGtInstr(DoubleCmpGtInstr& instr) {
+  printInstruction("dbl gt", &instr);
+}
+
 void PrintVisitor::visitCmpGteInstr(CmpGteInstr& instr) {
   printInstruction("gte", &instr);
+}
+
+void PrintVisitor::visitIntCmpGteInstr(IntCmpGteInstr& instr) {
+  printInstruction("int gte", &instr);
+}
+
+void PrintVisitor::visitDoubleCmpGteInstr(DoubleCmpGteInstr& instr) {
+  printInstruction("dbl gte", &instr);
 }
 
 void PrintVisitor::visitCmpLtInstr(CmpLtInstr& instr) {
   printInstruction("lt", &instr);
 }
 
+void PrintVisitor::visitIntCmpLtInstr(IntCmpLtInstr& instr) {
+  printInstruction("int lt", &instr);
+}
+
+void PrintVisitor::visitDoubleCmpLtInstr(DoubleCmpLtInstr& instr) {
+  printInstruction("dbl lt", &instr);
+}
+
 void PrintVisitor::visitCmpLteInstr(CmpLteInstr& instr) {
   printInstruction("lte", &instr);
+}
+
+void PrintVisitor::visitIntCmpLteInstr(IntCmpLteInstr& instr) {
+  printInstruction("int lte", &instr);
+}
+
+void PrintVisitor::visitDoubleCmpLteInstr(DoubleCmpLteInstr& instr) {
+  printInstruction("dbl lte", &instr);
 }
 
 void PrintVisitor::visitDynamicAccessInstr(DynamicAccessInstr& instr) {

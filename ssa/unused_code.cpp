@@ -38,6 +38,8 @@ void UnusedCodeEliminator::visitPhiInstr(PhiInstr& instr) {
     }
   }
 
+  // TODO remove dominated PHI inputs
+
   // phi(x) is the same as just x
   if (instr.inputs.size() == 1) {
     instr.replaceUsagesWith(instr.inputs[0]);
@@ -83,11 +85,33 @@ void UnusedCodeEliminator::visitBoxInstr(BoxInstr& instr) {
   }
 }
 
-void UnusedCodeEliminator::visitAddInstr(AddInstr& instr) {
+void UnusedCodeEliminator::visitUnboxInstr(UnboxInstr& instr) {
   visitPureInstr(instr);
 }
 
+void UnusedCodeEliminator::visitToDoubleInstr(ToDoubleInstr& instr) {
+  // not pure, can throw, unless marked safelyDeletable
+  if (instr.safelyDeletable) {
+    visitPureInstr(instr);
+  }
+}
+
+void UnusedCodeEliminator::visitIntToDoubleInstr(IntToDoubleInstr& instr) {
+  visitPureInstr(instr);
+}
+
+void UnusedCodeEliminator::visitAddInstr(AddInstr& instr) {
+  // not pure, can throw, unless marked safelyDeletable
+  if (instr.safelyDeletable) {
+    visitPureInstr(instr);
+  }
+}
+
 void UnusedCodeEliminator::visitIntAddInstr(IntAddInstr& instr) {
+  visitPureInstr(instr);
+}
+
+void UnusedCodeEliminator::visitDoubleAddInstr(DoubleAddInstr& instr) {
   visitPureInstr(instr);
 }
 
@@ -96,10 +120,32 @@ void UnusedCodeEliminator::visitStrAddInstr(StrAddInstr& instr) {
 }
 
 void UnusedCodeEliminator::visitSubInstr(SubInstr& instr) {
+  // not pure, can throw, unless marked safelyDeletable
+  if (instr.safelyDeletable) {
+    visitPureInstr(instr);
+  }
+}
+
+void UnusedCodeEliminator::visitIntSubInstr(IntSubInstr& instr) {
+  visitPureInstr(instr);
+}
+
+void UnusedCodeEliminator::visitDoubleSubInstr(DoubleSubInstr& instr) {
   visitPureInstr(instr);
 }
 
 void UnusedCodeEliminator::visitMulInstr(MulInstr& instr) {
+  // not pure, can throw, unless marked safelyDeletable
+  if (instr.safelyDeletable) {
+    visitPureInstr(instr);
+  }
+}
+
+void UnusedCodeEliminator::visitIntMulInstr(IntMulInstr& instr) {
+  visitPureInstr(instr);
+}
+
+void UnusedCodeEliminator::visitDoubleMulInstr(DoubleMulInstr& instr) {
   visitPureInstr(instr);
 }
 
@@ -112,26 +158,92 @@ void UnusedCodeEliminator::visitNotInstr(NotInstr& instr) {
 }
 
 void UnusedCodeEliminator::visitCmpEqInstr(CmpEqInstr& instr) {
+  // not pure, can throw, unless marked safelyDeletable
+  if (instr.safelyDeletable) {
+    visitPureInstr(instr);
+  }
+}
+
+void UnusedCodeEliminator::visitIntCmpEqInstr(IntCmpEqInstr& instr) {
+  visitPureInstr(instr);
+}
+
+void UnusedCodeEliminator::visitDoubleCmpEqInstr(DoubleCmpEqInstr& instr) {
   visitPureInstr(instr);
 }
 
 void UnusedCodeEliminator::visitCmpIneqInstr(CmpIneqInstr& instr) {
+  // not pure, can throw, unless marked safelyDeletable
+  if (instr.safelyDeletable) {
+    visitPureInstr(instr);
+  }
+}
+
+void UnusedCodeEliminator::visitIntCmpIneqInstr(IntCmpIneqInstr& instr) {
+  visitPureInstr(instr);
+}
+
+void UnusedCodeEliminator::visitDoubleCmpIneqInstr(DoubleCmpIneqInstr& instr) {
   visitPureInstr(instr);
 }
 
 void UnusedCodeEliminator::visitCmpGtInstr(CmpGtInstr& instr) {
+  // not pure, can throw, unless marked safelyDeletable
+  if (instr.safelyDeletable) {
+    visitPureInstr(instr);
+  }
+}
+
+void UnusedCodeEliminator::visitIntCmpGtInstr(IntCmpGtInstr& instr) {
+  visitPureInstr(instr);
+}
+
+void UnusedCodeEliminator::visitDoubleCmpGtInstr(DoubleCmpGtInstr& instr) {
   visitPureInstr(instr);
 }
 
 void UnusedCodeEliminator::visitCmpGteInstr(CmpGteInstr& instr) {
+  // not pure, can throw, unless marked safelyDeletable
+  if (instr.safelyDeletable) {
+    visitPureInstr(instr);
+  }
+}
+
+void UnusedCodeEliminator::visitIntCmpGteInstr(IntCmpGteInstr& instr) {
+  visitPureInstr(instr);
+}
+
+void UnusedCodeEliminator::visitDoubleCmpGteInstr(DoubleCmpGteInstr& instr) {
   visitPureInstr(instr);
 }
 
 void UnusedCodeEliminator::visitCmpLtInstr(CmpLtInstr& instr) {
+  // not pure, can throw, unless marked safelyDeletable
+  if (instr.safelyDeletable) {
+    visitPureInstr(instr);
+  }
+}
+
+void UnusedCodeEliminator::visitIntCmpLtInstr(IntCmpLtInstr& instr) {
+  visitPureInstr(instr);
+}
+
+void UnusedCodeEliminator::visitDoubleCmpLtInstr(DoubleCmpLtInstr& instr) {
   visitPureInstr(instr);
 }
 
 void UnusedCodeEliminator::visitCmpLteInstr(CmpLteInstr& instr) {
+  // not pure, can throw, unless marked safelyDeletable
+  if (instr.safelyDeletable) {
+    visitPureInstr(instr);
+  }
+}
+
+void UnusedCodeEliminator::visitIntCmpLteInstr(IntCmpLteInstr& instr) {
+  visitPureInstr(instr);
+}
+
+void UnusedCodeEliminator::visitDoubleCmpLteInstr(DoubleCmpLteInstr& instr) {
   visitPureInstr(instr);
 }
 
@@ -202,11 +314,39 @@ void UnusedCodeEliminator::visitJmpCcInstr(JmpCcInstr& instr) {
 void UnusedCodeEliminator::visitBlock(Block& block) {
   // entry point is always used
   if (allBlocks.size() == 0) {
-    usedBlocks.insert(&block);
+    reachableBlocks.insert(&block);
+    queuedBlocks.insert(&block);
   }
 
+  bool alreadyVisited = visitedBlocks.find(&block) != visitedBlocks.end();
+  bool alreadySeen = allBlocks.find(&block) != allBlocks.end();
   allBlocks.insert(&block);
+  
+  if (queuedBlocks.find(&block) != queuedBlocks.end() && !alreadyVisited) {
+    visitedBlocks.insert(&block);
+    removeDeadCodeFromBlock(block);
+    removeDeadExitsFromBlock(block);
+  }
 
+  queuedBlocks.erase(&block);
+  
+  // only on first sight do we need to keep going on into next -- otherwise, the
+  // queue manages where we go.
+  if (alreadySeen) {
+    return;
+  }
+
+  if (block.next != NULL) {
+    backRefs[&*block.next] = &block;
+    block.next->accept(*this);
+  } else {
+    // we're at the end, usually, but may have a queue.
+    visitQueuedBlocks();
+    removeUnusedBlocks();
+  }
+}
+
+void UnusedCodeEliminator::removeDeadCodeFromBlock(Block& block) {
   curBlock = &block;
   lastInstr = NULL;
   Instruction* next = block.head.get();
@@ -222,7 +362,9 @@ void UnusedCodeEliminator::visitBlock(Block& block) {
       next = next->next;
     }
   }
+}
 
+void UnusedCodeEliminator::removeDeadExitsFromBlock(Block& block) {
   if (block.exits.size() && lastInstr != NULL && (lastInstr->tag == INSTR_RET || lastInstr->tag == INSTR_ERR)) {
     // all exits are dead code
     for (vector<unique_ptr<BlockExit>>::iterator it = block.exits.begin();
@@ -241,7 +383,8 @@ void UnusedCodeEliminator::visitBlock(Block& block) {
     stillGoesToBlocks.insert((*it)->toGoTo);
     if ((*it)->tag == BLOCK_EXIT_UNCONDITIONAL) {
       (*it)->accept(*this);
-      usedBlocks.insert((*it)->toGoTo);
+      reachableBlocks.insert((*it)->toGoTo);
+      queuedBlocks.insert((*it)->toGoTo);
       ++it;
 
       if (it != block.exits.end()) {
@@ -263,7 +406,8 @@ void UnusedCodeEliminator::visitBlock(Block& block) {
         bool alwaysJmp = static_cast<ConstantInstr*>(exit.condition->inputs[0])->val.getBool();
 
         if (alwaysJmp) {
-          usedBlocks.insert((*it)->toGoTo);
+          reachableBlocks.insert((*it)->toGoTo);
+          queuedBlocks.insert((*it)->toGoTo);
           BlockExit* unconditionalExit = new UnconditionalBlockExit((*it)->toGoTo);
           it->reset(unconditionalExit);
           ++it;
@@ -287,40 +431,53 @@ void UnusedCodeEliminator::visitBlock(Block& block) {
 
       // live and unguaranteed jmps
       (*it)->accept(*this);
-      usedBlocks.insert((*it)->toGoTo);
+      reachableBlocks.insert((*it)->toGoTo);
+      queuedBlocks.insert((*it)->toGoTo);
       ++it;
-    }
-  }
-
-  if (block.next != NULL) {
-    backRefs[&*block.next] = &block;
-    block.next->accept(*this);
-  } else {
-    // we're at the end, clean up unused blocks
-    for (set<Block*>::iterator it = allBlocks.begin(); it != allBlocks.end(); ++it) {
-      if (usedBlocks.find(*it) != usedBlocks.end()) {
-        continue;
-      }
-
-      Block* unusedBlock = *it;
-
-      for (vector<unique_ptr<BlockExit>>::iterator exIt = unusedBlock->exits.begin();
-          exIt != unusedBlock->exits.end();
-          ++exIt) {
-        (*exIt)->toGoTo->immPredecessors.erase(unusedBlock);
-      }
-
-      Block* priorBlock = backRefs[unusedBlock];
-      Block* nextBlock = &*unusedBlock->next;
-
-      priorBlock->next.reset(unusedBlock->next.release());
-      backRefs[nextBlock] = priorBlock;
-
-      performedWork = true;
     }
   }
 }
 
 void UnusedCodeEliminator::visitConditionalBlockExit(ConditionalBlockExit& exit) {
   // the instruction in here is never dead
+}
+
+void UnusedCodeEliminator::visitQueuedBlocks() {
+  while (queuedBlocks.size() > 0) {
+    // DO NOT use an iterator, it will be invalidated
+    visitBlock(**queuedBlocks.begin());
+  }
+}
+
+void UnusedCodeEliminator::removeUnusedBlocks() {
+  set<Block*> deletedBlocks;
+  for (set<Block*>::iterator it = allBlocks.begin(); it != allBlocks.end(); ++it) {
+    if (reachableBlocks.find(*it) != reachableBlocks.end()) {
+      continue;
+    }
+
+    Block* unusedBlock = *it;
+
+    for (vector<unique_ptr<BlockExit>>::iterator exIt = unusedBlock->exits.begin();
+        exIt != unusedBlock->exits.end();
+        ++exIt) {
+
+      // don't mess with immPredecessors of a deleted block
+      if (deletedBlocks.find((*exIt)->toGoTo) != deletedBlocks.end()) {
+        continue;
+      }
+
+      // live blocks should not point to this one once its deleted
+      (*exIt)->toGoTo->immPredecessors.erase(unusedBlock);
+    }
+
+    Block* priorBlock = backRefs[unusedBlock];
+    Block* nextBlock = &*unusedBlock->next;
+
+    priorBlock->next.reset(unusedBlock->next.release());
+    backRefs[nextBlock] = priorBlock;
+
+    deletedBlocks.insert(unusedBlock);
+    performedWork = true;
+  }
 }

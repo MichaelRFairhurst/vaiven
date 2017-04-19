@@ -151,6 +151,15 @@ void Inliner::visitTypecheckInstr(TypecheckInstr& instr) {
 void Inliner::visitBoxInstr(BoxInstr& instr) {
 }
 
+void Inliner::visitUnboxInstr(UnboxInstr& instr) {
+}
+
+void Inliner::visitToDoubleInstr(ToDoubleInstr& instr) {
+}
+
+void Inliner::visitIntToDoubleInstr(IntToDoubleInstr& instr) {
+}
+
 void Inliner::visitAddInstr(AddInstr& instr) {
 }
 
@@ -160,10 +169,25 @@ void Inliner::visitStrAddInstr(StrAddInstr& instr) {
 void Inliner::visitIntAddInstr(IntAddInstr& instr) {
 }
 
+void Inliner::visitDoubleAddInstr(DoubleAddInstr& instr) {
+}
+
 void Inliner::visitSubInstr(SubInstr& instr) {
 }
 
+void Inliner::visitIntSubInstr(IntSubInstr& instr) {
+}
+
+void Inliner::visitDoubleSubInstr(DoubleSubInstr& instr) {
+}
+
 void Inliner::visitMulInstr(MulInstr& instr) {
+}
+
+void Inliner::visitIntMulInstr(IntMulInstr& instr) {
+}
+
+void Inliner::visitDoubleMulInstr(DoubleMulInstr& instr) {
 }
 
 void Inliner::visitDivInstr(DivInstr& instr) {
@@ -175,19 +199,55 @@ void Inliner::visitNotInstr(NotInstr& instr) {
 void Inliner::visitCmpEqInstr(CmpEqInstr& instr) {
 }
 
+void Inliner::visitIntCmpEqInstr(IntCmpEqInstr& instr) {
+}
+
+void Inliner::visitDoubleCmpEqInstr(DoubleCmpEqInstr& instr) {
+}
+
 void Inliner::visitCmpIneqInstr(CmpIneqInstr& instr) {
+}
+
+void Inliner::visitIntCmpIneqInstr(IntCmpIneqInstr& instr) {
+}
+
+void Inliner::visitDoubleCmpIneqInstr(DoubleCmpIneqInstr& instr) {
 }
 
 void Inliner::visitCmpGtInstr(CmpGtInstr& instr) {
 }
 
+void Inliner::visitIntCmpGtInstr(IntCmpGtInstr& instr) {
+}
+
+void Inliner::visitDoubleCmpGtInstr(DoubleCmpGtInstr& instr) {
+}
+
 void Inliner::visitCmpGteInstr(CmpGteInstr& instr) {
+}
+
+void Inliner::visitIntCmpGteInstr(IntCmpGteInstr& instr) {
+}
+
+void Inliner::visitDoubleCmpGteInstr(DoubleCmpGteInstr& instr) {
 }
 
 void Inliner::visitCmpLtInstr(CmpLtInstr& instr) {
 }
 
+void Inliner::visitIntCmpLtInstr(IntCmpLtInstr& instr) {
+}
+
+void Inliner::visitDoubleCmpLtInstr(DoubleCmpLtInstr& instr) {
+}
+
 void Inliner::visitCmpLteInstr(CmpLteInstr& instr) {
+}
+
+void Inliner::visitIntCmpLteInstr(IntCmpLteInstr& instr) {
+}
+
+void Inliner::visitDoubleCmpLteInstr(DoubleCmpLteInstr& instr) {
 }
 
 void Inliner::visitDynamicAccessInstr(DynamicAccessInstr& instr) {

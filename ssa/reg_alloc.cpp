@@ -44,7 +44,11 @@ void RegAlloc::visitArgInstr(ArgInstr& instr) {
 }
 
 void RegAlloc::visitConstantInstr(ConstantInstr& instr) {
-  instr.out = cc.newUInt64();
+  if (instr.type == VAIVEN_STATIC_TYPE_DOUBLE) {
+    instr.xmmout = cc.newXmmSd();
+  } else {
+    instr.out = cc.newUInt64();
+  }
 }
 
 void RegAlloc::visitCallInstr(CallInstr& instr) {
@@ -57,7 +61,23 @@ void RegAlloc::visitTypecheckInstr(TypecheckInstr& instr) {
 }
 
 void RegAlloc::visitBoxInstr(BoxInstr& instr) {
-  reuseInputRegIfPossible(instr);
+  if (instr.type == VAIVEN_STATIC_TYPE_DOUBLE) {
+    instr.out = cc.newUInt64();
+  } else {
+    reuseInputRegIfPossible(instr);
+  }
+}
+
+void RegAlloc::visitUnboxInstr(UnboxInstr& instr) {
+  instr.xmmout = cc.newXmmSd();
+}
+
+void RegAlloc::visitToDoubleInstr(ToDoubleInstr& instr) {
+  instr.xmmout = cc.newXmmSd();
+}
+
+void RegAlloc::visitIntToDoubleInstr(IntToDoubleInstr& instr) {
+  instr.xmmout = cc.newXmmSd();
 }
 
 void RegAlloc::visitAddInstr(AddInstr& instr) {
@@ -80,7 +100,32 @@ void RegAlloc::visitIntAddInstr(IntAddInstr& instr) {
   reuseInputRegIfPossible(instr);
 }
 
+void RegAlloc::visitDoubleAddInstr(DoubleAddInstr& instr) {
+  // swap reg inputs if the lhs isn't reusable. Better chance of
+  // avoiding a mov between virtual registers
+  if (instr.inputs[0]->usages.size() > 1) {
+    std::swap(instr.inputs[0], instr.inputs[1]);
+  }
+
+  if (instr.inputs[0]->usages.size() == 1) {
+    // edge case: typecheck may have no other usages, but it shares a register
+    // with something that may have other usages.
+    if (instr.inputs[0]->tag == INSTR_TYPECHECK
+        && instr.inputs[0]->inputs[0]->usages.size() > 1) {
+      instr.xmmout = cc.newXmmSd();
+      return;
+    }
+    instr.xmmout = instr.inputs[0]->xmmout;
+  } else {
+    instr.xmmout = cc.newXmmSd();
+  }
+}
+
 void RegAlloc::visitSubInstr(SubInstr& instr) {
+  reuseInputRegIfPossible(instr);
+}
+
+void RegAlloc::visitIntSubInstr(IntSubInstr& instr) {
   // swap reg inputs if the lhs isn't reusable. Better chance of
   // avoiding a mov between virtual registers
   if (!instr.hasConstLhs && instr.inputs[0]->usages.size() > 1) {
@@ -92,7 +137,32 @@ void RegAlloc::visitSubInstr(SubInstr& instr) {
   reuseInputRegIfPossible(instr);
 }
 
+void RegAlloc::visitDoubleSubInstr(DoubleSubInstr& instr) {
+  // swap reg inputs if the lhs isn't reusable. Better chance of
+  // avoiding a mov between virtual registers
+  if (instr.inputs[0]->usages.size() > 1) {
+    std::swap(instr.inputs[0], instr.inputs[1]);
+  }
+
+  if (instr.inputs[0]->usages.size() == 1) {
+    // edge case: typecheck may have no other usages, but it shares a register
+    // with something that may have other usages.
+    if (instr.inputs[0]->tag == INSTR_TYPECHECK
+        && instr.inputs[0]->inputs[0]->usages.size() > 1) {
+      instr.xmmout = cc.newXmmSd();
+      return;
+    }
+    instr.xmmout = instr.inputs[0]->xmmout;
+  } else {
+    instr.xmmout = cc.newXmmSd();
+  }
+}
+
 void RegAlloc::visitMulInstr(MulInstr& instr) {
+  reuseInputRegIfPossible(instr);
+}
+
+void RegAlloc::visitIntMulInstr(IntMulInstr& instr) {
   // swap reg inputs if the lhs isn't reusable. Better chance of
   // avoiding a mov between virtual registers
   if (!instr.hasConstRhs && instr.inputs[0]->usages.size() > 1) {
@@ -102,8 +172,46 @@ void RegAlloc::visitMulInstr(MulInstr& instr) {
   reuseInputRegIfPossible(instr);
 }
 
+void RegAlloc::visitDoubleMulInstr(DoubleMulInstr& instr) {
+  // swap reg inputs if the lhs isn't reusable. Better chance of
+  // avoiding a mov between virtual registers
+  if (instr.inputs[0]->usages.size() > 1) {
+    std::swap(instr.inputs[0], instr.inputs[1]);
+  }
+
+  if (instr.inputs[0]->usages.size() == 1) {
+    // edge case: typecheck may have no other usages, but it shares a register
+    // with something that may have other usages.
+    if (instr.inputs[0]->tag == INSTR_TYPECHECK
+        && instr.inputs[0]->inputs[0]->usages.size() > 1) {
+      instr.xmmout = cc.newXmmSd();
+      return;
+    }
+    instr.xmmout = instr.inputs[0]->xmmout;
+  } else {
+    instr.xmmout = cc.newXmmSd();
+  }
+}
+
 void RegAlloc::visitDivInstr(DivInstr& instr) {
-  reuseInputRegIfPossible(instr);
+  // swap reg inputs if the lhs isn't reusable. Better chance of
+  // avoiding a mov between virtual registers
+  if (instr.inputs[0]->usages.size() > 1) {
+    std::swap(instr.inputs[0], instr.inputs[1]);
+  }
+
+  if (instr.inputs[0]->usages.size() == 1) {
+    // edge case: typecheck may have no other usages, but it shares a register
+    // with something that may have other usages.
+    if (instr.inputs[0]->tag == INSTR_TYPECHECK
+        && instr.inputs[0]->inputs[0]->usages.size() > 1) {
+      instr.xmmout = cc.newXmmSd();
+      return;
+    }
+    instr.xmmout = instr.inputs[0]->xmmout;
+  } else {
+    instr.xmmout = cc.newXmmSd();
+  }
 }
 
 void RegAlloc::visitNotInstr(NotInstr& instr) {
@@ -114,7 +222,23 @@ void RegAlloc::visitCmpEqInstr(CmpEqInstr& instr) {
   instr.out = cc.newUInt64();
 }
 
+void RegAlloc::visitIntCmpEqInstr(IntCmpEqInstr& instr) {
+  instr.out = cc.newUInt64();
+}
+
+void RegAlloc::visitDoubleCmpEqInstr(DoubleCmpEqInstr& instr) {
+  instr.out = cc.newUInt64();
+}
+
 void RegAlloc::visitCmpIneqInstr(CmpIneqInstr& instr) {
+  instr.out = cc.newUInt64();
+}
+
+void RegAlloc::visitIntCmpIneqInstr(IntCmpIneqInstr& instr) {
+  instr.out = cc.newUInt64();
+}
+
+void RegAlloc::visitDoubleCmpIneqInstr(DoubleCmpIneqInstr& instr) {
   instr.out = cc.newUInt64();
 }
 
@@ -122,7 +246,23 @@ void RegAlloc::visitCmpGtInstr(CmpGtInstr& instr) {
   instr.out = cc.newUInt64();
 }
 
+void RegAlloc::visitIntCmpGtInstr(IntCmpGtInstr& instr) {
+  instr.out = cc.newUInt64();
+}
+
+void RegAlloc::visitDoubleCmpGtInstr(DoubleCmpGtInstr& instr) {
+  instr.out = cc.newUInt64();
+}
+
 void RegAlloc::visitCmpGteInstr(CmpGteInstr& instr) {
+  instr.out = cc.newUInt64();
+}
+
+void RegAlloc::visitIntCmpGteInstr(IntCmpGteInstr& instr) {
+  instr.out = cc.newUInt64();
+}
+
+void RegAlloc::visitDoubleCmpGteInstr(DoubleCmpGteInstr& instr) {
   instr.out = cc.newUInt64();
 }
 
@@ -130,7 +270,23 @@ void RegAlloc::visitCmpLtInstr(CmpLtInstr& instr) {
   instr.out = cc.newUInt64();
 }
 
+void RegAlloc::visitIntCmpLtInstr(IntCmpLtInstr& instr) {
+  instr.out = cc.newUInt64();
+}
+
+void RegAlloc::visitDoubleCmpLtInstr(DoubleCmpLtInstr& instr) {
+  instr.out = cc.newUInt64();
+}
+
 void RegAlloc::visitCmpLteInstr(CmpLteInstr& instr) {
+  instr.out = cc.newUInt64();
+}
+
+void RegAlloc::visitIntCmpLteInstr(IntCmpLteInstr& instr) {
+  instr.out = cc.newUInt64();
+}
+
+void RegAlloc::visitDoubleCmpLteInstr(DoubleCmpLteInstr& instr) {
   instr.out = cc.newUInt64();
 }
 

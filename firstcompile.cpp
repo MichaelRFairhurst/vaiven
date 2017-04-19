@@ -201,7 +201,8 @@ void vaiven::generateTypeShapeProlog(FuncDecl<>& decl, FunctionUsage* usage, asm
     cc.mov(checkReg, MAX_PTR);
     cc.cmp(arg, checkReg);
     // can't derefence if it isn't a pointer
-    cc.jge(noPointerCheck);
+    // use jae because its unsigned
+    cc.jae(noPointerCheck);
     // now we can dereference it
     cc.mov(orReg, x86::ptr(arg));
     cc.shl(orReg, POINTER_TAG_SHIFT);
@@ -212,7 +213,8 @@ void vaiven::generateTypeShapeProlog(FuncDecl<>& decl, FunctionUsage* usage, asm
     cc.mov(checkReg, MIN_DBL);
     cc.mov(orReg, DOUBLE_SHAPE);
     cc.cmp(arg, checkReg);
-    cc.jg(afterCheck);
+    // use jae because its unsigned
+    cc.jae(afterCheck);
 
     cc.mov(orReg, arg);
     cc.shr(orReg, PRIMITIVE_TAG_SHIFT);

@@ -1,0 +1,592 @@
+fn test0noargs
+  assert(1.2 + 3.4 == 4.6)
+end
+fn test0firstarg of x is
+  assert(x + 3.4 == 4.6)
+end
+fn test0secondarg of x is
+  assert(1.2 + x == 4.6)
+end
+fn test1noargs
+  assert(3.4 - 1.2 == 2.2)
+end
+fn test1firstarg of x is
+  assert(x - 1.2 == 2.2)
+end
+fn test1secondarg of x is
+  assert(3.4 - x == 2.2)
+end
+fn test2noargs
+  assert(3.4 * 1.2 == 4.08)
+end
+fn test2firstarg of x is
+  assert(x * 1.2 == 4.08)
+end
+fn test2secondarg of x is
+  assert(3.4 * x == 4.08)
+end
+fn test3noargs
+  assert(2.4 / 1.2 == 2.0)
+end
+fn test3firstarg of x is
+  assert(x / 1.2 == 2.0)
+end
+fn test3secondarg of x is
+  assert(2.4 / x == 2.0)
+end
+fn test4noargs
+  assert(1 + 3.4 == 4.4)
+end
+fn test4firstarg of x is
+  assert(x + 3.4 == 4.4)
+end
+fn test4secondarg of x is
+  assert(1 + x == 4.4)
+end
+fn test5noargs
+  assert(3 - 1.2 == 1.8)
+end
+fn test5firstarg of x is
+  assert(x - 1.2 == 1.8)
+end
+fn test5secondarg of x is
+  assert(3 - x == 1.8)
+end
+fn test6noargs
+  assert(3 * 1.2 == 3.5999999999999997)
+end
+fn test6firstarg of x is
+  assert(x * 1.2 == 3.5999999999999997)
+end
+fn test6secondarg of x is
+  assert(3 * x == 3.5999999999999997)
+end
+fn test7noargs
+  assert(5 / 2.5 == 2.0)
+end
+fn test7firstarg of x is
+  assert(x / 2.5 == 2.0)
+end
+fn test7secondarg of x is
+  assert(5 / x == 2.0)
+end
+fn test8noargs
+  assert(3.4 + 1 == 4.4)
+end
+fn test8firstarg of x is
+  assert(x + 1 == 4.4)
+end
+fn test8secondarg of x is
+  assert(3.4 + x == 4.4)
+end
+fn test9noargs
+  assert(3.2 - 1 == 2.2)
+end
+fn test9firstarg of x is
+  assert(x - 1 == 2.2)
+end
+fn test9secondarg of x is
+  assert(3.2 - x == 2.2)
+end
+fn test10noargs
+  assert(1.2 * 3 == 3.5999999999999997)
+end
+fn test10firstarg of x is
+  assert(x * 3 == 3.5999999999999997)
+end
+fn test10secondarg of x is
+  assert(1.2 * x == 3.5999999999999997)
+end
+fn test11noargs
+  assert(2.5 / 5 == 0.5)
+end
+fn test11firstarg of x is
+  assert(x / 5 == 0.5)
+end
+fn test11secondarg of x is
+  assert(2.5 / x == 0.5)
+end
+fn test12noargs
+  assert(3.4 > 3.3)
+end
+fn test12firstarg of x is
+  assert(x > 3.3)
+end
+fn test12secondarg of x is
+  assert(3.4 > x)
+end
+fn test13noargs
+  assert(3.4 >= 3.3)
+end
+fn test13firstarg of x is
+  assert(x >= 3.3)
+end
+fn test13secondarg of x is
+  assert(3.4 >= x)
+end
+fn test14noargs
+  assert(3.3 >= 3.3)
+end
+fn test14firstarg of x is
+  assert(x >= 3.3)
+end
+fn test14secondarg of x is
+  assert(3.3 >= x)
+end
+fn test15noargs
+  assert(3.3 <= 3.3)
+end
+fn test15firstarg of x is
+  assert(x <= 3.3)
+end
+fn test15secondarg of x is
+  assert(3.3 <= x)
+end
+fn test16noargs
+  assert(3.3 <= 3.4)
+end
+fn test16firstarg of x is
+  assert(x <= 3.4)
+end
+fn test16secondarg of x is
+  assert(3.3 <= x)
+end
+fn test17noargs
+  assert(3.3 < 3.4)
+end
+fn test17firstarg of x is
+  assert(x < 3.4)
+end
+fn test17secondarg of x is
+  assert(3.3 < x)
+end
+fn test18noargs
+  assert(!(3.4 < 3.3))
+end
+fn test18firstarg of x is
+  assert(!(x < 3.3))
+end
+fn test18secondarg of x is
+  assert(!(3.4 < x))
+end
+fn test19noargs
+  assert(!(3.4 <= 3.3))
+end
+fn test19firstarg of x is
+  assert(!(x <= 3.3))
+end
+fn test19secondarg of x is
+  assert(!(3.4 <= x))
+end
+fn test20noargs
+  assert(!(3.3 >= 3.4))
+end
+fn test20firstarg of x is
+  assert(!(x >= 3.4))
+end
+fn test20secondarg of x is
+  assert(!(3.3 >= x))
+end
+fn test21noargs
+  assert(!(3.3 > 3.4))
+end
+fn test21firstarg of x is
+  assert(!(x > 3.4))
+end
+fn test21secondarg of x is
+  assert(!(3.3 > x))
+end
+fn test22noargs
+  assert(4 > 3.3)
+end
+fn test22firstarg of x is
+  assert(x > 3.3)
+end
+fn test22secondarg of x is
+  assert(4 > x)
+end
+fn test23noargs
+  assert(4 >= 3.3)
+end
+fn test23firstarg of x is
+  assert(x >= 3.3)
+end
+fn test23secondarg of x is
+  assert(4 >= x)
+end
+fn test24noargs
+  assert(3 <= 3.4)
+end
+fn test24firstarg of x is
+  assert(x <= 3.4)
+end
+fn test24secondarg of x is
+  assert(3 <= x)
+end
+fn test25noargs
+  assert(3 < 3.4)
+end
+fn test25firstarg of x is
+  assert(x < 3.4)
+end
+fn test25secondarg of x is
+  assert(3 < x)
+end
+fn test26noargs
+  assert(3.4 > 3)
+end
+fn test26firstarg of x is
+  assert(x > 3)
+end
+fn test26secondarg of x is
+  assert(3.4 > x)
+end
+fn test27noargs
+  assert(3.4 >= 3)
+end
+fn test27firstarg of x is
+  assert(x >= 3)
+end
+fn test27secondarg of x is
+  assert(3.4 >= x)
+end
+fn test28noargs
+  assert(3.3 <= 4)
+end
+fn test28firstarg of x is
+  assert(x <= 4)
+end
+fn test28secondarg of x is
+  assert(3.3 <= x)
+end
+fn test29noargs
+  assert(3.3 < 4)
+end
+fn test29firstarg of x is
+  assert(x < 4)
+end
+fn test29secondarg of x is
+  assert(3.3 < x)
+end
+fn test30noargs
+  assert(!(4 < 3.3))
+end
+fn test30firstarg of x is
+  assert(!(x < 3.3))
+end
+fn test30secondarg of x is
+  assert(!(4 < x))
+end
+fn test31noargs
+  assert(!(4 <= 3.3))
+end
+fn test31firstarg of x is
+  assert(!(x <= 3.3))
+end
+fn test31secondarg of x is
+  assert(!(4 <= x))
+end
+fn test32noargs
+  assert(!(3 >= 3.4))
+end
+fn test32firstarg of x is
+  assert(!(x >= 3.4))
+end
+fn test32secondarg of x is
+  assert(!(3 >= x))
+end
+fn test33noargs
+  assert(!(3 > 3.4))
+end
+fn test33firstarg of x is
+  assert(!(x > 3.4))
+end
+fn test33secondarg of x is
+  assert(!(3 > x))
+end
+fn test34noargs
+  assert(!(3.4 < 3))
+end
+fn test34firstarg of x is
+  assert(!(x < 3))
+end
+fn test34secondarg of x is
+  assert(!(3.4 < x))
+end
+fn test35noargs
+  assert(!(3.4 <= 3))
+end
+fn test35firstarg of x is
+  assert(!(x <= 3))
+end
+fn test35secondarg of x is
+  assert(!(3.4 <= x))
+end
+fn test36noargs
+  assert(!(3.3 >= 4))
+end
+fn test36firstarg of x is
+  assert(!(x >= 4))
+end
+fn test36secondarg of x is
+  assert(!(3.3 >= x))
+end
+fn test37noargs
+  assert(!(3.3 > 4))
+end
+fn test37firstarg of x is
+  assert(!(x > 4))
+end
+fn test37secondarg of x is
+  assert(!(3.3 > x))
+end
+fn test38noargs
+  assert(3.0 >= 3)
+end
+fn test38firstarg of x is
+  assert(x >= 3)
+end
+fn test38secondarg of x is
+  assert(3.0 >= x)
+end
+fn test39noargs
+  assert(3.0 == 3)
+end
+fn test39firstarg of x is
+  assert(x == 3)
+end
+fn test39secondarg of x is
+  assert(3.0 == x)
+end
+fn test40noargs
+  assert(3.0 <= 3)
+end
+fn test40firstarg of x is
+  assert(x <= 3)
+end
+fn test40secondarg of x is
+  assert(3.0 <= x)
+end
+fn test41noargs
+  assert(3 >= 3.0)
+end
+fn test41firstarg of x is
+  assert(x >= 3.0)
+end
+fn test41secondarg of x is
+  assert(3 >= x)
+end
+fn test42noargs
+  assert(3 == 3.0)
+end
+fn test42firstarg of x is
+  assert(x == 3.0)
+end
+fn test42secondarg of x is
+  assert(3 == x)
+end
+fn test43noargs
+  assert(3 <= 3.0)
+end
+fn test43firstarg of x is
+  assert(x <= 3.0)
+end
+fn test43secondarg of x is
+  assert(3 <= x)
+end
+fn test44noargs
+  assert(!(3.0 < 3))
+end
+fn test44firstarg of x is
+  assert(!(x < 3))
+end
+fn test44secondarg of x is
+  assert(!(3.0 < x))
+end
+fn test45noargs
+  assert(!(3.0 > 3))
+end
+fn test45firstarg of x is
+  assert(!(x > 3))
+end
+fn test45secondarg of x is
+  assert(!(3.0 > x))
+end
+fn test46noargs
+  assert(!(3 < 3.0))
+end
+fn test46firstarg of x is
+  assert(!(x < 3.0))
+end
+fn test46secondarg of x is
+  assert(!(3 < x))
+end
+fn test47noargs
+  assert(!(3 > 3.0))
+end
+fn test47firstarg of x is
+  assert(!(x > 3.0))
+end
+fn test47secondarg of x is
+  assert(!(3 > x))
+end
+
+// this created an issue with PHIs that prevented unboxing before the division
+fn testDivWithinLoopWithinLoop of x is
+  if true
+    if true
+      assert(x / 4.0 == 2.0)
+      ret 0
+    end
+  end
+end
+
+var x = 0
+for x < 20
+  test0noargs()
+  test0firstarg(1.2)
+  test0secondarg(3.4)
+  test1noargs()
+  test1firstarg(3.4)
+  test1secondarg(1.2)
+  test2noargs()
+  test2firstarg(3.4)
+  test2secondarg(1.2)
+  test3noargs()
+  test3firstarg(2.4)
+  test3secondarg(1.2)
+  test4noargs()
+  test4firstarg(1)
+  test4secondarg(3.4)
+  test5noargs()
+  test5firstarg(3)
+  test5secondarg(1.2)
+  test6noargs()
+  test6firstarg(3)
+  test6secondarg(1.2)
+  test7noargs()
+  test7firstarg(5)
+  test7secondarg(2.5)
+  test8noargs()
+  test8firstarg(3.4)
+  test8secondarg(1)
+  test9noargs()
+  test9firstarg(3.2)
+  test9secondarg(1)
+  test10noargs()
+  test10firstarg(1.2)
+  test10secondarg(3)
+  test11noargs()
+  test11firstarg(2.5)
+  test11secondarg(5)
+  test12noargs()
+  test12firstarg(3.4)
+  test12secondarg(3.3)
+  test13noargs()
+  test13firstarg(3.4)
+  test13secondarg(3.3)
+  test14noargs()
+  test14firstarg(3.3)
+  test14secondarg(3.3)
+  test15noargs()
+  test15firstarg(3.3)
+  test15secondarg(3.3)
+  test16noargs()
+  test16firstarg(3.3)
+  test16secondarg(3.4)
+  test17noargs()
+  test17firstarg(3.3)
+  test17secondarg(3.4)
+  test18noargs()
+  test18firstarg(3.4)
+  test18secondarg(3.3)
+  test19noargs()
+  test19firstarg(3.4)
+  test19secondarg(3.3)
+  test20noargs()
+  test20firstarg(3.3)
+  test20secondarg(3.4)
+  test21noargs()
+  test21firstarg(3.3)
+  test21secondarg(3.4)
+  test22noargs()
+  test22firstarg(4)
+  test22secondarg(3.3)
+  test23noargs()
+  test23firstarg(4)
+  test23secondarg(3.3)
+  test24noargs()
+  test24firstarg(3)
+  test24secondarg(3.4)
+  test25noargs()
+  test25firstarg(3)
+  test25secondarg(3.4)
+  test26noargs()
+  test26firstarg(3.4)
+  test26secondarg(3)
+  test27noargs()
+  test27firstarg(3.4)
+  test27secondarg(3)
+  test28noargs()
+  test28firstarg(3.3)
+  test28secondarg(4)
+  test29noargs()
+  test29firstarg(3.3)
+  test29secondarg(4)
+  test30noargs()
+  test30firstarg(4)
+  test30secondarg(3.3)
+  test31noargs()
+  test31firstarg(4)
+  test31secondarg(3.3)
+  test32noargs()
+  test32firstarg(3)
+  test32secondarg(3.4)
+  test33noargs()
+  test33firstarg(3)
+  test33secondarg(3.4)
+  test34noargs()
+  test34firstarg(3.4)
+  test34secondarg(3)
+  test35noargs()
+  test35firstarg(3.4)
+  test35secondarg(3)
+  test36noargs()
+  test36firstarg(3.3)
+  test36secondarg(4)
+  test37noargs()
+  test37firstarg(3.3)
+  test37secondarg(4)
+  test38noargs()
+  test38firstarg(3.0)
+  test38secondarg(3)
+  test39noargs()
+  test39firstarg(3.0)
+  test39secondarg(3)
+  test40noargs()
+  test40firstarg(3.0)
+  test40secondarg(3)
+  test41noargs()
+  test41firstarg(3)
+  test41secondarg(3.0)
+  test42noargs()
+  test42firstarg(3)
+  test42secondarg(3.0)
+  test43noargs()
+  test43firstarg(3)
+  test43secondarg(3.0)
+  test44noargs()
+  test44firstarg(3.0)
+  test44secondarg(3)
+  test45noargs()
+  test45firstarg(3.0)
+  test45secondarg(3)
+  test46noargs()
+  test46firstarg(3)
+  test46secondarg(3.0)
+  test47noargs()
+  test47firstarg(3)
+  test47secondarg(3.0)
+  testDivWithinLoopWithinLoop(8.0)
+  x += 1
+end

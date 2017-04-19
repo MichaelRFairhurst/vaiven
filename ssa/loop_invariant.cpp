@@ -70,6 +70,18 @@ void LoopInvariantCodeMover::visitBoxInstr(BoxInstr& instr) {
   visitPureInstruction(instr);
 }
 
+void LoopInvariantCodeMover::visitUnboxInstr(UnboxInstr& instr) {
+  visitPureInstruction(instr);
+}
+
+void LoopInvariantCodeMover::visitToDoubleInstr(ToDoubleInstr& instr) {
+  // not pure, can throw
+}
+
+void LoopInvariantCodeMover::visitIntToDoubleInstr(IntToDoubleInstr& instr) {
+  visitPureInstruction(instr);
+}
+
 void LoopInvariantCodeMover::visitAddInstr(AddInstr& instr) {
   // not pure, can throw :(
 }
@@ -82,11 +94,31 @@ void LoopInvariantCodeMover::visitIntAddInstr(IntAddInstr& instr) {
   visitPureInstruction(instr);
 }
 
+void LoopInvariantCodeMover::visitDoubleAddInstr(DoubleAddInstr& instr) {
+  visitPureInstruction(instr);
+}
+
 void LoopInvariantCodeMover::visitSubInstr(SubInstr& instr) {
+  // not pure, can throw :(
+}
+
+void LoopInvariantCodeMover::visitIntSubInstr(IntSubInstr& instr) {
+  visitPureInstruction(instr);
+}
+
+void LoopInvariantCodeMover::visitDoubleSubInstr(DoubleSubInstr& instr) {
   visitPureInstruction(instr);
 }
 
 void LoopInvariantCodeMover::visitMulInstr(MulInstr& instr) {
+  visitPureInstruction(instr);
+}
+
+void LoopInvariantCodeMover::visitIntMulInstr(IntMulInstr& instr) {
+  visitPureInstruction(instr);
+}
+
+void LoopInvariantCodeMover::visitDoubleMulInstr(DoubleMulInstr& instr) {
   visitPureInstruction(instr);
 }
 
@@ -99,26 +131,74 @@ void LoopInvariantCodeMover::visitNotInstr(NotInstr& instr) {
 }
 
 void LoopInvariantCodeMover::visitCmpEqInstr(CmpEqInstr& instr) {
+  // not pure, can throw :(
+}
+
+void LoopInvariantCodeMover::visitIntCmpEqInstr(IntCmpEqInstr& instr) {
+  visitPureInstruction(instr);
+}
+
+void LoopInvariantCodeMover::visitDoubleCmpEqInstr(DoubleCmpEqInstr& instr) {
   visitPureInstruction(instr);
 }
 
 void LoopInvariantCodeMover::visitCmpIneqInstr(CmpIneqInstr& instr) {
+  // not pure, can throw :(
+}
+
+void LoopInvariantCodeMover::visitIntCmpIneqInstr(IntCmpIneqInstr& instr) {
+  visitPureInstruction(instr);
+}
+
+void LoopInvariantCodeMover::visitDoubleCmpIneqInstr(DoubleCmpIneqInstr& instr) {
   visitPureInstruction(instr);
 }
 
 void LoopInvariantCodeMover::visitCmpGtInstr(CmpGtInstr& instr) {
+  // not pure, can throw :(
+}
+
+void LoopInvariantCodeMover::visitIntCmpGtInstr(IntCmpGtInstr& instr) {
+  visitPureInstruction(instr);
+}
+
+void LoopInvariantCodeMover::visitDoubleCmpGtInstr(DoubleCmpGtInstr& instr) {
   visitPureInstruction(instr);
 }
 
 void LoopInvariantCodeMover::visitCmpGteInstr(CmpGteInstr& instr) {
+  // not pure, can throw :(
+}
+
+void LoopInvariantCodeMover::visitIntCmpGteInstr(IntCmpGteInstr& instr) {
+  visitPureInstruction(instr);
+}
+
+void LoopInvariantCodeMover::visitDoubleCmpGteInstr(DoubleCmpGteInstr& instr) {
   visitPureInstruction(instr);
 }
 
 void LoopInvariantCodeMover::visitCmpLtInstr(CmpLtInstr& instr) {
+  // not pure, can throw :(
+}
+
+void LoopInvariantCodeMover::visitIntCmpLtInstr(IntCmpLtInstr& instr) {
+  visitPureInstruction(instr);
+}
+
+void LoopInvariantCodeMover::visitDoubleCmpLtInstr(DoubleCmpLtInstr& instr) {
   visitPureInstruction(instr);
 }
 
 void LoopInvariantCodeMover::visitCmpLteInstr(CmpLteInstr& instr) {
+  // not pure, can throw :(
+}
+
+void LoopInvariantCodeMover::visitIntCmpLteInstr(IntCmpLteInstr& instr) {
+  visitPureInstruction(instr);
+}
+
+void LoopInvariantCodeMover::visitDoubleCmpLteInstr(DoubleCmpLteInstr& instr) {
   visitPureInstruction(instr);
 }
 

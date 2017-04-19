@@ -120,6 +120,16 @@ void SsaBuilder::visitForCondition(ForCondition<>& stmt) {
   unordered_set<string> prevVarsToPhi = varsToPhi;
   map<string, Instruction*> scopeStatePreFor;
   scope.fill(scopeStatePreFor);
+  
+  ssa::Block* checkBlock = new ssa::Block();
+  curBlock->next.reset(checkBlock);
+  UnconditionalBlockExit* jmpToCheck = new UnconditionalBlockExit(checkBlock);
+  curBlock->exits.push_back(unique_ptr<BlockExit>(jmpToCheck));
+  ssa::Block* bodyBlock = new ssa::Block();
+  checkBlock->next.reset(bodyBlock);
+  ssa::Block* followBlock = new ssa::Block();
+
+  curBlock = checkBlock;
 
   // any var could change. Make them all PHIs, if they aren't changed the PHI will be eliminated
   map<string, Instruction*> phis;
@@ -131,16 +141,6 @@ void SsaBuilder::visitForCondition(ForCondition<>& stmt) {
     phis[it->first] = phi;
     emit(phi);
   }
-  
-  ssa::Block* checkBlock = new ssa::Block();
-  curBlock->next.reset(checkBlock);
-  UnconditionalBlockExit* jmpToCheck = new UnconditionalBlockExit(checkBlock);
-  curBlock->exits.push_back(unique_ptr<BlockExit>(jmpToCheck));
-  ssa::Block* bodyBlock = new ssa::Block();
-  checkBlock->next.reset(bodyBlock);
-  ssa::Block* followBlock = new ssa::Block();
-
-  curBlock = checkBlock;
 
   stmt.condition->accept(*this);
   emit(new NotInstr(cur));
@@ -290,6 +290,9 @@ void SsaBuilder::visitDynamicStoreExpression(DynamicStoreExpression<>& expr) {
   }
 
   emit(new DynamicStoreInstr(subject, property, rhs));
+
+  // value is equivalent to the evaluation of rhs
+  cur = rhs;
 }
 
 void SsaBuilder::visitStaticAccessExpression(StaticAccessExpression<>& expr) {
@@ -330,6 +333,9 @@ void SsaBuilder::visitStaticStoreExpression(StaticStoreExpression<>& expr) {
   }
 
   emit(new ObjectStoreInstr(subject, &expr.property, rhs));
+
+  // value is equivalent to the evaluation of rhs
+  cur = rhs;
 }
 
 void SsaBuilder::visitFuncDecl(FuncDecl<>& decl) {

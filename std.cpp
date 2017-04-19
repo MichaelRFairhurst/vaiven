@@ -1,6 +1,7 @@
 #include "std.h"
 
 #include <iostream>
+#include <iomanip>
 
 #include "heap.h"
 #include "runtime_error.h"
@@ -16,6 +17,13 @@ void vaiven::init_std(Functions& funcs) {
   funcs.addNative("object", 0, (void*) object, true);
   funcs.addNative("keys", 1, (void*) keys, false); // not pure because can throw
   funcs.addNative("toString", 1, (void*) toString, true);
+  funcs.addNative("sqrt", 1, (void*) sqrt, false); // not pure because can throw
+  funcs.addNative("round", 1, (void*) round, false); // not pure because can throw
+  funcs.addNative("floor", 1, (void*) floor, false); // not pure because can throw
+  funcs.addNative("ceil", 1, (void*) ceil, false); // not pure because can throw
+
+  // for printing doubles
+  cout << setprecision(100);
 }
 
 Value vaiven::print(Value value) {
@@ -122,6 +130,46 @@ Value vaiven::toString(Value subject) {
   return Value(str);
 }
 
+Value vaiven::sqrt(Value value) {
+  if (value.isInt()) {
+    return Value(std::sqrt(value.getInt()));
+  } else if (value.isDouble()) {
+    return Value(std::sqrt(value.getDouble()));
+  } else {
+    expectedIntOrDouble();
+  }
+}
+
+Value vaiven::round(Value value) {
+  if (value.isInt()) {
+    return value;
+  } else if (value.isDouble()) {
+    return Value(std::round(value.getDouble()));
+  } else {
+    expectedIntOrDouble();
+  }
+}
+
+Value vaiven::floor(Value value) {
+  if (value.isInt()) {
+    return value;
+  } else if (value.isDouble()) {
+    return Value(std::floor(value.getDouble()));
+  } else {
+    expectedIntOrDouble();
+  }
+}
+
+Value vaiven::ceil(Value value) {
+  if (value.isInt()) {
+    return value;
+  } else if (value.isDouble()) {
+    return Value(std::ceil(value.getDouble()));
+  } else {
+    expectedIntOrDouble();
+  }
+}
+
 Value vaiven::newList() {
   GcableList* list = globalHeap->newList();
   return Value(list);
@@ -195,20 +243,24 @@ Value vaiven::mul(Value lhs, Value rhs) {
 }
 
 Value vaiven::div(Value lhs, Value rhs) {
+  double dlhs;
+  double drhs;
   if (lhs.isInt()) {
-    if (rhs.isInt()) {
-      return Value(lhs.getInt() / rhs.getInt());
-    } else if (rhs.isDouble()) {
-      return Value(lhs.getInt() / rhs.getDouble());
-    }
+    dlhs = (double) lhs.getInt();
   } else if (lhs.isDouble()) {
-    if (rhs.isInt()) {
-      return Value(lhs.getDouble() / rhs.getInt());
-    } else if (rhs.isDouble()) {
-      return Value(lhs.getDouble() / rhs.getDouble());
-    }
+    dlhs = lhs.getDouble();
+  } else {
+    expectedIntOrDouble();
   }
-  expectedIntOrDouble();
+  if (rhs.isInt()) {
+    drhs = (double) rhs.getInt();
+  } else if (rhs.isDouble()) {
+    drhs = rhs.getDouble();
+  } else {
+    expectedIntOrDouble();
+  }
+
+  return Value(dlhs / drhs);
 }
 
 Value vaiven::gt(Value lhs, Value rhs) {
@@ -406,6 +458,22 @@ uint64_t vaiven::cmpUnboxed(Value a, Value b) {
       && a.getPtr()->getType() == GCABLE_TYPE_STRING
       && b.getPtr()->getType() == GCABLE_TYPE_STRING) {
     return cmpStrUnchecked((GcableString*) a.getPtr(), (GcableString*) b.getPtr());
+  } else if (a.isDouble()) {
+    if (b.isDouble()) {
+      return a.getDouble() == b.getDouble();
+    } else if (b.isInt()) {
+      return a.getDouble() == b.getInt();
+    } else {
+      return false;
+    }
+  } else if (b.isDouble()) {
+    if (a.isDouble()) {
+      return b.getDouble() == a.getDouble();
+    } else if (a.isInt()) {
+      return b.getDouble() == a.getInt();
+    } else {
+      return false;
+    }
   }
   return a.getRaw() == b.getRaw();
 }

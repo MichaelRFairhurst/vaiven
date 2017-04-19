@@ -32,26 +32,25 @@ void ConstantInliner::visitBoxInstr(BoxInstr& instr) {
   // these can also be generated in boxed formats
   if (instr.inputs[0]->tag == INSTR_CONSTANT
       || instr.inputs[0]->tag == INSTR_NOT
-      || instr.inputs[0]->tag == INSTR_CMPGT
-      || instr.inputs[0]->tag == INSTR_CMPGTE
-      || instr.inputs[0]->tag == INSTR_CMPLT
-      || instr.inputs[0]->tag == INSTR_CMPLTE) {
+      || instr.inputs[0]->tag == INSTR_INT_CMPEQ
+      || instr.inputs[0]->tag == INSTR_INT_CMPINEQ
+      || instr.inputs[0]->tag == INSTR_INT_CMPGT
+      || instr.inputs[0]->tag == INSTR_INT_CMPGTE
+      || instr.inputs[0]->tag == INSTR_INT_CMPLT
+      || instr.inputs[0]->tag == INSTR_INT_CMPLTE) {
     instr.inputs[0]->isBoxed = true;
     instr.replaceUsagesWith(instr.inputs[0]);
     return;
   }
-  
-  // these can be generated in boxed formats if we know neither is a string
-  if ((instr.inputs[0]->tag == INSTR_CMPEQ || instr.inputs[0]->tag == INSTR_CMPINEQ)
-      && (instr.inputs[0]->inputs[0]->type != VAIVEN_STATIC_TYPE_STRING
-      && instr.inputs[0]->inputs[1]->type != VAIVEN_STATIC_TYPE_STRING
-      && instr.inputs[0]->inputs[0]->type != VAIVEN_STATIC_TYPE_UNKNOWN
-      && instr.inputs[0]->inputs[1]->type != VAIVEN_STATIC_TYPE_UNKNOWN)) {
-    instr.inputs[0]->isBoxed = true;
-    instr.replaceUsagesWith(instr.inputs[0]);
-    return;
-  }
+}
 
+void ConstantInliner::visitUnboxInstr(UnboxInstr& instr) {
+}
+
+void ConstantInliner::visitToDoubleInstr(ToDoubleInstr& instr) {
+}
+
+void ConstantInliner::visitIntToDoubleInstr(IntToDoubleInstr& instr) {
 }
 
 void ConstantInliner::visitAddInstr(AddInstr& instr) {
@@ -70,7 +69,13 @@ void ConstantInliner::visitIntAddInstr(IntAddInstr& instr) {
   }
 }
 
+void ConstantInliner::visitDoubleAddInstr(DoubleAddInstr& instr) {
+}
+
 void ConstantInliner::visitSubInstr(SubInstr& instr) {
+}
+
+void ConstantInliner::visitIntSubInstr(IntSubInstr& instr) {
   if (instr.inputs[0]->tag == INSTR_CONSTANT) {
     int val = static_cast<ConstantInstr*>(instr.inputs[0])->val.getInt();
     instr.hasConstLhs = true;
@@ -81,7 +86,13 @@ void ConstantInliner::visitSubInstr(SubInstr& instr) {
   }
 }
 
+void ConstantInliner::visitDoubleSubInstr(DoubleSubInstr& instr) {
+}
+
 void ConstantInliner::visitMulInstr(MulInstr& instr) {
+}
+
+void ConstantInliner::visitIntMulInstr(IntMulInstr& instr) {
   if (instr.inputs[1]->tag == INSTR_CONSTANT) {
     int val = static_cast<ConstantInstr*>(instr.inputs[1])->val.getInt();
     instr.hasConstRhs = true;
@@ -89,6 +100,9 @@ void ConstantInliner::visitMulInstr(MulInstr& instr) {
     instr.inputs[1]->usages.erase(&instr);
     instr.inputs.pop_back();
   }
+}
+
+void ConstantInliner::visitDoubleMulInstr(DoubleMulInstr& instr) {
 }
 
 void ConstantInliner::visitDivInstr(DivInstr& instr) {
@@ -99,6 +113,9 @@ void ConstantInliner::visitNotInstr(NotInstr& instr) {
 }
 
 void ConstantInliner::visitCmpEqInstr(CmpEqInstr& instr) {
+}
+
+void ConstantInliner::visitIntCmpEqInstr(IntCmpEqInstr& instr) {
   if (instr.inputs[0]->tag == INSTR_CONSTANT) {
     std::swap(instr.inputs[0], instr.inputs[1]);
   }
@@ -115,9 +132,15 @@ void ConstantInliner::visitCmpEqInstr(CmpEqInstr& instr) {
     // TODO do I have to replace with a boxed constant?
     instr.inputs[1]->isBoxed = true;
   }
+}
+
+void ConstantInliner::visitDoubleCmpEqInstr(DoubleCmpEqInstr& instr) {
 }
 
 void ConstantInliner::visitCmpIneqInstr(CmpIneqInstr& instr) {
+}
+
+void ConstantInliner::visitIntCmpIneqInstr(IntCmpIneqInstr& instr) {
   if (instr.inputs[0]->tag == INSTR_CONSTANT) {
     std::swap(instr.inputs[0], instr.inputs[1]);
   }
@@ -136,7 +159,13 @@ void ConstantInliner::visitCmpIneqInstr(CmpIneqInstr& instr) {
   }
 }
 
+void ConstantInliner::visitDoubleCmpIneqInstr(DoubleCmpIneqInstr& instr) {
+}
+
 void ConstantInliner::visitCmpGtInstr(CmpGtInstr& instr) {
+}
+
+void ConstantInliner::visitIntCmpGtInstr(IntCmpGtInstr& instr) {
   if (instr.inputs[1]->tag == INSTR_CONSTANT) {
     int val = static_cast<ConstantInstr*>(instr.inputs[1])->val.getInt();
     instr.hasConstRhs = true;
@@ -144,9 +173,15 @@ void ConstantInliner::visitCmpGtInstr(CmpGtInstr& instr) {
     instr.inputs[1]->usages.erase(&instr);
     instr.inputs.pop_back();
   }
+}
+
+void ConstantInliner::visitDoubleCmpGtInstr(DoubleCmpGtInstr& instr) {
 }
 
 void ConstantInliner::visitCmpGteInstr(CmpGteInstr& instr) {
+}
+
+void ConstantInliner::visitIntCmpGteInstr(IntCmpGteInstr& instr) {
   if (instr.inputs[1]->tag == INSTR_CONSTANT) {
     int val = static_cast<ConstantInstr*>(instr.inputs[1])->val.getInt();
     instr.hasConstRhs = true;
@@ -154,9 +189,15 @@ void ConstantInliner::visitCmpGteInstr(CmpGteInstr& instr) {
     instr.inputs[1]->usages.erase(&instr);
     instr.inputs.pop_back();
   }
+}
+
+void ConstantInliner::visitDoubleCmpGteInstr(DoubleCmpGteInstr& instr) {
 }
 
 void ConstantInliner::visitCmpLtInstr(CmpLtInstr& instr) {
+}
+
+void ConstantInliner::visitIntCmpLtInstr(IntCmpLtInstr& instr) {
   if (instr.inputs[1]->tag == INSTR_CONSTANT) {
     int val = static_cast<ConstantInstr*>(instr.inputs[1])->val.getInt();
     instr.hasConstRhs = true;
@@ -166,7 +207,13 @@ void ConstantInliner::visitCmpLtInstr(CmpLtInstr& instr) {
   }
 }
 
+void ConstantInliner::visitDoubleCmpLtInstr(DoubleCmpLtInstr& instr) {
+}
+
 void ConstantInliner::visitCmpLteInstr(CmpLteInstr& instr) {
+}
+
+void ConstantInliner::visitIntCmpLteInstr(IntCmpLteInstr& instr) {
   if (instr.inputs[1]->tag == INSTR_CONSTANT) {
     int val = static_cast<ConstantInstr*>(instr.inputs[1])->val.getInt();
     instr.hasConstRhs = true;
@@ -174,6 +221,9 @@ void ConstantInliner::visitCmpLteInstr(CmpLteInstr& instr) {
     instr.inputs[1]->usages.erase(&instr);
     instr.inputs.pop_back();
   }
+}
+
+void ConstantInliner::visitDoubleCmpLteInstr(DoubleCmpLteInstr& instr) {
 }
 
 void ConstantInliner::visitDynamicAccessInstr(DynamicAccessInstr& instr) {

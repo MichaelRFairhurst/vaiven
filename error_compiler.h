@@ -17,7 +17,9 @@ class ErrorCompiler {
     hasNoFuncError(false), hasNoVarError(false), hasDupVarError(false),
     intTypeErrorLabel(cc.newLabel()), boolTypeErrorLabel(cc.newLabel()),
     stringTypeErrorLabel(cc.newLabel()), noFuncErrorLabel(cc.newLabel()),
-    noVarErrorLabel(cc.newLabel()), dupVarErrorLabel(cc.newLabel()) {}
+    noVarErrorLabel(cc.newLabel()), dupVarErrorLabel(cc.newLabel()),
+    hasDoubleConvertableTypeError(false),
+    doubleConvertableTypeErrorLabel(cc.newLabel()) {}
 
   void generateTypeErrorEpilog();
   X86Compiler& cc;
@@ -31,6 +33,9 @@ class ErrorCompiler {
 
   asmjit::Label intTypeErrorLabel;
   bool hasIntTypeError;
+
+  asmjit::Label doubleConvertableTypeErrorLabel;
+  bool hasDoubleConvertableTypeError;
 
   asmjit::Label boolTypeErrorLabel;
   bool hasBoolTypeError;

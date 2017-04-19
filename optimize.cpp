@@ -72,6 +72,11 @@ void vaiven::performOptimize(ast::FuncDecl<>& decl, Functions& funcs, FunctionUs
 
   X86Assembler assembler(&codeHolder);
   X86Compiler cc(&codeHolder);
+  cc.addOptions(CodeEmitter::kOptionStrictValidation);
+  assembler.addOptions(CodeEmitter::kOptionStrictValidation);
+
+#ifdef DISASSEMBLY_DIAGNOSTICS
+#endif
 
   uint8_t sigArgs[decl.args.size()];
 
@@ -174,6 +179,22 @@ void vaiven::performOptimize(ast::FuncDecl<>& decl, Functions& funcs, FunctionUs
   std::cout << "const inliner" << std::endl;
   builder.head.accept(printer); printer.varIds.clear();
 #endif
+
+  while(true) {
+    ssa::UnusedCodeEliminator unusedCodeElim;
+    builder.head.accept(unusedCodeElim);
+    if (unusedCodeElim.requiresRebuildDominators) {
+      dbuilder.reset(builder.head);
+    }
+#ifdef SSA_DIAGNOSTICS
+    std::cout << "unused val elim" << std::endl;
+    builder.head.accept(printer); printer.varIds.clear();
+#endif
+
+    if (!unusedCodeElim.performedWork) {
+      break;
+    }
+  }
 
   ssa::JmpThreader jmpThreader;
   builder.head.accept(jmpThreader);

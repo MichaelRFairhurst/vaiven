@@ -48,9 +48,10 @@ function where they will be compiled.
 
 ## Ints
 
-Currently there are not yet doubles. But standard int operations `+`' `*`, `/`,
-`-`, `>`, `<`, etc. work. Binary operations are not yet added though, nor is
-modulo.
+Standard math operations `+`, `*`, `/`, `-`, `>`, `<`, etc. work on ints,
+doubles, and a combination of the two. Division always produces a double,
+otherwise an int is only produces when both operands are ints. Binary operations
+are not yet added though, nor is modulo.
 
 ## Strings
 
@@ -311,32 +312,34 @@ Vaiven has some loosely defined type rules, and almost no type-coersion.
 
 For the plus operator, when one side's static type can be inferred, you will get
 an error requesting that type on the other side. When neither is inferred, you
-will get a more general error. Only strings and ints can be concattenated, and
-only with themselves.
+will get a more general error. Only strings and ints and doubles can be used
+with `+`, and if either operand is a string, both must be.
 
 ```
-[] + [] // Type Error: expected int or string
-1 + object() // Type Error: expected int
-[] + 1 // Type Error: expected int
+[] + [] // Type Error: expected int or double or string
+1 + object() // Type Error: expected int or double
+1.0 + object() // Type Error: expected double
+[] + 1 // Type Error: expected int or double
 "" + true // Type Error: expected string
 [] + false // Type Error: expected string
-"" + 1 // Type Error: expected string
-1 + void // Type Error: expected int
+"" + 1 // Type Error: expected strint or double
+1 + void // Type Error: expected int or double
 ```
 
-Other math operators only support ints:
+Other math operators only support ints and doubles
 
 ```
-"" * [] // Type Error: expected int
-"" - true // Type Error: expected int
-false / "" // Type Error: expected int
-[] > object() // Type Error: expected int
+"" * [] // Type Error: expected int or double
+"" - true // Type Error: expected int or double
+false / "" // Type Error: expected int or double
+[] > object() // Type Error: expected int or double
 ```
 
 Like `+`, `[]` is polymorphic but requires agreement between both sides. If the
 static type of one side can be inferred, you will get an error expecting the
 other operand to match. Otherwise, you will get a generic error. Lists can be
-subscripted with ints and objects can be subscripted with strings.
+subscripted with ints and objects can be subscripted with strings. Doubles can
+not be used to index arrays, though.
 
 ```
 1[object()] // Type Error: expected list or object
@@ -345,10 +348,11 @@ true[false] // Type Error: expected list or object
 ""[1] // Type Error: expected list
 1[""] // Type Error: expected object
 object()[1] // Type Error: expected string
-[1,2,3]["0"] // Type Error: expected int
+[1,2,3][00.4] // Type Error: expected int
 ```
 
-Comparisons can safely cross types, and behave like `===` in js.
+Comparisons can safely cross types, and behave like `===` in js. However, ints
+and doubles are also comparable.
 
 ```
 1 == true // false
@@ -356,6 +360,8 @@ Comparisons can safely cross types, and behave like `===` in js.
 true == "true" // false
 [] == "" // false
 object() == "{}" // false
+
+1 == 1.0 // true
 ```
 
 Conditions (like in if, for) and `!` *must* be bools.
@@ -592,7 +598,6 @@ make use of these tricks.
 ### Core language:
 
 * void as a keyword (and decide void, null, nil, nada?)
-* support doubles
 * object literals
 * unary -/+
 * binary operators?

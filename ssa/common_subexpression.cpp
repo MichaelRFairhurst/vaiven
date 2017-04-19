@@ -109,8 +109,24 @@ void CommonSubexpressionEliminator::visitBoxInstr(BoxInstr& instr) {
   visitFoldableInstruction(instr);
 }
 
-void CommonSubexpressionEliminator::visitAddInstr(AddInstr& instr) {
+void CommonSubexpressionEliminator::visitUnboxInstr(UnboxInstr& instr) {
   visitFoldableInstruction(instr);
+}
+
+void CommonSubexpressionEliminator::visitToDoubleInstr(ToDoubleInstr& instr) {
+  if (visitFoldableInstruction(instr)) {
+    instr.safelyDeletable = true;
+  }
+}
+
+void CommonSubexpressionEliminator::visitIntToDoubleInstr(IntToDoubleInstr& instr) {
+  visitFoldableInstruction(instr);
+}
+
+void CommonSubexpressionEliminator::visitAddInstr(AddInstr& instr) {
+  if (visitFoldableInstruction(instr)) {
+    instr.safelyDeletable = true;
+  }
 }
 
 void CommonSubexpressionEliminator::visitStrAddInstr(StrAddInstr& instr) {
@@ -121,11 +137,35 @@ void CommonSubexpressionEliminator::visitIntAddInstr(IntAddInstr& instr) {
   visitFoldableInstruction(instr);
 }
 
+void CommonSubexpressionEliminator::visitDoubleAddInstr(DoubleAddInstr& instr) {
+  visitFoldableInstruction(instr);
+}
+
 void CommonSubexpressionEliminator::visitSubInstr(SubInstr& instr) {
+  if (visitFoldableInstruction(instr)) {
+    instr.safelyDeletable = true;
+  }
+}
+
+void CommonSubexpressionEliminator::visitIntSubInstr(IntSubInstr& instr) {
+  visitFoldableInstruction(instr);
+}
+
+void CommonSubexpressionEliminator::visitDoubleSubInstr(DoubleSubInstr& instr) {
   visitFoldableInstruction(instr);
 }
 
 void CommonSubexpressionEliminator::visitMulInstr(MulInstr& instr) {
+  if (visitFoldableInstruction(instr)) {
+    instr.safelyDeletable = true;
+  }
+}
+
+void CommonSubexpressionEliminator::visitIntMulInstr(IntMulInstr& instr) {
+  visitFoldableInstruction(instr);
+}
+
+void CommonSubexpressionEliminator::visitDoubleMulInstr(DoubleMulInstr& instr) {
   visitFoldableInstruction(instr);
 }
 
@@ -138,26 +178,86 @@ void CommonSubexpressionEliminator::visitNotInstr(NotInstr& instr) {
 }
 
 void CommonSubexpressionEliminator::visitCmpEqInstr(CmpEqInstr& instr) {
+  if (visitFoldableInstruction(instr)) {
+    instr.safelyDeletable = true;
+  }
+}
+
+void CommonSubexpressionEliminator::visitIntCmpEqInstr(IntCmpEqInstr& instr) {
+  visitFoldableInstruction(instr);
+}
+
+void CommonSubexpressionEliminator::visitDoubleCmpEqInstr(DoubleCmpEqInstr& instr) {
   visitFoldableInstruction(instr);
 }
 
 void CommonSubexpressionEliminator::visitCmpIneqInstr(CmpIneqInstr& instr) {
+  if (visitFoldableInstruction(instr)) {
+    instr.safelyDeletable = true;
+  }
+}
+
+void CommonSubexpressionEliminator::visitIntCmpIneqInstr(IntCmpIneqInstr& instr) {
+  visitFoldableInstruction(instr);
+}
+
+void CommonSubexpressionEliminator::visitDoubleCmpIneqInstr(DoubleCmpIneqInstr& instr) {
   visitFoldableInstruction(instr);
 }
 
 void CommonSubexpressionEliminator::visitCmpGtInstr(CmpGtInstr& instr) {
+  if (visitFoldableInstruction(instr)) {
+    instr.safelyDeletable = true;
+  }
+}
+
+void CommonSubexpressionEliminator::visitIntCmpGtInstr(IntCmpGtInstr& instr) {
+  visitFoldableInstruction(instr);
+}
+
+void CommonSubexpressionEliminator::visitDoubleCmpGtInstr(DoubleCmpGtInstr& instr) {
   visitFoldableInstruction(instr);
 }
 
 void CommonSubexpressionEliminator::visitCmpGteInstr(CmpGteInstr& instr) {
+  if (visitFoldableInstruction(instr)) {
+    instr.safelyDeletable = true;
+  }
+}
+
+void CommonSubexpressionEliminator::visitIntCmpGteInstr(IntCmpGteInstr& instr) {
+  visitFoldableInstruction(instr);
+}
+
+void CommonSubexpressionEliminator::visitDoubleCmpGteInstr(DoubleCmpGteInstr& instr) {
   visitFoldableInstruction(instr);
 }
 
 void CommonSubexpressionEliminator::visitCmpLtInstr(CmpLtInstr& instr) {
+  if (visitFoldableInstruction(instr)) {
+    instr.safelyDeletable = true;
+  }
+}
+
+void CommonSubexpressionEliminator::visitIntCmpLtInstr(IntCmpLtInstr& instr) {
+  visitFoldableInstruction(instr);
+}
+
+void CommonSubexpressionEliminator::visitDoubleCmpLtInstr(DoubleCmpLtInstr& instr) {
   visitFoldableInstruction(instr);
 }
 
 void CommonSubexpressionEliminator::visitCmpLteInstr(CmpLteInstr& instr) {
+  if (visitFoldableInstruction(instr)) {
+    instr.safelyDeletable = true;
+  }
+}
+
+void CommonSubexpressionEliminator::visitIntCmpLteInstr(IntCmpLteInstr& instr) {
+  visitFoldableInstruction(instr);
+}
+
+void CommonSubexpressionEliminator::visitDoubleCmpLteInstr(DoubleCmpLteInstr& instr) {
   visitFoldableInstruction(instr);
 }
 

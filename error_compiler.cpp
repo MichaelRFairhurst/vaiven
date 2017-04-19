@@ -39,6 +39,11 @@ void vaiven::ErrorCompiler::generateTypeErrorEpilog() {
     cc.call((size_t) &expectedInt, FuncSignature0<void>());
   }
 
+  if (hasDoubleConvertableTypeError) {
+    cc.bind(doubleConvertableTypeErrorLabel);
+    cc.call((size_t) &expectedIntOrDouble, FuncSignature0<void>());
+  }
+
   if (hasBoolTypeError) {
     cc.bind(boolTypeErrorLabel);
     cc.call((size_t) &expectedBool, FuncSignature0<void>());

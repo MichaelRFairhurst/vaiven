@@ -1,9 +1,9 @@
-Error: Got a non-integer in an integer operation
-Error: Got a non-integer in an integer operation
-Error: Got a non-integer in an integer operation
-Error: Got a non-integer in an integer operation
-Error: Got a non-integer in an integer operation
-Error: Got a non-integer in an integer operation
+Error: Got a wrong type in an operation for ints/doubles
+Error: Got a wrong type in an operation for ints/doubles
+Error: Got a wrong type in an operation for ints/doubles
+Error: Got a wrong type in an operation for ints/doubles
+Error: Got a wrong type in an operation for ints/doubles
+Error: Got a wrong type in an operation for ints/doubles
 Error: Got a wrong type in an operation for ints/strings/doubles
 Error: Got a wrong type in an operation for ints/strings/doubles
 Error: Got a wrong type in an operation for ints/strings/doubles

@@ -1,0 +1,65 @@
+fn plusOneEq of x is
+  x + 1 == 2
+end
+
+fn plusOneIneq of x is
+  x + 1 != 2
+end
+
+fn subOneEq of x is
+  x - 1 == 2
+end
+
+fn subOneIneq of x is
+  x - 1 != 2
+end
+
+fn fiveSubEq of x is
+  5 - x == 2
+end
+
+fn fiveSubIneq of x is
+  5 - x != 2
+end
+
+fn mulTwoEq of x is
+  x * 2 == 2
+end
+
+fn mulTwoIneq of x is
+  x * 2 != 2
+end
+
+fn integerMath of x is
+  var zero = x - x
+  var twox = x + x
+  var fourx = twox * 2
+  var twoxmul = x * 2
+  var fourxmul = 2 * twoxmul * 1
+  var zerotwo = fourx - fourxmul
+  var zerothree = zero - zerotwo
+  var two = 2 - zerothree
+  ret 4 + two + 4 - 4 - 4 - 2
+end
+
+var x = 0
+for x < 20
+  assert(integerMath(x) == 0)
+  assert(plusOneEq(1) == true)
+  assert(plusOneEq(0) == false)
+  assert(plusOneIneq(1) == false)
+  assert(plusOneIneq(0) == true)
+  assert(subOneEq(3) == true)
+  assert(subOneEq(2) == false)
+  assert(subOneIneq(3) == false)
+  assert(subOneIneq(2) == true)
+  assert(fiveSubEq(3) == true)
+  assert(fiveSubEq(2) == false)
+  assert(fiveSubIneq(3) == false)
+  assert(fiveSubIneq(2) == true)
+  assert(mulTwoEq(1) == true)
+  assert(mulTwoEq(2) == false)
+  assert(mulTwoIneq(1) == false)
+  assert(mulTwoIneq(0) == true)
+  x += 1
+end

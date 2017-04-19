@@ -1,6 +1,7 @@
 #include "emitter.h"
 #include "../std.h"
 #include "../heap.h"
+#include <cassert>
 
 using namespace vaiven::ssa;
 using namespace std;
@@ -10,6 +11,8 @@ void Emitter::visitPhiInstr(PhiInstr& instr) {
 }
 
 void Emitter::visitArgInstr(ArgInstr& instr) {
+  assert(cc.isVirtRegValid(instr.out));
+
   args.push_back(&instr);
   X86Gp checkArg = cc.newInt64();
   if (instr.type == VAIVEN_STATIC_TYPE_INT) {
@@ -26,24 +29,28 @@ void Emitter::visitArgInstr(ArgInstr& instr) {
     cc.mov(checkArg, VOID);
     cc.cmp(instr.out, checkArg);
     cc.jne(deoptimizeLabel);
+  } else if (instr.type == VAIVEN_STATIC_TYPE_DOUBLE) {
+    cc.mov(checkArg, MIN_DBL);
+    cc.cmp(instr.out, checkArg);
+    cc.jb(deoptimizeLabel);
   } else if (instr.type == VAIVEN_STATIC_TYPE_STRING) {
     cc.mov(checkArg, MAX_PTR);
     cc.cmp(instr.out, checkArg);
-    cc.jg(deoptimizeLabel);
+    cc.ja(deoptimizeLabel);
     cc.mov(checkArg.r32(), x86::dword_ptr(instr.out));
     cc.cmp(checkArg.r32(), GCABLE_TYPE_STRING);
     cc.jne(deoptimizeLabel);
   } else if (instr.type == VAIVEN_STATIC_TYPE_LIST) {
     cc.mov(checkArg, MAX_PTR);
     cc.cmp(instr.out, checkArg);
-    cc.jg(deoptimizeLabel);
+    cc.ja(deoptimizeLabel);
     cc.mov(checkArg.r32(), x86::dword_ptr(instr.out));
     cc.cmp(checkArg.r32(), GCABLE_TYPE_LIST);
     cc.jne(deoptimizeLabel);
   } else if (instr.type == VAIVEN_STATIC_TYPE_OBJECT) {
     cc.mov(checkArg, MAX_PTR);
     cc.cmp(instr.out, checkArg);
-    cc.jg(deoptimizeLabel);
+    cc.ja(deoptimizeLabel);
     cc.mov(checkArg.r32(), x86::dword_ptr(instr.out));
     cc.cmp(checkArg.r32(), GCABLE_TYPE_OBJECT);
     cc.jne(deoptimizeLabel);
@@ -54,11 +61,18 @@ void Emitter::visitArgInstr(ArgInstr& instr) {
 
 void Emitter::visitConstantInstr(ConstantInstr& instr) {
   if (instr.isBoxed || instr.val.isPtr()) {
+    assert(cc.isVirtRegValid(instr.out));
     cc.mov(instr.out, instr.val.getRaw());
   } else if (instr.val.isInt() || instr.val.isBool() || instr.val.isVoid()) {
+    assert(cc.isVirtRegValid(instr.out));
     cc.mov(instr.out.r32(), instr.val.getInt());
   } else {
-    cc.mov(instr.out, instr.val.getRaw()); // or getDouble?
+    X86Mem mem = cc.newStack(8, 8);
+    X86Gp temp = cc.newUInt64();
+    cc.mov(temp, ~instr.val.getRaw());
+    cc.mov(mem, temp);
+    assert(cc.isVirtRegValid(instr.xmmout));
+    cc.movsd(instr.xmmout, mem);
   }
 }
 
@@ -96,12 +110,15 @@ void Emitter::visitCallInstr(CallInstr& instr) {
 
       while (argsIt != args.end()) {
         if (inputsIt != instr.inputs.end()) {
+          assert(cc.isVirtRegValid((*argsIt)->out));
+          assert(cc.isVirtRegValid((*inputsIt)->out));
           if ((*argsIt)->out != (*inputsIt)->out) {
             cc.mov((*argsIt)->out, (*inputsIt)->out);
           }
           ++inputsIt;
         } else {
           if ((*argsIt)->type != VAIVEN_STATIC_TYPE_VOID) {
+            assert(cc.isVirtRegValid((*argsIt)->out));
             cc.mov((*argsIt)->out, VOID);
           }
         }
@@ -144,6 +161,7 @@ void Emitter::visitCallInstr(CallInstr& instr) {
   }
 
   for (int i = 0; i < paramc; ++i) {
+    assert(cc.isVirtRegValid(instr.inputs[i]->out));
     call->setArg(i, instr.inputs[i]->out);
   }
 
@@ -151,10 +169,13 @@ void Emitter::visitCallInstr(CallInstr& instr) {
     call->setArg(i, voidRegs[i - paramc]);
   }
 
+  assert(cc.isVirtRegValid(instr.out));
   call->setRet(0, instr.out);
 }
 
 void Emitter::visitTypecheckInstr(TypecheckInstr& instr) {
+  assert(cc.isVirtRegValid(instr.out));
+
   X86Gp checkReg = cc.newUInt64();
   if (instr.type == VAIVEN_STATIC_TYPE_INT) {
     cc.mov(checkReg, instr.out);
@@ -171,7 +192,7 @@ void Emitter::visitTypecheckInstr(TypecheckInstr& instr) {
   } else if (instr.type == VAIVEN_STATIC_TYPE_STRING) {
     cc.mov(checkReg, MAX_PTR);
     cc.cmp(instr.out, checkReg);
-    cc.jg(error.stringTypeErrorLabel);
+    cc.ja(error.stringTypeErrorLabel);
     cc.mov(checkReg.r32(), x86::dword_ptr(instr.out));
     cc.cmp(checkReg.r32(), GCABLE_TYPE_STRING);
     cc.jne(error.stringTypeErrorLabel);
@@ -180,6 +201,22 @@ void Emitter::visitTypecheckInstr(TypecheckInstr& instr) {
 }
 
 void Emitter::visitBoxInstr(BoxInstr& instr) {
+  if (instr.type == VAIVEN_STATIC_TYPE_DOUBLE) {
+    assert(cc.isVirtRegValid(instr.inputs[0]->xmmout));
+
+    X86Mem mem = cc.newStack(8, 8);
+    cc.movsd(mem, instr.inputs[0]->xmmout);
+    assert(cc.isVirtRegValid(instr.out));
+    cc.mov(instr.out, mem);
+    X86Gp temp = cc.newUInt64();
+    cc.mov(temp, (int32_t) -1); // sign extends to all ones
+    cc.xor_(instr.out, temp);
+    return;
+  }
+
+  assert(cc.isVirtRegValid(instr.out));
+  assert(cc.isVirtRegValid(instr.inputs[0]->out));
+
   if (instr.out != instr.inputs[0]->out) {
     cc.mov(instr.out, instr.inputs[0]->out);
   }
@@ -194,7 +231,56 @@ void Emitter::visitBoxInstr(BoxInstr& instr) {
   }
 }
 
+void Emitter::visitUnboxInstr(UnboxInstr& instr) {
+  assert(cc.isVirtRegValid(instr.inputs[0]->out));
+  assert(cc.isVirtRegValid(instr.xmmout));
+
+  X86Mem mem = cc.newStack(8, 8);
+  X86Gp temp = cc.newUInt64();
+  cc.mov(temp, (int32_t) -1); // sign extends to all ones
+  cc.xor_(instr.inputs[0]->out, temp);
+  cc.mov(mem, instr.inputs[0]->out);
+  cc.movsd(instr.xmmout, mem);
+}
+
+void Emitter::visitToDoubleInstr(ToDoubleInstr& instr) {
+  assert(cc.isVirtRegValid(instr.inputs[0]->out));
+  assert(cc.isVirtRegValid(instr.xmmout));
+
+  Label afterCheck = cc.newLabel();
+  Label isDbl = cc.newLabel();
+  X86Gp temp = cc.newUInt64();
+  cc.mov(temp, MIN_DBL);
+  cc.cmp(instr.inputs[0]->out, temp);
+  cc.jae(isDbl);
+  cc.mov(temp, instr.inputs[0]->out);
+  cc.shr(temp, VALUE_TAG_SHIFT);
+  cc.cmp(temp, INT_TAG_SHIFTED);
+  cc.jne(error.doubleConvertableTypeErrorLabel);
+  error.hasDoubleConvertableTypeError = true;
+  cc.cvtsi2sd(instr.xmmout, instr.inputs[0]->out.r32());
+  cc.jmp(afterCheck);
+  cc.bind(isDbl);
+  X86Mem mem = cc.newStack(8, 8);
+  cc.mov(temp, (int32_t) -1); // sign extends to all ones
+  cc.xor_(instr.inputs[0]->out, temp);
+  cc.mov(mem, instr.inputs[0]->out);
+  cc.movsd(instr.xmmout, mem);
+  cc.bind(afterCheck);
+}
+
+void Emitter::visitIntToDoubleInstr(IntToDoubleInstr& instr) {
+  assert(cc.isVirtRegValid(instr.xmmout));
+  assert(cc.isVirtRegValid(instr.inputs[0]->out));
+
+  cc.cvtsi2sd(instr.xmmout, instr.inputs[0]->out.r32());
+}
+
 void Emitter::visitAddInstr(AddInstr& instr) {
+  assert(cc.isVirtRegValid(instr.out));
+  assert(cc.isVirtRegValid(instr.inputs[0]->out));
+  assert(cc.isVirtRegValid(instr.inputs[1]->out));
+
   CCFuncCall* call = cc.call((uint64_t) vaiven::add, FuncSignature2<uint64_t, uint64_t, uint64_t>());
   call->setArg(0, instr.inputs[0]->out);
   call->setArg(1, instr.inputs[1]->out);
@@ -202,6 +288,10 @@ void Emitter::visitAddInstr(AddInstr& instr) {
 }
 
 void Emitter::visitStrAddInstr(StrAddInstr& instr) {
+  assert(cc.isVirtRegValid(instr.out));
+  assert(cc.isVirtRegValid(instr.inputs[0]->out));
+  assert(cc.isVirtRegValid(instr.inputs[1]->out));
+
   CCFuncCall* call = cc.call((uint64_t) vaiven::addStrUnchecked, FuncSignature2<uint64_t, uint64_t, uint64_t>());
   call->setArg(0, instr.inputs[0]->out);
   call->setArg(1, instr.inputs[1]->out);
@@ -209,6 +299,10 @@ void Emitter::visitStrAddInstr(StrAddInstr& instr) {
 }
 
 void Emitter::visitIntAddInstr(IntAddInstr& instr) {
+  assert(cc.isVirtRegValid(instr.out));
+  assert(cc.isVirtRegValid(instr.inputs[0]->out));
+  assert(instr.hasConstRhs || cc.isVirtRegValid(instr.inputs[1]->out));
+
   if (instr.out != instr.inputs[0]->out) {
     cc.mov(instr.out, instr.inputs[0]->out);
   }
@@ -220,7 +314,34 @@ void Emitter::visitIntAddInstr(IntAddInstr& instr) {
   }
 }
 
+void Emitter::visitDoubleAddInstr(DoubleAddInstr& instr) {
+  assert(cc.isVirtRegValid(instr.xmmout));
+  assert(cc.isVirtRegValid(instr.inputs[0]->xmmout));
+  assert(cc.isVirtRegValid(instr.inputs[1]->xmmout));
+
+  if (instr.xmmout != instr.inputs[0]->xmmout) {
+    cc.movsd(instr.xmmout, instr.inputs[0]->xmmout);
+  }
+
+  cc.addsd(instr.xmmout, instr.inputs[1]->xmmout);
+}
+
 void Emitter::visitSubInstr(SubInstr& instr) {
+  assert(cc.isVirtRegValid(instr.out));
+  assert(cc.isVirtRegValid(instr.inputs[0]->out));
+  assert(cc.isVirtRegValid(instr.inputs[1]->out));
+
+  CCFuncCall* call = cc.call((uint64_t) vaiven::sub, FuncSignature2<uint64_t, uint64_t, uint64_t>());
+  call->setArg(0, instr.inputs[0]->out);
+  call->setArg(1, instr.inputs[1]->out);
+  call->setRet(0, instr.out);
+}
+
+void Emitter::visitIntSubInstr(IntSubInstr& instr) {
+  assert(cc.isVirtRegValid(instr.out));
+  assert(cc.isVirtRegValid(instr.inputs[0]->out));
+  assert(instr.hasConstLhs || cc.isVirtRegValid(instr.inputs[1]->out));
+
   if (instr.out != instr.inputs[0]->out) {
     cc.mov(instr.out.r32(), instr.inputs[0]->out.r32());
   }
@@ -236,11 +357,37 @@ void Emitter::visitSubInstr(SubInstr& instr) {
   }
 }
 
+void Emitter::visitDoubleSubInstr(DoubleSubInstr& instr) {
+  assert(cc.isVirtRegValid(instr.xmmout));
+  assert(cc.isVirtRegValid(instr.inputs[0]->xmmout));
+  assert(cc.isVirtRegValid(instr.inputs[1]->xmmout));
+
+  if (instr.xmmout != instr.inputs[0]->xmmout) {
+    cc.movsd(instr.xmmout, instr.inputs[0]->xmmout);
+  }
+
+  cc.subsd(instr.xmmout, instr.inputs[1]->xmmout);
+}
+
 void Emitter::visitMulInstr(MulInstr& instr) {
+  assert(cc.isVirtRegValid(instr.out));
+  assert(cc.isVirtRegValid(instr.inputs[0]->out));
+  assert(cc.isVirtRegValid(instr.inputs[1]->out));
+
+  CCFuncCall* call = cc.call((uint64_t) vaiven::mul, FuncSignature2<uint64_t, uint64_t, uint64_t>());
+  call->setArg(0, instr.inputs[0]->out);
+  call->setArg(1, instr.inputs[1]->out);
+  call->setRet(0, instr.out);
+}
+
+void Emitter::visitIntMulInstr(IntMulInstr& instr) {
+  assert(cc.isVirtRegValid(instr.out));
+  assert(cc.isVirtRegValid(instr.inputs[0]->out));
+  assert(instr.hasConstRhs || cc.isVirtRegValid(instr.inputs[1]->out));
+
   if (instr.out != instr.inputs[0]->out) {
     cc.mov(instr.out.r32(), instr.inputs[0]->out.r32());
   }
-
 
   if (instr.hasConstRhs) {
     cc.imul(instr.out.r32(), instr.constRhs);
@@ -249,17 +396,34 @@ void Emitter::visitMulInstr(MulInstr& instr) {
   }
 }
 
-void Emitter::visitDivInstr(DivInstr& instr) {
-  if (instr.out != instr.inputs[0]->out) {
-    cc.mov(instr.out.r32(), instr.inputs[0]->out.r32());
+void Emitter::visitDoubleMulInstr(DoubleMulInstr& instr) {
+  assert(cc.isVirtRegValid(instr.xmmout));
+  assert(cc.isVirtRegValid(instr.inputs[0]->xmmout));
+  assert(cc.isVirtRegValid(instr.inputs[1]->xmmout));
+
+  if (instr.xmmout != instr.inputs[0]->xmmout) {
+    cc.movsd(instr.xmmout, instr.inputs[0]->xmmout);
   }
 
-  X86Gp dummy = cc.newUInt64();
-  cc.xor_(dummy, dummy);
-  cc.idiv(dummy.r32(), instr.out.r32(), instr.inputs[1]->out.r32());
+  cc.mulsd(instr.xmmout, instr.inputs[1]->xmmout);
+}
+
+void Emitter::visitDivInstr(DivInstr& instr) {
+  assert(cc.isVirtRegValid(instr.xmmout));
+  assert(cc.isVirtRegValid(instr.inputs[0]->xmmout));
+  assert(cc.isVirtRegValid(instr.inputs[1]->xmmout));
+
+  if (instr.xmmout != instr.inputs[0]->xmmout) {
+    cc.movsd(instr.xmmout, instr.inputs[0]->xmmout);
+  }
+
+  cc.divsd(instr.xmmout, instr.inputs[1]->xmmout);
 }
 
 void Emitter::visitNotInstr(NotInstr& instr) {
+  assert(cc.isVirtRegValid(instr.out));
+  assert(cc.isVirtRegValid(instr.inputs[0]->out));
+
   if (instr.isBoxed) {
     cc.mov(instr.out, BOOL_TAG);
   } else {
@@ -271,25 +435,27 @@ void Emitter::visitNotInstr(NotInstr& instr) {
 }
 
 void Emitter::visitCmpEqInstr(CmpEqInstr& instr) {
-  if (!instr.hasConstRhs) {
-    if (instr.inputs[0]->type == VAIVEN_STATIC_TYPE_STRING
-      && instr.inputs[1]->type == VAIVEN_STATIC_TYPE_STRING) {
-      CCFuncCall* call = cc.call((uint64_t) vaiven::cmpStrUnchecked, FuncSignature2<uint64_t, uint64_t, uint64_t>());
-      call->setArg(0, instr.inputs[0]->out);
-      call->setArg(1, instr.inputs[1]->out);
-      call->setRet(0, instr.out);
-      return;
-    } else if (instr.inputs[0]->type == VAIVEN_STATIC_TYPE_STRING
-      || instr.inputs[1]->type == VAIVEN_STATIC_TYPE_STRING
-      || instr.inputs[0]->type == VAIVEN_STATIC_TYPE_UNKNOWN
-      || instr.inputs[1]->type == VAIVEN_STATIC_TYPE_UNKNOWN) {
-      CCFuncCall* call = cc.call((uint64_t) vaiven::cmpUnboxed, FuncSignature2<uint64_t, uint64_t, uint64_t>());
-      call->setArg(0, instr.inputs[0]->out);
-      call->setArg(1, instr.inputs[1]->out);
-      call->setRet(0, instr.out);
-      return;
-    }
+  assert(cc.isVirtRegValid(instr.out));
+  assert(cc.isVirtRegValid(instr.inputs[0]->out));
+  assert(cc.isVirtRegValid(instr.inputs[1]->out));
+
+  if (instr.inputs[0]->type == VAIVEN_STATIC_TYPE_STRING
+    && instr.inputs[1]->type == VAIVEN_STATIC_TYPE_STRING) {
+    CCFuncCall* call = cc.call((uint64_t) vaiven::cmpStrUnchecked, FuncSignature2<uint64_t, uint64_t, uint64_t>());
+    call->setArg(0, instr.inputs[0]->out);
+    call->setArg(1, instr.inputs[1]->out);
+    call->setRet(0, instr.out);
+    return;
   }
+
+  CCFuncCall* call = cc.call((uint64_t) vaiven::cmpUnboxed, FuncSignature2<uint64_t, uint64_t, uint64_t>());
+  call->setArg(0, instr.inputs[0]->out);
+  call->setArg(1, instr.inputs[1]->out);
+  call->setRet(0, instr.out);
+}
+
+void Emitter::visitIntCmpEqInstr(IntCmpEqInstr& instr) {
+  assert(cc.isVirtRegValid(instr.out));
 
   if (instr.isBoxed) {
     cc.mov(instr.out, BOOL_TAG);
@@ -297,30 +463,40 @@ void Emitter::visitCmpEqInstr(CmpEqInstr& instr) {
     cc.xor_(instr.out, instr.out);
   }
 
-  doCmpEqInstr(instr);
+  doIntCmpEqInstr(instr);
+  cc.setz(instr.out);
+}
+
+void Emitter::visitDoubleCmpEqInstr(DoubleCmpEqInstr& instr) {
+  assert(cc.isVirtRegValid(instr.out));
+
+  cc.xor_(instr.out, instr.out);
+  doDoubleCmpInstr(instr);
   cc.setz(instr.out);
 }
 
 void Emitter::visitCmpIneqInstr(CmpIneqInstr& instr) {
-  if (!instr.hasConstRhs) {
-    if (instr.inputs[0]->type == VAIVEN_STATIC_TYPE_STRING
-      && instr.inputs[1]->type == VAIVEN_STATIC_TYPE_STRING) {
-      CCFuncCall* call = cc.call((uint64_t) vaiven::inverseCmpStrUnchecked, FuncSignature2<uint64_t, uint64_t, uint64_t>());
-      call->setArg(0, instr.inputs[0]->out);
-      call->setArg(1, instr.inputs[1]->out);
-      call->setRet(0, instr.out);
-      return;
-    } else if (instr.inputs[0]->type == VAIVEN_STATIC_TYPE_STRING
-      || instr.inputs[1]->type == VAIVEN_STATIC_TYPE_STRING
-      || instr.inputs[0]->type == VAIVEN_STATIC_TYPE_UNKNOWN
-      || instr.inputs[1]->type == VAIVEN_STATIC_TYPE_UNKNOWN) {
-      CCFuncCall* call = cc.call((uint64_t) vaiven::inverseCmpUnboxed, FuncSignature2<uint64_t, uint64_t, uint64_t>());
-      call->setArg(0, instr.inputs[0]->out);
-      call->setArg(1, instr.inputs[1]->out);
-      call->setRet(0, instr.out);
-      return;
-    }
+  assert(cc.isVirtRegValid(instr.out));
+  assert(cc.isVirtRegValid(instr.inputs[0]->out));
+  assert(cc.isVirtRegValid(instr.inputs[1]->out));
+
+  if (instr.inputs[0]->type == VAIVEN_STATIC_TYPE_STRING
+    && instr.inputs[1]->type == VAIVEN_STATIC_TYPE_STRING) {
+    CCFuncCall* call = cc.call((uint64_t) vaiven::inverseCmpStrUnchecked, FuncSignature2<uint64_t, uint64_t, uint64_t>());
+    call->setArg(0, instr.inputs[0]->out);
+    call->setArg(1, instr.inputs[1]->out);
+    call->setRet(0, instr.out);
+    return;
   }
+
+  CCFuncCall* call = cc.call((uint64_t) vaiven::inverseCmpUnboxed, FuncSignature2<uint64_t, uint64_t, uint64_t>());
+  call->setArg(0, instr.inputs[0]->out);
+  call->setArg(1, instr.inputs[1]->out);
+  call->setRet(0, instr.out);
+}
+
+void Emitter::visitIntCmpIneqInstr(IntCmpIneqInstr& instr) {
+  assert(cc.isVirtRegValid(instr.out));
 
   if (instr.isBoxed) {
     cc.mov(instr.out, BOOL_TAG);
@@ -328,77 +504,179 @@ void Emitter::visitCmpIneqInstr(CmpIneqInstr& instr) {
     cc.xor_(instr.out, instr.out);
   }
 
-  doCmpIneqInstr(instr);
+  doIntCmpIneqInstr(instr);
+  cc.setnz(instr.out);
+}
+
+void Emitter::visitDoubleCmpIneqInstr(DoubleCmpIneqInstr& instr) {
+  assert(cc.isVirtRegValid(instr.out));
+
+  cc.xor_(instr.out, instr.out);
+  doDoubleCmpInstr(instr);
   cc.setnz(instr.out);
 }
 
 void Emitter::visitCmpGtInstr(CmpGtInstr& instr) {
+  assert(cc.isVirtRegValid(instr.out));
+  assert(cc.isVirtRegValid(instr.inputs[0]->out));
+  assert(cc.isVirtRegValid(instr.inputs[1]->out));
+
+  CCFuncCall* call = cc.call((uint64_t) vaiven::gt, FuncSignature2<uint64_t, uint64_t, uint64_t>());
+  call->setArg(0, instr.inputs[0]->out);
+  call->setArg(1, instr.inputs[1]->out);
+  call->setRet(0, instr.out);
+}
+
+void Emitter::visitIntCmpGtInstr(IntCmpGtInstr& instr) {
+  assert(cc.isVirtRegValid(instr.out));
+
   if (instr.isBoxed) {
     cc.mov(instr.out, BOOL_TAG);
   } else {
     cc.xor_(instr.out, instr.out);
   }
 
-  doCmpGtInstr(instr);
+  doIntCmpGtInstr(instr);
   cc.setg(instr.out);
 }
 
+void Emitter::visitDoubleCmpGtInstr(DoubleCmpGtInstr& instr) {
+  assert(cc.isVirtRegValid(instr.out));
+
+  cc.xor_(instr.out, instr.out);
+  doDoubleCmpInstr(instr);
+  cc.seta(instr.out);
+}
+
 void Emitter::visitCmpGteInstr(CmpGteInstr& instr) {
+  assert(cc.isVirtRegValid(instr.out));
+  assert(cc.isVirtRegValid(instr.inputs[0]->out));
+  assert(cc.isVirtRegValid(instr.inputs[1]->out));
+
+  CCFuncCall* call = cc.call((uint64_t) vaiven::gte, FuncSignature2<uint64_t, uint64_t, uint64_t>());
+  call->setArg(0, instr.inputs[0]->out);
+  call->setArg(1, instr.inputs[1]->out);
+  call->setRet(0, instr.out);
+}
+
+void Emitter::visitIntCmpGteInstr(IntCmpGteInstr& instr) {
+  assert(cc.isVirtRegValid(instr.out));
+
   if (instr.isBoxed) {
     cc.mov(instr.out, BOOL_TAG);
   } else {
     cc.xor_(instr.out, instr.out);
   }
 
-  doCmpGteInstr(instr);
+  doIntCmpGteInstr(instr);
   cc.setge(instr.out);
 }
 
+void Emitter::visitDoubleCmpGteInstr(DoubleCmpGteInstr& instr) {
+  assert(cc.isVirtRegValid(instr.out));
+
+  cc.xor_(instr.out, instr.out);
+  doDoubleCmpInstr(instr);
+  cc.setae(instr.out);
+}
+
 void Emitter::visitCmpLtInstr(CmpLtInstr& instr) {
+  assert(cc.isVirtRegValid(instr.out));
+  assert(cc.isVirtRegValid(instr.inputs[0]->out));
+  assert(cc.isVirtRegValid(instr.inputs[1]->out));
+
+  CCFuncCall* call = cc.call((uint64_t) vaiven::lt, FuncSignature2<uint64_t, uint64_t, uint64_t>());
+  call->setArg(0, instr.inputs[0]->out);
+  call->setArg(1, instr.inputs[1]->out);
+  call->setRet(0, instr.out);
+}
+
+void Emitter::visitIntCmpLtInstr(IntCmpLtInstr& instr) {
+  assert(cc.isVirtRegValid(instr.out));
+
   if (instr.isBoxed) {
     cc.mov(instr.out, BOOL_TAG);
   } else {
     cc.xor_(instr.out, instr.out);
   }
 
-  doCmpLtInstr(instr);
+  doIntCmpLtInstr(instr);
   cc.setl(instr.out);
 }
 
+void Emitter::visitDoubleCmpLtInstr(DoubleCmpLtInstr& instr) {
+  assert(cc.isVirtRegValid(instr.out));
+
+  cc.xor_(instr.out, instr.out);
+  doDoubleCmpInstr(instr);
+  cc.setb(instr.out);
+}
+
 void Emitter::visitCmpLteInstr(CmpLteInstr& instr) {
+  assert(cc.isVirtRegValid(instr.out));
+  assert(cc.isVirtRegValid(instr.inputs[0]->out));
+  assert(cc.isVirtRegValid(instr.inputs[1]->out));
+
+  CCFuncCall* call = cc.call((uint64_t) vaiven::lte, FuncSignature2<uint64_t, uint64_t, uint64_t>());
+  call->setArg(0, instr.inputs[0]->out);
+  call->setArg(1, instr.inputs[1]->out);
+  call->setRet(0, instr.out);
+}
+
+void Emitter::visitIntCmpLteInstr(IntCmpLteInstr& instr) {
+  assert(cc.isVirtRegValid(instr.out));
+
   if (instr.isBoxed) {
     cc.mov(instr.out, BOOL_TAG);
   } else {
     cc.xor_(instr.out, instr.out);
   }
 
-  doCmpLteInstr(instr);
+  doIntCmpLteInstr(instr);
   cc.setle(instr.out);
 }
 
-void Emitter::doCmpEqInstr(CmpEqInstr& instr) {
+void Emitter::visitDoubleCmpLteInstr(DoubleCmpLteInstr& instr) {
+  assert(cc.isVirtRegValid(instr.out));
+
+  cc.xor_(instr.out, instr.out);
+  doDoubleCmpInstr(instr);
+  cc.setbe(instr.out);
+}
+
+void Emitter::doIntCmpEqInstr(IntCmpEqInstr& instr) {
+  assert(cc.isVirtRegValid(instr.inputs[0]->out));
+  assert(instr.hasConstRhs || cc.isVirtRegValid(instr.inputs[1]->out));
+
   if (instr.hasConstRhs) {
     cc.cmp(instr.inputs[0]->out.r32(), instr.constI32Rhs);
-  } else if (!instr.inputs[0]->isBoxed
-      && instr.inputs[0]->type & (VAIVEN_STATIC_TYPE_INT | VAIVEN_STATIC_TYPE_BOOL)) {
-    cc.cmp(instr.inputs[0]->out.r32(), instr.inputs[1]->out.r32());
   } else {
-    cc.cmp(instr.inputs[0]->out, instr.inputs[1]->out);
+    cc.cmp(instr.inputs[0]->out.r32(), instr.inputs[1]->out.r32());
   }
 }
 
-void Emitter::doCmpIneqInstr(CmpIneqInstr& instr) {
+void Emitter::doDoubleCmpInstr(Instruction& instr) {
+  assert(cc.isVirtRegValid(instr.inputs[0]->xmmout));
+  assert(cc.isVirtRegValid(instr.inputs[1]->xmmout));
+
+  cc.ucomisd(instr.inputs[0]->xmmout, instr.inputs[1]->xmmout);
+}
+
+void Emitter::doIntCmpIneqInstr(IntCmpIneqInstr& instr) {
+  assert(cc.isVirtRegValid(instr.inputs[0]->out));
+  assert(instr.hasConstRhs || cc.isVirtRegValid(instr.inputs[1]->out));
+
   if (instr.hasConstRhs) {
     cc.cmp(instr.inputs[0]->out.r32(), instr.constI32Rhs);
-  } else if (!instr.inputs[0]->isBoxed
-      && instr.inputs[0]->type & (VAIVEN_STATIC_TYPE_INT | VAIVEN_STATIC_TYPE_BOOL)) {
-    cc.cmp(instr.inputs[0]->out.r32(), instr.inputs[1]->out.r32());
   } else {
-    cc.cmp(instr.inputs[0]->out, instr.inputs[1]->out);
+    cc.cmp(instr.inputs[0]->out.r32(), instr.inputs[1]->out.r32());
   }
 }
 
-void Emitter::doCmpGtInstr(CmpGtInstr& instr) {
+void Emitter::doIntCmpGtInstr(IntCmpGtInstr& instr) {
+  assert(cc.isVirtRegValid(instr.inputs[0]->out));
+  assert(instr.hasConstRhs || cc.isVirtRegValid(instr.inputs[1]->out));
+
   if (instr.hasConstRhs) {
     cc.cmp(instr.inputs[0]->out.r32(), instr.constRhs);
   } else {
@@ -406,7 +684,10 @@ void Emitter::doCmpGtInstr(CmpGtInstr& instr) {
   }
 }
 
-void Emitter::doCmpGteInstr(CmpGteInstr& instr) {
+void Emitter::doIntCmpGteInstr(IntCmpGteInstr& instr) {
+  assert(cc.isVirtRegValid(instr.inputs[0]->out));
+  assert(instr.hasConstRhs || cc.isVirtRegValid(instr.inputs[1]->out));
+
   if (instr.hasConstRhs) {
     cc.cmp(instr.inputs[0]->out.r32(), instr.constRhs);
   } else {
@@ -414,7 +695,10 @@ void Emitter::doCmpGteInstr(CmpGteInstr& instr) {
   }
 }
 
-void Emitter::doCmpLtInstr(CmpLtInstr& instr) {
+void Emitter::doIntCmpLtInstr(IntCmpLtInstr& instr) {
+  assert(cc.isVirtRegValid(instr.inputs[0]->out));
+  assert(instr.hasConstRhs || cc.isVirtRegValid(instr.inputs[1]->out));
+
   if (instr.hasConstRhs) {
     cc.cmp(instr.inputs[0]->out.r32(), instr.constRhs);
   } else {
@@ -422,7 +706,10 @@ void Emitter::doCmpLtInstr(CmpLtInstr& instr) {
   }
 }
 
-void Emitter::doCmpLteInstr(CmpLteInstr& instr) {
+void Emitter::doIntCmpLteInstr(IntCmpLteInstr& instr) {
+  assert(cc.isVirtRegValid(instr.inputs[0]->out));
+  assert(instr.hasConstRhs || cc.isVirtRegValid(instr.inputs[1]->out));
+
   if (instr.hasConstRhs) {
     cc.cmp(instr.inputs[0]->out.r32(), instr.constRhs);
   } else {
@@ -431,6 +718,10 @@ void Emitter::doCmpLteInstr(CmpLteInstr& instr) {
 }
 
 void Emitter::visitDynamicAccessInstr(DynamicAccessInstr& instr) {
+  assert(cc.isVirtRegValid(instr.out));
+  assert(cc.isVirtRegValid(instr.inputs[0]->out));
+  assert(cc.isVirtRegValid(instr.inputs[1]->out));
+
   CCFuncCall* call = cc.call((uint64_t) vaiven::get, FuncSignature2<uint64_t, uint64_t, uint64_t>());
   call->setArg(0, instr.inputs[0]->out);
   call->setArg(1, instr.inputs[1]->out);
@@ -438,6 +729,11 @@ void Emitter::visitDynamicAccessInstr(DynamicAccessInstr& instr) {
 }
 
 void Emitter::visitDynamicStoreInstr(DynamicStoreInstr& instr) {
+  assert(cc.isVirtRegValid(instr.out));
+  assert(cc.isVirtRegValid(instr.inputs[0]->out));
+  assert(cc.isVirtRegValid(instr.inputs[1]->out));
+  assert(cc.isVirtRegValid(instr.inputs[2]->out));
+
   CCFuncCall* call = cc.call((uint64_t) vaiven::set, FuncSignature3<uint64_t, uint64_t, uint64_t, uint64_t>());
   call->setArg(0, instr.inputs[0]->out);
   call->setArg(1, instr.inputs[1]->out);
@@ -445,6 +741,10 @@ void Emitter::visitDynamicStoreInstr(DynamicStoreInstr& instr) {
 }
 
 void Emitter::visitListAccessInstr(ListAccessInstr& instr) {
+  assert(cc.isVirtRegValid(instr.out));
+  assert(cc.isVirtRegValid(instr.inputs[0]->out));
+  assert(cc.isVirtRegValid(instr.inputs[1]->out));
+
   CCFuncCall* call = cc.call((uint64_t) vaiven::listAccessUnchecked, FuncSignature2<uint64_t, uint64_t, uint64_t>());
   call->setArg(0, instr.inputs[0]->out);
   call->setArg(1, instr.inputs[1]->out);
@@ -452,6 +752,11 @@ void Emitter::visitListAccessInstr(ListAccessInstr& instr) {
 }
 
 void Emitter::visitListStoreInstr(ListStoreInstr& instr) {
+  assert(cc.isVirtRegValid(instr.out));
+  assert(cc.isVirtRegValid(instr.inputs[0]->out));
+  assert(cc.isVirtRegValid(instr.inputs[1]->out));
+  assert(cc.isVirtRegValid(instr.inputs[2]->out));
+
   CCFuncCall* call = cc.call((uint64_t) vaiven::listStoreUnchecked, FuncSignature3<uint64_t, uint64_t, uint64_t, uint64_t>());
   call->setArg(0, instr.inputs[0]->out);
   call->setArg(1, instr.inputs[1]->out);
@@ -459,6 +764,8 @@ void Emitter::visitListStoreInstr(ListStoreInstr& instr) {
 }
 
 void Emitter::visitListInitInstr(ListInitInstr& instr) {
+  assert(cc.isVirtRegValid(instr.out));
+
   X86Gp size = cc.newUInt64();
   cc.mov(size, instr.inputs.size());
   CCFuncCall* alloc = cc.call((uint64_t) newListWithSize, FuncSignature1<uint64_t, uint64_t>());
@@ -477,11 +784,16 @@ void Emitter::visitListInitInstr(ListInitInstr& instr) {
       cc.add(ptr, sizeof(Value));
     }
 
+    assert(cc.isVirtRegValid((*it)->out));
     cc.mov(x86::ptr(ptr), (*it)->out);
   }
 }
 
 void Emitter::visitDynamicObjectAccessInstr(DynamicObjectAccessInstr& instr) {
+  assert(cc.isVirtRegValid(instr.out));
+  assert(cc.isVirtRegValid(instr.inputs[0]->out));
+  assert(cc.isVirtRegValid(instr.inputs[1]->out));
+
   X86Gp str;
   if (instr.inputs[1]->usages.size() == 1) {
     str = instr.inputs[1]->out;
@@ -497,6 +809,11 @@ void Emitter::visitDynamicObjectAccessInstr(DynamicObjectAccessInstr& instr) {
 }
 
 void Emitter::visitDynamicObjectStoreInstr(DynamicObjectStoreInstr& instr) {
+  assert(cc.isVirtRegValid(instr.out));
+  assert(cc.isVirtRegValid(instr.inputs[0]->out));
+  assert(cc.isVirtRegValid(instr.inputs[1]->out));
+  assert(cc.isVirtRegValid(instr.inputs[2]->out));
+
   X86Gp str;
   if (instr.inputs[1]->usages.size() == 1) {
     str = instr.inputs[1]->out;
@@ -512,6 +829,9 @@ void Emitter::visitDynamicObjectStoreInstr(DynamicObjectStoreInstr& instr) {
 }
 
 void Emitter::visitObjectAccessInstr(ObjectAccessInstr& instr) {
+  assert(cc.isVirtRegValid(instr.out));
+  assert(cc.isVirtRegValid(instr.inputs[0]->out));
+
   X86Gp str = cc.newUInt64();
   cc.mov(str, (uint64_t) instr.property);
   CCFuncCall* call = cc.call((uint64_t) vaiven::objectAccessUnchecked, FuncSignature2<uint64_t, uint64_t, uint64_t>());
@@ -521,6 +841,10 @@ void Emitter::visitObjectAccessInstr(ObjectAccessInstr& instr) {
 }
 
 void Emitter::visitObjectStoreInstr(ObjectStoreInstr& instr) {
+  assert(cc.isVirtRegValid(instr.out));
+  assert(cc.isVirtRegValid(instr.inputs[0]->out));
+  assert(cc.isVirtRegValid(instr.inputs[1]->out));
+
   X86Gp str = cc.newUInt64();
   cc.mov(str, (uint64_t) instr.property);
   CCFuncCall* call = cc.call((uint64_t) vaiven::objectStoreUnchecked, FuncSignature3<uint64_t, uint64_t, uint64_t, uint64_t>());
@@ -544,6 +868,8 @@ void Emitter::visitErrInstr(ErrInstr& instr) {
 }
 
 void Emitter::visitRetInstr(RetInstr& instr) {
+  assert(cc.isVirtRegValid(instr.inputs[0]->out));
+
   cc.ret(instr.inputs[0]->out);
 }
 
@@ -555,29 +881,53 @@ void Emitter::visitUnconditionalBlockExit(UnconditionalBlockExit& exit) {
 
 void Emitter::visitConditionalBlockExit(ConditionalBlockExit& exit) {
   switch(exit.condition->tag) {
-    case INSTR_CMPEQ:
-      doCmpEqInstr(static_cast<CmpEqInstr&>(*exit.condition));
+    case INSTR_INT_CMPEQ:
+      doIntCmpEqInstr(static_cast<IntCmpEqInstr&>(*exit.condition));
       cc.je(exit.toGoTo->label);
       break;
-    case INSTR_CMPINEQ:
-      doCmpIneqInstr(static_cast<CmpIneqInstr&>(*exit.condition));
+    case INSTR_INT_CMPINEQ:
+      doIntCmpIneqInstr(static_cast<IntCmpIneqInstr&>(*exit.condition));
       cc.jne(exit.toGoTo->label);
       break;
-    case INSTR_CMPGT:
-      doCmpGtInstr(static_cast<CmpGtInstr&>(*exit.condition));
+    case INSTR_INT_CMPGT:
+      doIntCmpGtInstr(static_cast<IntCmpGtInstr&>(*exit.condition));
       cc.jg(exit.toGoTo->label);
       break;
-    case INSTR_CMPGTE:
-      doCmpGteInstr(static_cast<CmpGteInstr&>(*exit.condition));
+    case INSTR_INT_CMPGTE:
+      doIntCmpGteInstr(static_cast<IntCmpGteInstr&>(*exit.condition));
       cc.jge(exit.toGoTo->label);
       break;
-    case INSTR_CMPLT:
-      doCmpLtInstr(static_cast<CmpLtInstr&>(*exit.condition));
+    case INSTR_INT_CMPLT:
+      doIntCmpLtInstr(static_cast<IntCmpLtInstr&>(*exit.condition));
       cc.jl(exit.toGoTo->label);
       break;
-    case INSTR_CMPLTE:
-      doCmpLteInstr(static_cast<CmpLteInstr&>(*exit.condition));
+    case INSTR_INT_CMPLTE:
+      doIntCmpLteInstr(static_cast<IntCmpLteInstr&>(*exit.condition));
       cc.jle(exit.toGoTo->label);
+      break;
+    case INSTR_DBL_CMPEQ:
+      doDoubleCmpInstr(*exit.condition);
+      cc.je(exit.toGoTo->label);
+      break;
+    case INSTR_DBL_CMPINEQ:
+      doDoubleCmpInstr(*exit.condition);
+      cc.jne(exit.toGoTo->label);
+      break;
+    case INSTR_DBL_CMPGT:
+      doDoubleCmpInstr(*exit.condition);
+      cc.ja(exit.toGoTo->label);
+      break;
+    case INSTR_DBL_CMPGTE:
+      doDoubleCmpInstr(*exit.condition);
+      cc.jae(exit.toGoTo->label);
+      break;
+    case INSTR_DBL_CMPLT:
+      doDoubleCmpInstr(*exit.condition);
+      cc.jb(exit.toGoTo->label);
+      break;
+    case INSTR_DBL_CMPLTE:
+      doDoubleCmpInstr(*exit.condition);
+      cc.jbe(exit.toGoTo->label);
       break;
     case INSTR_NOT:
       cc.test(exit.condition->inputs[0]->out.r32(), exit.condition->inputs[0]->out.r32());
@@ -585,6 +935,7 @@ void Emitter::visitConditionalBlockExit(ConditionalBlockExit& exit) {
       break;
     default:
       exit.condition->accept(*this);
+      assert(cc.isVirtRegValid(exit.condition->out));
       cc.test(exit.condition->out.r32(), exit.condition->out.r32());
       cc.jnz(exit.toGoTo->label);
   }
@@ -599,8 +950,20 @@ void Emitter::visitBlock(Block& block) {
     next->accept(*this);
     // handle PHIs
     for (std::set<Instruction*>::iterator it = next->usages.begin(); it != next->usages.end(); ++it) {
-      if ((*it)->tag == INSTR_PHI && (*it)->out != next->out) {
-        cc.mov((*it)->out, next->out);
+      if ((*it)->tag == INSTR_PHI) {
+        if ((*it)->type == VAIVEN_STATIC_TYPE_DOUBLE && !(*it)->isBoxed) {
+          assert(cc.isVirtRegValid((*it)->xmmout));
+          assert(cc.isVirtRegValid(next->xmmout));
+          if ((*it)->xmmout != next->xmmout) {
+            cc.movsd((*it)->xmmout, next->xmmout);
+          }
+        } else {
+          assert(cc.isVirtRegValid((*it)->out));
+          assert(cc.isVirtRegValid(next->out));
+          if ((*it)->out != next->out) {
+            cc.mov((*it)->out, next->out);
+          }
+        }
       }
     }
     lastInstr = next;

@@ -1,7 +1,7 @@
 fn isEvenlyDivisible of val, div, lim is
   if div > lim
     ret true
-  else if val / div * div != val // is not evenly divisible
+  else if floor(val / div) * div != val // is not evenly divisible
     ret false
   end
 

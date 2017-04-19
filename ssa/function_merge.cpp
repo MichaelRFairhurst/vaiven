@@ -20,6 +20,15 @@ void FunctionMerger::visitTypecheckInstr(TypecheckInstr& instr) {
 void FunctionMerger::visitBoxInstr(BoxInstr& instr) {
 }
 
+void FunctionMerger::visitUnboxInstr(UnboxInstr& instr) {
+}
+
+void FunctionMerger::visitToDoubleInstr(ToDoubleInstr& instr) {
+}
+
+void FunctionMerger::visitIntToDoubleInstr(IntToDoubleInstr& instr) {
+}
+
 void FunctionMerger::visitAddInstr(AddInstr& instr) {
 }
 
@@ -29,10 +38,25 @@ void FunctionMerger::visitStrAddInstr(StrAddInstr& instr) {
 void FunctionMerger::visitIntAddInstr(IntAddInstr& instr) {
 }
 
+void FunctionMerger::visitDoubleAddInstr(DoubleAddInstr& instr) {
+}
+
 void FunctionMerger::visitSubInstr(SubInstr& instr) {
 }
 
+void FunctionMerger::visitIntSubInstr(IntSubInstr& instr) {
+}
+
+void FunctionMerger::visitDoubleSubInstr(DoubleSubInstr& instr) {
+}
+
 void FunctionMerger::visitMulInstr(MulInstr& instr) {
+}
+
+void FunctionMerger::visitIntMulInstr(IntMulInstr& instr) {
+}
+
+void FunctionMerger::visitDoubleMulInstr(DoubleMulInstr& instr) {
 }
 
 void FunctionMerger::visitDivInstr(DivInstr& instr) {
@@ -44,19 +68,55 @@ void FunctionMerger::visitNotInstr(NotInstr& instr) {
 void FunctionMerger::visitCmpEqInstr(CmpEqInstr& instr) {
 }
 
+void FunctionMerger::visitIntCmpEqInstr(IntCmpEqInstr& instr) {
+}
+
+void FunctionMerger::visitDoubleCmpEqInstr(DoubleCmpEqInstr& instr) {
+}
+
 void FunctionMerger::visitCmpIneqInstr(CmpIneqInstr& instr) {
+}
+
+void FunctionMerger::visitIntCmpIneqInstr(IntCmpIneqInstr& instr) {
+}
+
+void FunctionMerger::visitDoubleCmpIneqInstr(DoubleCmpIneqInstr& instr) {
 }
 
 void FunctionMerger::visitCmpGtInstr(CmpGtInstr& instr) {
 }
 
+void FunctionMerger::visitIntCmpGtInstr(IntCmpGtInstr& instr) {
+}
+
+void FunctionMerger::visitDoubleCmpGtInstr(DoubleCmpGtInstr& instr) {
+}
+
 void FunctionMerger::visitCmpGteInstr(CmpGteInstr& instr) {
+}
+
+void FunctionMerger::visitIntCmpGteInstr(IntCmpGteInstr& instr) {
+}
+
+void FunctionMerger::visitDoubleCmpGteInstr(DoubleCmpGteInstr& instr) {
 }
 
 void FunctionMerger::visitCmpLtInstr(CmpLtInstr& instr) {
 }
 
+void FunctionMerger::visitIntCmpLtInstr(IntCmpLtInstr& instr) {
+}
+
+void FunctionMerger::visitDoubleCmpLtInstr(DoubleCmpLtInstr& instr) {
+}
+
 void FunctionMerger::visitCmpLteInstr(CmpLteInstr& instr) {
+}
+
+void FunctionMerger::visitIntCmpLteInstr(IntCmpLteInstr& instr) {
+}
+
+void FunctionMerger::visitDoubleCmpLteInstr(DoubleCmpLteInstr& instr) {
 }
 
 void FunctionMerger::visitDynamicAccessInstr(DynamicAccessInstr& instr) {

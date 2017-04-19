@@ -16,6 +16,10 @@ Value assert(Value expectation);
 Value object();
 Value keys(Value object);
 Value toString(Value subject);
+Value sqrt(Value value);
+Value round(Value value);
+Value floor(Value value);
+Value ceil(Value value);
 
 // used by interpreter/called by assembly
 Value newList();

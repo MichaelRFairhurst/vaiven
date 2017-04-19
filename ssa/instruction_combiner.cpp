@@ -109,6 +109,15 @@ void InstructionCombiner::visitTypecheckInstr(TypecheckInstr& instr) {
 void InstructionCombiner::visitBoxInstr(BoxInstr& instr) {
 }
 
+void InstructionCombiner::visitUnboxInstr(UnboxInstr& instr) {
+}
+
+void InstructionCombiner::visitToDoubleInstr(ToDoubleInstr& instr) {
+}
+
+void InstructionCombiner::visitIntToDoubleInstr(IntToDoubleInstr& instr) {
+}
+
 bool InstructionCombiner::isBinIntInstruction(Instruction& instr) {
   return instr.inputs[0]->type == VAIVEN_STATIC_TYPE_INT
       && instr.inputs[1]->type == VAIVEN_STATIC_TYPE_INT;
@@ -166,32 +175,82 @@ void InstructionCombiner::visitIntAddInstr(IntAddInstr& instr) {
   // x + x == x * 2
   MATCH_INPUTS(
     SOME(lhs) THEN SOME(rhs) WHERE(lhs == rhs),
-    replaceReferencingNewConstant(instr, new MulInstr(lhs, new ConstantInstr(2)));
+    replaceReferencingNewConstant(instr, new IntMulInstr(lhs, new ConstantInstr(2)));
   )
 
   // (z - x) + x == z
   MATCH_INPUTS(
-    INSTR(SUB) OF (SOME(identity) THEN SOME(a))
+    INSTR(INT_SUB) OF (SOME(identity) THEN SOME(a))
     THEN SOME(b) WHERE(a == b),
     instr.replaceUsagesWith(identity);
   )
 
   // (x * 2) + x == x * 3
   MATCH_INPUTS(
-    INSTR(MUL) OF (SOME(lift) THEN INT_CONSTANT(factor))
+    INSTR(INT_MUL) OF (SOME(lift) THEN INT_CONSTANT(factor))
     THEN SOME(additive) WHERE(lift == additive),
-    replaceReferencingNewConstant(instr, new MulInstr(lift, new ConstantInstr(factor + 1)));
+    replaceReferencingNewConstant(instr, new IntMulInstr(lift, new ConstantInstr(factor + 1)));
   )
 
   // (2 - x) + 1 == (3 - x)
   MATCH_INPUTS(
-    INSTR(SUB) OF (INT_CONSTANT(a) THEN SOME(lift))
+    INSTR(INT_SUB) OF (INT_CONSTANT(a) THEN SOME(lift))
     THEN INT_CONSTANT(b),
-    replaceReferencingNewConstant(instr, new SubInstr(new ConstantInstr(a + b), lift));
+    replaceReferencingNewConstant(instr, new IntSubInstr(new ConstantInstr(a + b), lift));
   )
 }
 
+void InstructionCombiner::visitDoubleAddInstr(DoubleAddInstr& instr) {
+  if (instr.inputs[0]->tag == INSTR_CONSTANT) {
+    std::swap(instr.inputs[0], instr.inputs[1]);
+  }
+
+  //// x + 2 + 4 == x + 6
+  //MATCH_INPUTS(
+  //  INSTR(INT_ADD) OF(SOME(lift) THEN INT_CONSTANT(a))
+  //  THEN INT_CONSTANT(b),
+  //  replaceReferencingNewConstant(instr, new IntAddInstr(lift, new ConstantInstr(a + b)));
+  //)
+
+  //// x + 0 == x
+  //MATCH_INPUTS(
+  //  SOME(identity) THEN INT_CONSTANT(a) WHERE(a == 0),
+  //  instr.replaceUsagesWith(identity);
+  //)
+
+  //// x + x == x * 2
+  //MATCH_INPUTS(
+  //  SOME(lhs) THEN SOME(rhs) WHERE(lhs == rhs),
+  //  replaceReferencingNewConstant(instr, new MulInstr(lhs, new ConstantInstr(2)));
+  //)
+
+  //// (z - x) + x == z
+  //MATCH_INPUTS(
+  //  INSTR(SUB) OF (SOME(identity) THEN SOME(a))
+  //  THEN SOME(b) WHERE(a == b),
+  //  instr.replaceUsagesWith(identity);
+  //)
+
+  //// (x * 2) + x == x * 3
+  //MATCH_INPUTS(
+  //  INSTR(MUL) OF (SOME(lift) THEN INT_CONSTANT(factor))
+  //  THEN SOME(additive) WHERE(lift == additive),
+  //  replaceReferencingNewConstant(instr, new MulInstr(lift, new ConstantInstr(factor + 1)));
+  //)
+
+  //// (2 - x) + 1 == (3 - x)
+  //MATCH_INPUTS(
+  //  INSTR(SUB) OF (INT_CONSTANT(a) THEN SOME(lift))
+  //  THEN INT_CONSTANT(b),
+  //  replaceReferencingNewConstant(instr, new SubInstr(new ConstantInstr(a + b), lift));
+  //)
+}
+
 void InstructionCombiner::visitSubInstr(SubInstr& instr) {
+  // TODO anything we can do here?
+}
+
+void InstructionCombiner::visitIntSubInstr(IntSubInstr& instr) {
   // turn x - 4 into x + -4 so that visitIntAddInstr can do most of the heavy lifting
   if (instr.inputs[1]->tag == INSTR_CONSTANT) {
     ConstantInstr* myConstant = static_cast<ConstantInstr*>(instr.inputs[1]);
@@ -206,9 +265,9 @@ void InstructionCombiner::visitSubInstr(SubInstr& instr) {
 
   // (x * 3) - x == x * 2
   MATCH_INPUTS(
-    INSTR(MUL) OF (SOME(lift) THEN INT_CONSTANT(factor))
+    INSTR(INT_MUL) OF (SOME(lift) THEN INT_CONSTANT(factor))
     THEN SOME(additive) WHERE(lift == additive),
-    replaceReferencingNewConstant(instr, new MulInstr(lift, new ConstantInstr(factor - 1)));
+    replaceReferencingNewConstant(instr, new IntMulInstr(lift, new ConstantInstr(factor - 1)));
   )
 
   // x - x == 0
@@ -253,7 +312,7 @@ void InstructionCombiner::visitSubInstr(SubInstr& instr) {
   // don't have to handle (x - 2) - 2 because those become (x + -2) + -2
   MATCH_INPUTS(
     INT_CONSTANT(a) THEN
-    INSTR(SUB) OF(INT_CONSTANT(b) THEN SOME(lift)),
+    INSTR(INT_SUB) OF(INT_CONSTANT(b) THEN SOME(lift)),
     replaceReferencingNewConstant(instr, new IntAddInstr(lift, new ConstantInstr(a - b)));
   );
 
@@ -265,7 +324,85 @@ void InstructionCombiner::visitSubInstr(SubInstr& instr) {
   );
 }
 
+void InstructionCombiner::visitDoubleSubInstr(DoubleSubInstr& instr) {
+  // turn x - 4 into x + -4 so that visitIntAddInstr can do most of the heavy lifting
+  //if (instr.inputs[1]->tag == INSTR_CONSTANT) {
+  //  ConstantInstr* myConstant = static_cast<ConstantInstr*>(instr.inputs[1]);
+  //  int newval = -myConstant->val.getInt();
+
+  //  ConstantInstr* newConstant = new ConstantInstr(newval);
+  //  IntAddInstr* addInstr = new IntAddInstr(instr.inputs[0], newConstant);
+  //  instr.append(newConstant);
+  //  newConstant->append(addInstr);
+  //  instr.replaceUsagesWith(addInstr);
+  //}
+
+  //// (x * 3) - x == x * 2
+  //MATCH_INPUTS(
+  //  INSTR(MUL) OF (SOME(lift) THEN INT_CONSTANT(factor))
+  //  THEN SOME(additive) WHERE(lift == additive),
+  //  replaceReferencingNewConstant(instr, new MulInstr(lift, new ConstantInstr(factor - 1)));
+  //)
+
+  //// x - x == 0
+  //MATCH_INPUTS(
+  //  SOME(identity) THEN INT_CONSTANT(a) WHERE(a == 0),
+  //  ConstantInstr* constantInstr = new ConstantInstr(Value(0));
+  //  instr.append(constantInstr);
+  //  instr.replaceUsagesWith(constantInstr);
+  //)
+
+  //// (z + x) - x == z
+  //MATCH_INPUTS(
+  //  INSTR(INT_ADD) OF(SOME(identity) THEN SOME(a))
+  //  THEN SOME(b) WHERE(a == b),
+  //  instr.replaceUsagesWith(identity);
+  //);
+
+  //// (x + z) - x == z
+  //MATCH_INPUTS(
+  //  INSTR(INT_ADD) OF(SOME(a) THEN SOME(identity))
+  //  THEN SOME(b) WHERE(a == b),
+  //  instr.replaceUsagesWith(identity);
+  //);
+
+  //// x - (z + x) == z
+  //MATCH_INPUTS(
+  //  SOME(a) THEN
+  //  INSTR(INT_ADD) OF(SOME(identity) THEN SOME(b))
+  //  WHERE(a == b),
+  //  instr.replaceUsagesWith(identity);
+  //);
+
+  //// x - (x + z) == z
+  //MATCH_INPUTS(
+  //  SOME(a) THEN
+  //  INSTR(INT_ADD) OF(SOME(b) THEN SOME(identity))
+  //  WHERE(a == b),
+  //  instr.replaceUsagesWith(identity);
+  //);
+
+  //// 4 - (2 - x) == 4 + -(2 - x) == 4 + (-2 + x) == 2 + x == x + 2
+  //// don't have to handle (x - 2) - 2 because those become (x + -2) + -2
+  //MATCH_INPUTS(
+  //  INT_CONSTANT(a) THEN
+  //  INSTR(SUB) OF(INT_CONSTANT(b) THEN SOME(lift)),
+  //  replaceReferencingNewConstant(instr, new IntAddInstr(lift, new ConstantInstr(a - b)));
+  //);
+
+  //// 4 - (x + 2) == 4 -(2 + x) == 4 + (-2 - x) == 2 - x == x + -2
+  //MATCH_INPUTS(
+  //  INT_CONSTANT(a) THEN
+  //  INSTR(INT_ADD) OF(SOME(lift) THEN INT_CONSTANT(b)),
+  //  replaceReferencingNewConstant(instr, new IntAddInstr(lift, new ConstantInstr(a - b)));
+  //);
+}
+
 void InstructionCombiner::visitMulInstr(MulInstr& instr) {
+  // TODO anything we can do here?
+}
+
+void InstructionCombiner::visitIntMulInstr(IntMulInstr& instr) {
   if (instr.inputs[0]->tag == INSTR_CONSTANT) {
     std::swap(instr.inputs[0], instr.inputs[1]);
   }
@@ -284,12 +421,39 @@ void InstructionCombiner::visitMulInstr(MulInstr& instr) {
 
    // (x * 2) * 3 -> (x * 6)
   MATCH_INPUTS(
-    INSTR(MUL) OF (SOME(lift) THEN INT_CONSTANT(a))
+    INSTR(INT_MUL) OF (SOME(lift) THEN INT_CONSTANT(a))
     THEN INT_CONSTANT(b),
-    replaceReferencingNewConstant(instr, new MulInstr(lift, new ConstantInstr(a * b)));
+    replaceReferencingNewConstant(instr, new IntMulInstr(lift, new ConstantInstr(a * b)));
   )
 
   // can't naively optimize x / 4 * 4 because of integer math & rounding
+}
+
+void InstructionCombiner::visitDoubleMulInstr(DoubleMulInstr& instr) {
+  //if (instr.inputs[0]->tag == INSTR_CONSTANT) {
+  //  std::swap(instr.inputs[0], instr.inputs[1]);
+  //}
+
+  //// x * 1 == x
+  //MATCH_INPUTS(
+  //  SOME(identity) THEN INT_CONSTANT(factor) WHERE(factor == 1),
+  //  instr.replaceUsagesWith(identity);
+  //)
+
+  //// x * 0 == 0
+  //MATCH_INPUTS(
+  //  SOME(_) THEN INT_CONSTANT(zero) WHERE(zero == 0),
+  //  instr.replaceUsagesWith(zero_instr);
+  //)
+
+  // // (x * 2) * 3 -> (x * 6)
+  //MATCH_INPUTS(
+  //  INSTR(MUL) OF (SOME(lift) THEN INT_CONSTANT(a))
+  //  THEN INT_CONSTANT(b),
+  //  replaceReferencingNewConstant(instr, new MulInstr(lift, new ConstantInstr(a * b)));
+  //)
+
+  //// can't naively optimize x / 4 * 4 because of integer math & rounding
 }
 
 void InstructionCombiner::visitDivInstr(DivInstr& instr) {
@@ -310,52 +474,52 @@ void InstructionCombiner::visitDivInstr(DivInstr& instr) {
 
   // (z * x) / x == z
   MATCH_INPUTS(
-    INSTR(MUL) OF(SOME(identity) THEN SOME(a))
+    INSTR(INT_MUL) OF(SOME(identity) THEN SOME(a))
     THEN SOME(b) WHERE(a == b),
     instr.replaceUsagesWith(identity);
   );
 
   // (x * z) / x == z
   MATCH_INPUTS(
-    INSTR(MUL) OF(SOME(a) THEN SOME(identity))
+    INSTR(INT_MUL) OF(SOME(a) THEN SOME(identity))
     THEN SOME(b) WHERE(a == b),
     instr.replaceUsagesWith(identity);
   );
 
   // (x / 2) / 3 == x / 6
-  MATCH_INPUTS(
-    INSTR(DIV) OF(SOME(lift) THEN INT_CONSTANT(a))
-    THEN INT_CONSTANT(b),
-    replaceReferencingNewConstant(instr, new DivInstr(lift, new ConstantInstr(a * b)));
-  );
+  //MATCH_INPUTS(
+  //  INSTR(DIV) OF(SOME(lift) THEN INT_CONSTANT(a))
+  //  THEN INT_CONSTANT(b),
+  //  replaceReferencingNewConstant(instr, new DivInstr(lift, new ConstantInstr(a * b)));
+  //);
 
   // (x * 2) / 4 == x / 2
   MATCH_INPUTS(
-    INSTR(MUL) OF(SOME(lift) THEN INT_CONSTANT(a))
+    INSTR(INT_MUL) OF(SOME(lift) THEN INT_CONSTANT(a))
     THEN INT_CONSTANT(b) WHERE(b % a == 0),
     replaceReferencingNewConstant(instr, new DivInstr(lift, new ConstantInstr(a / b)));
   );
 
   // (4 / x) / 2 == 2 / x
-  MATCH_INPUTS(
-    INSTR(DIV) OF(INT_CONSTANT(a) THEN SOME(lift))
-    THEN INT_CONSTANT(b),
-    replaceReferencingNewConstant(instr, new DivInstr(lift, new ConstantInstr(b / a)));
-  );
+  //MATCH_INPUTS(
+  //  INSTR(DIV) OF(INT_CONSTANT(a) THEN SOME(lift))
+  //  THEN INT_CONSTANT(b),
+  //  replaceReferencingNewConstant(instr, new DivInstr(lift, new ConstantInstr(b / a)));
+  //);
 
   // 4 / (x * 2) == 2 / x
   MATCH_INPUTS(
     INT_CONSTANT(a) THEN
-    INSTR(MUL) OF(SOME(lift) THEN INT_CONSTANT(b)) WHERE(a % b == 0),
+    INSTR(INT_MUL) OF(SOME(lift) THEN INT_CONSTANT(b)) WHERE(a % b == 0),
     replaceReferencingNewConstant(instr, new DivInstr(new ConstantInstr(a / b), lift));
   );
 
   // 4 / (x / 2) == 8 / x
-  MATCH_INPUTS(
-    INT_CONSTANT(a) THEN
-    INSTR(DIV) OF(SOME(lift) THEN INT_CONSTANT(b)),
-    replaceReferencingNewConstant(instr, new DivInstr(new ConstantInstr(a * b), lift));
-  );
+  //MATCH_INPUTS(
+  //  INT_CONSTANT(a) THEN
+  //  INSTR(DIV) OF(SOME(lift) THEN INT_CONSTANT(b)),
+  //  replaceReferencingNewConstant(instr, new DivInstr(new ConstantInstr(a * b), lift));
+  //);
 }
 
 void InstructionCombiner::visitNotInstr(NotInstr& instr) {
@@ -363,29 +527,95 @@ void InstructionCombiner::visitNotInstr(NotInstr& instr) {
     CmpLteInstr* lte = new CmpLteInstr(instr.inputs[0]->inputs[0], instr.inputs[0]->inputs[1]);
     instr.append(lte);
     instr.replaceUsagesWith(lte);
+    // TODO delete the inverse comparison
     performedWork = true;
   } else if (instr.inputs[0]->tag == INSTR_CMPGTE) {
     CmpLtInstr* lt = new CmpLtInstr(instr.inputs[0]->inputs[0], instr.inputs[0]->inputs[1]);
     instr.append(lt);
     instr.replaceUsagesWith(lt);
+    // TODO delete the inverse comparison
     performedWork = true;
   } else if (instr.inputs[0]->tag == INSTR_CMPLT) {
     CmpGteInstr* gte = new CmpGteInstr(instr.inputs[0]->inputs[0], instr.inputs[0]->inputs[1]);
     instr.append(gte);
     instr.replaceUsagesWith(gte);
+    // TODO delete the inverse comparison
     performedWork = true;
   } else if (instr.inputs[0]->tag == INSTR_CMPLTE) {
     CmpGtInstr* gt = new CmpGtInstr(instr.inputs[0]->inputs[0], instr.inputs[0]->inputs[1]);
     instr.append(gt);
     instr.replaceUsagesWith(gt);
+    // TODO delete the inverse comparison
     performedWork = true;
   } else if (instr.inputs[0]->tag == INSTR_CMPEQ) {
     CmpIneqInstr* ineq = new CmpIneqInstr(instr.inputs[0]->inputs[0], instr.inputs[0]->inputs[1]);
     instr.append(ineq);
     instr.replaceUsagesWith(ineq);
+    // TODO delete the inverse comparison
     performedWork = true;
   } else if (instr.inputs[0]->tag == INSTR_CMPINEQ) {
     CmpEqInstr* eq = new CmpEqInstr(instr.inputs[0]->inputs[0], instr.inputs[0]->inputs[1]);
+    instr.append(eq);
+    instr.replaceUsagesWith(eq);
+    // TODO delete the inverse comparison
+    performedWork = true;
+  } else if (instr.inputs[0]->tag == INSTR_INT_CMPGT) {
+    IntCmpLteInstr* lte = new IntCmpLteInstr(instr.inputs[0]->inputs[0], instr.inputs[0]->inputs[1]);
+    instr.append(lte);
+    instr.replaceUsagesWith(lte);
+    performedWork = true;
+  } else if (instr.inputs[0]->tag == INSTR_INT_CMPGTE) {
+    IntCmpLtInstr* lt = new IntCmpLtInstr(instr.inputs[0]->inputs[0], instr.inputs[0]->inputs[1]);
+    instr.append(lt);
+    instr.replaceUsagesWith(lt);
+    performedWork = true;
+  } else if (instr.inputs[0]->tag == INSTR_INT_CMPLT) {
+    IntCmpGteInstr* gte = new IntCmpGteInstr(instr.inputs[0]->inputs[0], instr.inputs[0]->inputs[1]);
+    instr.append(gte);
+    instr.replaceUsagesWith(gte);
+    performedWork = true;
+  } else if (instr.inputs[0]->tag == INSTR_INT_CMPLTE) {
+    IntCmpGtInstr* gt = new IntCmpGtInstr(instr.inputs[0]->inputs[0], instr.inputs[0]->inputs[1]);
+    instr.append(gt);
+    instr.replaceUsagesWith(gt);
+    performedWork = true;
+  } else if (instr.inputs[0]->tag == INSTR_INT_CMPEQ) {
+    IntCmpIneqInstr* ineq = new IntCmpIneqInstr(instr.inputs[0]->inputs[0], instr.inputs[0]->inputs[1]);
+    instr.append(ineq);
+    instr.replaceUsagesWith(ineq);
+    performedWork = true;
+  } else if (instr.inputs[0]->tag == INSTR_INT_CMPINEQ) {
+    IntCmpEqInstr* eq = new IntCmpEqInstr(instr.inputs[0]->inputs[0], instr.inputs[0]->inputs[1]);
+    instr.append(eq);
+    instr.replaceUsagesWith(eq);
+    performedWork = true;
+  } else if (instr.inputs[0]->tag == INSTR_DBL_CMPGT) {
+    DoubleCmpLteInstr* lte = new DoubleCmpLteInstr(instr.inputs[0]->inputs[0], instr.inputs[0]->inputs[1]);
+    instr.append(lte);
+    instr.replaceUsagesWith(lte);
+    performedWork = true;
+  } else if (instr.inputs[0]->tag == INSTR_DBL_CMPGTE) {
+    DoubleCmpLtInstr* lt = new DoubleCmpLtInstr(instr.inputs[0]->inputs[0], instr.inputs[0]->inputs[1]);
+    instr.append(lt);
+    instr.replaceUsagesWith(lt);
+    performedWork = true;
+  } else if (instr.inputs[0]->tag == INSTR_DBL_CMPLT) {
+    DoubleCmpGteInstr* gte = new DoubleCmpGteInstr(instr.inputs[0]->inputs[0], instr.inputs[0]->inputs[1]);
+    instr.append(gte);
+    instr.replaceUsagesWith(gte);
+    performedWork = true;
+  } else if (instr.inputs[0]->tag == INSTR_DBL_CMPLTE) {
+    DoubleCmpGtInstr* gt = new DoubleCmpGtInstr(instr.inputs[0]->inputs[0], instr.inputs[0]->inputs[1]);
+    instr.append(gt);
+    instr.replaceUsagesWith(gt);
+    performedWork = true;
+  } else if (instr.inputs[0]->tag == INSTR_DBL_CMPEQ) {
+    DoubleCmpIneqInstr* ineq = new DoubleCmpIneqInstr(instr.inputs[0]->inputs[0], instr.inputs[0]->inputs[1]);
+    instr.append(ineq);
+    instr.replaceUsagesWith(ineq);
+    performedWork = true;
+  } else if (instr.inputs[0]->tag == INSTR_DBL_CMPINEQ) {
+    DoubleCmpEqInstr* eq = new DoubleCmpEqInstr(instr.inputs[0]->inputs[0], instr.inputs[0]->inputs[1]);
     instr.append(eq);
     instr.replaceUsagesWith(eq);
     performedWork = true;
@@ -406,26 +636,33 @@ void InstructionCombiner::visitCmpEqInstr(CmpEqInstr& instr) {
     ConstantInstr* constantInstr = new ConstantInstr(Value(false));
     instr.append(constantInstr);
     instr.replaceUsagesWith(constantInstr);
+    instr.safelyDeletable = true;
     performedWork = true;
+  }
+}
+
+void InstructionCombiner::visitIntCmpEqInstr(IntCmpEqInstr& instr) {
+  if (instr.inputs[0]->tag == INSTR_CONSTANT) {
+    std::swap(instr.inputs[0], instr.inputs[1]);
   }
 
   // (x + 1) == 3 can be x == 2
   MATCH_INPUTS(
     INSTR(INT_ADD) OF(SOME(lift) THEN INT_CONSTANT(a))
     THEN INT_CONSTANT(b),
-    replaceReferencingNewConstant(instr, new CmpEqInstr(lift, new ConstantInstr(b - a)));
+    replaceReferencingNewConstant(instr, new IntCmpEqInstr(lift, new ConstantInstr(b - a)));
   );
 
   // (3 - x) == 1 can be x == 2
   MATCH_INPUTS(
-    INSTR(SUB) OF(INT_CONSTANT(a) THEN SOME(lift))
+    INSTR(INT_SUB) OF(INT_CONSTANT(a) THEN SOME(lift))
     THEN INT_CONSTANT(b),
-    replaceReferencingNewConstant(instr, new CmpEqInstr(lift, new ConstantInstr(a - b)));
+    replaceReferencingNewConstant(instr, new IntCmpEqInstr(lift, new ConstantInstr(a - b)));
   );
 
   // x * 2 == 3 is just false in integer math
   MATCH_INPUTS(
-    INSTR(MUL) OF(SOME(lift) THEN INT_CONSTANT(a))
+    INSTR(INT_MUL) OF(SOME(lift) THEN INT_CONSTANT(a))
     THEN INT_CONSTANT(b) WHERE(b % a != 0),
     ConstantInstr* constantInstr = new ConstantInstr(Value(false));
     instr.append(constantInstr);
@@ -434,66 +671,108 @@ void InstructionCombiner::visitCmpEqInstr(CmpEqInstr& instr) {
 
   // (x * 2) == 4 can be x == 2
   MATCH_INPUTS(
-    INSTR(MUL) OF(SOME(lift) THEN INT_CONSTANT(a))
+    INSTR(INT_MUL) OF(SOME(lift) THEN INT_CONSTANT(a))
     THEN INT_CONSTANT(b) ,
-    replaceReferencingNewConstant(instr, new CmpEqInstr(lift, new ConstantInstr(a - b)));
-  );
-
-  // (x / 2) == 4 can be x == 8
-  MATCH_INPUTS(
-    INSTR(DIV) OF(SOME(lift) THEN INT_CONSTANT(a))
-    THEN INT_CONSTANT(b) ,
-    replaceReferencingNewConstant(instr, new CmpEqInstr(lift, new ConstantInstr(a * b)));
-  );
-
-  // (4 / x) == 2 can be x == 2
-  MATCH_INPUTS(
-    INSTR(DIV) OF(INT_CONSTANT(a) THEN SOME(lift))
-    THEN INT_CONSTANT(b) WHERE (a % b == 0),
-    replaceReferencingNewConstant(instr, new CmpEqInstr(lift, new ConstantInstr(a / b)));
-  );
-
-  // (4 / x) == 3 is just false in integer math
-  MATCH_INPUTS(
-    INSTR(DIV) OF(SOME(lift) THEN INT_CONSTANT(a))
-    THEN INT_CONSTANT(b) WHERE(b % a != 0),
-    ConstantInstr* constantInstr = new ConstantInstr(Value(false));
-    instr.append(constantInstr);
-    instr.replaceUsagesWith(constantInstr);
+    replaceReferencingNewConstant(instr, new IntCmpEqInstr(lift, new ConstantInstr(a / b)));
   );
 }
 
-void InstructionCombiner::visitCmpIneqInstr(CmpIneqInstr& instr) {
+void InstructionCombiner::visitDoubleCmpEqInstr(DoubleCmpEqInstr& instr) {
   if (instr.inputs[0]->tag == INSTR_CONSTANT) {
     std::swap(instr.inputs[0], instr.inputs[1]);
   }
 
+  // TODO check when we expect an int conversion to produce a value with a
+  // decimal and hardcode false
+
+  // (x + 1) == 3 can be x == 2
+  //MATCH_INPUTS(
+  //  INSTR(INT_ADD) OF(SOME(lift) THEN INT_CONSTANT(a))
+  //  THEN INT_CONSTANT(b),
+  //  replaceReferencingNewConstant(instr, new CmpEqInstr(lift, new ConstantInstr(b - a)));
+  //);
+
+  //// (3 - x) == 1 can be x == 2
+  //MATCH_INPUTS(
+  //  INSTR(INT_SUB) OF(INT_CONSTANT(a) THEN SOME(lift))
+  //  THEN INT_CONSTANT(b),
+  //  replaceReferencingNewConstant(instr, new CmpEqInstr(lift, new ConstantInstr(a - b)));
+  //);
+
+  //// x * 2 == 3 is just false in integer math
+  //MATCH_INPUTS(
+  //  INSTR(INT_MUL) OF(SOME(lift) THEN INT_CONSTANT(a))
+  //  THEN INT_CONSTANT(b) WHERE(b % a != 0),
+  //  ConstantInstr* constantInstr = new ConstantInstr(Value(false));
+  //  instr.append(constantInstr);
+  //  instr.replaceUsagesWith(constantInstr);
+  //);
+
+  //// (x * 2) == 4 can be x == 2
+  //MATCH_INPUTS(
+  //  INSTR(INT_MUL) OF(SOME(lift) THEN INT_CONSTANT(a))
+  //  THEN INT_CONSTANT(b) ,
+  //  replaceReferencingNewConstant(instr, new CmpEqInstr(lift, new ConstantInstr(a - b)));
+  //);
+
+  // (x / 2) == 4 can be x == 8
+  //MATCH_INPUTS(
+  //  INSTR(DIV) OF(SOME(lift) THEN INT_CONSTANT(a))
+  //  THEN INT_CONSTANT(b) ,
+  //  replaceReferencingNewConstant(instr, new CmpEqInstr(lift, new ConstantInstr(a * b)));
+  //);
+
+  // (4 / x) == 2 can be x == 2
+  //MATCH_INPUTS(
+  //  INSTR(DIV) OF(INT_CONSTANT(a) THEN SOME(lift))
+  //  THEN INT_CONSTANT(b) WHERE (a % b == 0),
+  //  replaceReferencingNewConstant(instr, new CmpEqInstr(lift, new ConstantInstr(a / b)));
+  //);
+
+  // (4 / x) == 3 is just false in integer math
+  //MATCH_INPUTS(
+  //  INSTR(DIV) OF(SOME(lift) THEN INT_CONSTANT(a))
+  //  THEN INT_CONSTANT(b) WHERE(b % a != 0),
+  //  ConstantInstr* constantInstr = new ConstantInstr(Value(false));
+  //  instr.append(constantInstr);
+  //  instr.replaceUsagesWith(constantInstr);
+  //);
+}
+
+void InstructionCombiner::visitCmpIneqInstr(CmpIneqInstr& instr) {
   if (instr.inputs[0]->type != VAIVEN_STATIC_TYPE_UNKNOWN
       && instr.inputs[0]->type != VAIVEN_STATIC_TYPE_UNKNOWN
       && instr.inputs[0]->type != instr.inputs[1]->type) {
     ConstantInstr* constantInstr = new ConstantInstr(Value(true));
     instr.append(constantInstr);
     instr.replaceUsagesWith(constantInstr);
+    instr.safelyDeletable = true;
     performedWork = true;
+  }
+}
+
+void InstructionCombiner::visitIntCmpIneqInstr(IntCmpIneqInstr& instr) {
+  if (instr.inputs[0]->tag == INSTR_CONSTANT) {
+    std::swap(instr.inputs[0], instr.inputs[1]);
   }
 
   // (x + 1) != 3 can be x != 2
   MATCH_INPUTS(
     INSTR(INT_ADD) OF(SOME(lift) THEN INT_CONSTANT(a))
     THEN INT_CONSTANT(b),
-    replaceReferencingNewConstant(instr, new CmpIneqInstr(lift, new ConstantInstr(b - a)));
+    replaceReferencingNewConstant(instr, new IntCmpIneqInstr(lift, new ConstantInstr(b - a)));
   );
 
   // (3 - x) != 1 can be x != 2
   MATCH_INPUTS(
-    INSTR(SUB) OF(INT_CONSTANT(a) THEN SOME(lift))
+    INSTR(INT_SUB) OF(INT_CONSTANT(a) THEN SOME(lift))
     THEN INT_CONSTANT(b),
-    replaceReferencingNewConstant(instr, new CmpIneqInstr(lift, new ConstantInstr(a - b)));
+    replaceReferencingNewConstant(instr, new IntCmpIneqInstr(lift, new ConstantInstr(a - b)));
   );
 
   // x * 2 != 3 is just true in integer math
   MATCH_INPUTS(
-    INSTR(MUL) OF(SOME(lift) THEN INT_CONSTANT(a))
+    INSTR(INT_MUL) OF(SOME(lift) THEN INT_CONSTANT(a))
     THEN INT_CONSTANT(b) WHERE(b % a != 0),
     ConstantInstr* constantInstr = new ConstantInstr(Value(true));
     instr.append(constantInstr);
@@ -502,38 +781,99 @@ void InstructionCombiner::visitCmpIneqInstr(CmpIneqInstr& instr) {
 
   // (x * 2) != 4 can be x != 2
   MATCH_INPUTS(
-    INSTR(MUL) OF(SOME(lift) THEN INT_CONSTANT(a))
+    INSTR(INT_MUL) OF(SOME(lift) THEN INT_CONSTANT(a))
     THEN INT_CONSTANT(b) ,
-    replaceReferencingNewConstant(instr, new CmpIneqInstr(lift, new ConstantInstr(a - b)));
+    replaceReferencingNewConstant(instr, new IntCmpIneqInstr(lift, new ConstantInstr(a / b)));
   );
+
+}
+
+void InstructionCombiner::visitDoubleCmpIneqInstr(DoubleCmpIneqInstr& instr) {
+  if (instr.inputs[0]->tag == INSTR_CONSTANT) {
+    std::swap(instr.inputs[0], instr.inputs[1]);
+  }
+
+  // TODO check when comparing integer convesrions to decimals and hardcode true
+
+  //if (instr.inputs[0]->type != VAIVEN_STATIC_TYPE_UNKNOWN
+  //    && instr.inputs[0]->type != VAIVEN_STATIC_TYPE_UNKNOWN
+  //    && instr.inputs[0]->type != instr.inputs[1]->type) {
+  //  ConstantInstr* constantInstr = new ConstantInstr(Value(true));
+  //  instr.append(constantInstr);
+  //  instr.replaceUsagesWith(constantInstr);
+  //  performedWork = true;
+  //}
+
+  //// (x + 1) != 3 can be x != 2
+  //MATCH_INPUTS(
+  //  INSTR(INT_ADD) OF(SOME(lift) THEN INT_CONSTANT(a))
+  //  THEN INT_CONSTANT(b),
+  //  replaceReferencingNewConstant(instr, new CmpIneqInstr(lift, new ConstantInstr(b - a)));
+  //);
+
+  //// (3 - x) != 1 can be x != 2
+  //MATCH_INPUTS(
+  //  INSTR(INT_SUB) OF(INT_CONSTANT(a) THEN SOME(lift))
+  //  THEN INT_CONSTANT(b),
+  //  replaceReferencingNewConstant(instr, new CmpIneqInstr(lift, new ConstantInstr(a - b)));
+  //);
+
+  //// x * 2 != 3 is just true in integer math
+  //MATCH_INPUTS(
+  //  INSTR(INT_MUL) OF(SOME(lift) THEN INT_CONSTANT(a))
+  //  THEN INT_CONSTANT(b) WHERE(b % a != 0),
+  //  ConstantInstr* constantInstr = new ConstantInstr(Value(true));
+  //  instr.append(constantInstr);
+  //  instr.replaceUsagesWith(constantInstr);
+  //);
+
+  //// (x * 2) != 4 can be x != 2
+  //MATCH_INPUTS(
+  //  INSTR(INT_MUL) OF(SOME(lift) THEN INT_CONSTANT(a))
+  //  THEN INT_CONSTANT(b) ,
+  //  replaceReferencingNewConstant(instr, new CmpIneqInstr(lift, new ConstantInstr(a - b)));
+  //);
 
   // (x / 2) != 4 can be x != 8
-  MATCH_INPUTS(
-    INSTR(DIV) OF(SOME(lift) THEN INT_CONSTANT(a))
-    THEN INT_CONSTANT(b) ,
-    replaceReferencingNewConstant(instr, new CmpIneqInstr(lift, new ConstantInstr(a * b)));
-  );
+  //MATCH_INPUTS(
+  //  INSTR(DIV) OF(SOME(lift) THEN INT_CONSTANT(a))
+  //  THEN INT_CONSTANT(b) ,
+  //  replaceReferencingNewConstant(instr, new CmpIneqInstr(lift, new ConstantInstr(a * b)));
+  //);
 
   // (4 / x) != 2 can be x != 2
-  MATCH_INPUTS(
-    INSTR(DIV) OF(INT_CONSTANT(a) THEN SOME(lift))
-    THEN INT_CONSTANT(b) WHERE (a % b == 0),
-    replaceReferencingNewConstant(instr, new CmpIneqInstr(lift, new ConstantInstr(a / b)));
-  );
+  //MATCH_INPUTS(
+  //  INSTR(DIV) OF(INT_CONSTANT(a) THEN SOME(lift))
+  //  THEN INT_CONSTANT(b) WHERE (a % b == 0),
+  //  replaceReferencingNewConstant(instr, new CmpIneqInstr(lift, new ConstantInstr(a / b)));
+  //);
 
   // (4 / x) != 3 is just true in integer math
-  MATCH_INPUTS(
-    INSTR(DIV) OF(SOME(lift) THEN INT_CONSTANT(a))
-    THEN INT_CONSTANT(b) WHERE(b % a != 0),
-    ConstantInstr* constantInstr = new ConstantInstr(Value(true));
-    instr.append(constantInstr);
-    instr.replaceUsagesWith(constantInstr);
-  );
+  //MATCH_INPUTS(
+  //  INSTR(DIV) OF(SOME(lift) THEN INT_CONSTANT(a))
+  //  THEN INT_CONSTANT(b) WHERE(b % a != 0),
+  //  ConstantInstr* constantInstr = new ConstantInstr(Value(true));
+  //  instr.append(constantInstr);
+  //  instr.replaceUsagesWith(constantInstr);
+  //);
 }
 
 void InstructionCombiner::visitCmpGtInstr(CmpGtInstr& instr) {
-  if (instr.inputs[0]->tag == INSTR_CONSTANT) {
-    CmpLtInstr* inverted = new CmpLtInstr(instr.inputs[1], instr.inputs[0]);
+  // TODO is it useful to keep constants on the right?
+}
+
+void InstructionCombiner::visitIntCmpGtInstr(IntCmpGtInstr& instr) {
+  if (instr.inputs[0]->tag == INSTR_CONSTANT && instr.inputs[1]->tag != INSTR_CONSTANT) {
+    IntCmpLtInstr* inverted = new IntCmpLtInstr(instr.inputs[1], instr.inputs[0]);
+    instr.append(inverted);
+    instr.replaceUsagesWith(inverted);
+    performedWork = true;
+  }
+}
+
+void InstructionCombiner::visitDoubleCmpGtInstr(DoubleCmpGtInstr& instr) {
+  if (instr.inputs[0]->tag == INSTR_CONSTANT && instr.inputs[1]->tag != INSTR_CONSTANT) {
+    DoubleCmpLtInstr* inverted = new DoubleCmpLtInstr(instr.inputs[1], instr.inputs[0]);
     instr.append(inverted);
     instr.replaceUsagesWith(inverted);
     performedWork = true;
@@ -541,8 +881,21 @@ void InstructionCombiner::visitCmpGtInstr(CmpGtInstr& instr) {
 }
 
 void InstructionCombiner::visitCmpGteInstr(CmpGteInstr& instr) {
-  if (instr.inputs[0]->tag == INSTR_CONSTANT) {
-    CmpLteInstr* inverted = new CmpLteInstr(instr.inputs[1], instr.inputs[0]);
+  // TODO is it useful to keep constants on the right?
+}
+
+void InstructionCombiner::visitIntCmpGteInstr(IntCmpGteInstr& instr) {
+  if (instr.inputs[0]->tag == INSTR_CONSTANT && instr.inputs[1]->tag != INSTR_CONSTANT) {
+    IntCmpLteInstr* inverted = new IntCmpLteInstr(instr.inputs[1], instr.inputs[0]);
+    instr.append(inverted);
+    instr.replaceUsagesWith(inverted);
+    performedWork = true;
+  }
+}
+
+void InstructionCombiner::visitDoubleCmpGteInstr(DoubleCmpGteInstr& instr) {
+  if (instr.inputs[0]->tag == INSTR_CONSTANT && instr.inputs[1]->tag != INSTR_CONSTANT) {
+    DoubleCmpLteInstr* inverted = new DoubleCmpLteInstr(instr.inputs[1], instr.inputs[0]);
     instr.append(inverted);
     instr.replaceUsagesWith(inverted);
     performedWork = true;
@@ -550,8 +903,21 @@ void InstructionCombiner::visitCmpGteInstr(CmpGteInstr& instr) {
 }
 
 void InstructionCombiner::visitCmpLtInstr(CmpLtInstr& instr) {
-  if (instr.inputs[0]->tag == INSTR_CONSTANT) {
-    CmpGtInstr* inverted = new CmpGtInstr(instr.inputs[1], instr.inputs[0]);
+  // TODO is it useful to keep constants on the right?
+}
+
+void InstructionCombiner::visitIntCmpLtInstr(IntCmpLtInstr& instr) {
+  if (instr.inputs[0]->tag == INSTR_CONSTANT && instr.inputs[1]->tag != INSTR_CONSTANT) {
+    IntCmpGtInstr* inverted = new IntCmpGtInstr(instr.inputs[1], instr.inputs[0]);
+    instr.append(inverted);
+    instr.replaceUsagesWith(inverted);
+    performedWork = true;
+  }
+}
+
+void InstructionCombiner::visitDoubleCmpLtInstr(DoubleCmpLtInstr& instr) {
+  if (instr.inputs[0]->tag == INSTR_CONSTANT && instr.inputs[1]->tag != INSTR_CONSTANT) {
+    DoubleCmpGtInstr* inverted = new DoubleCmpGtInstr(instr.inputs[1], instr.inputs[0]);
     instr.append(inverted);
     instr.replaceUsagesWith(inverted);
     performedWork = true;
@@ -559,8 +925,21 @@ void InstructionCombiner::visitCmpLtInstr(CmpLtInstr& instr) {
 }
 
 void InstructionCombiner::visitCmpLteInstr(CmpLteInstr& instr) {
-  if (instr.inputs[0]->tag == INSTR_CONSTANT) {
-    CmpGteInstr* inverted = new CmpGteInstr(instr.inputs[1], instr.inputs[0]);
+  // TODO is it useful to keep constants on the right?
+}
+
+void InstructionCombiner::visitIntCmpLteInstr(IntCmpLteInstr& instr) {
+  if (instr.inputs[0]->tag == INSTR_CONSTANT && instr.inputs[1]->tag != INSTR_CONSTANT) {
+    IntCmpGteInstr* inverted = new IntCmpGteInstr(instr.inputs[1], instr.inputs[0]);
+    instr.append(inverted);
+    instr.replaceUsagesWith(inverted);
+    performedWork = true;
+  }
+}
+
+void InstructionCombiner::visitDoubleCmpLteInstr(DoubleCmpLteInstr& instr) {
+  if (instr.inputs[0]->tag == INSTR_CONSTANT && instr.inputs[1]->tag != INSTR_CONSTANT) {
+    DoubleCmpGteInstr* inverted = new DoubleCmpGteInstr(instr.inputs[1], instr.inputs[0]);
     instr.append(inverted);
     instr.replaceUsagesWith(inverted);
     performedWork = true;
