@@ -28,7 +28,7 @@ void TypeAnalysis::box(Instruction** input, Instruction* instr) {
 
 void TypeAnalysis::visitPhiInstr(PhiInstr& instr) {
   VaivenStaticType commonType = instr.inputs[0]->type;
-  bool numBoxed = instr.inputs[0]->isBoxed;
+  int numBoxed = instr.inputs[0]->isBoxed;
   for (vector<Instruction*>::iterator it = instr.inputs.begin() + 1;
       it != instr.inputs.end();
       ++it) {
