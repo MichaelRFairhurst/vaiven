@@ -761,22 +761,27 @@ unique_ptr<ast::Expression<> > Parser::parseValue() {
     }
 
     next();
-    return unique_ptr<ast::Expression<> >(new ast::ListLiteralExpression<> (move(items)));
+    return unique_ptr<ast::Expression<> >(new ast::ListLiteralExpression<>(move(items)));
   }
 
   if (current->type == TOKEN_TYPE_TRUE) {
     next();
-    return unique_ptr<ast::Expression<> >(new ast::BoolLiteral<> (true));
+    return unique_ptr<ast::Expression<> >(new ast::BoolLiteral<>(true));
   }
 
   if (current->type == TOKEN_TYPE_FALSE) {
     next();
-    return unique_ptr<ast::Expression<> >(new ast::BoolLiteral<> (false));
+    return unique_ptr<ast::Expression<> >(new ast::BoolLiteral<>(false));
+  }
+
+  if (current->type == TOKEN_TYPE_VOID) {
+    next();
+    return unique_ptr<ast::Expression<> >(new ast::VoidLiteral<>());
   }
 
   if (current->type == TOKEN_TYPE_BANG) {
     nextNoEol();
-    return unique_ptr<ast::Expression<> >(new ast::NotExpression<> (parseExpression()));
+    return unique_ptr<ast::Expression<> >(new ast::NotExpression<>(parseExpression()));
   }
   
   if (current->type == TOKEN_TYPE_END

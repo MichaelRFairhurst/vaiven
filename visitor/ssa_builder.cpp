@@ -462,6 +462,10 @@ void SsaBuilder::visitBoolLiteral(BoolLiteral<>& expr) {
   emit(new ConstantInstr(Value(expr.value)));
 }
 
+void SsaBuilder::visitVoidLiteral(VoidLiteral<>& expr) {
+  emit(new ConstantInstr(Value()));
+}
+
 void SsaBuilder::visitNotExpression(NotExpression<>& expr) {
   expr.expr->accept(*this);
   Instruction* inner = cur;

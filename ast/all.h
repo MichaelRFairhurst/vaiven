@@ -9,6 +9,7 @@
 #include "string_expression.h"
 #include "variable_expression.h"
 #include "bool_literal.h"
+#include "void_literal.h"
 #include "not_expression.h"
 #include "equality_expression.h"
 #include "inequality_expression.h"

@@ -88,6 +88,9 @@ void AssignmentProducer::visitVariableExpression(VariableExpression<>& expr) {
 void AssignmentProducer::visitBoolLiteral(BoolLiteral<>& expr) {
 }
 
+void AssignmentProducer::visitVoidLiteral(VoidLiteral<>& expr) {
+}
+
 void AssignmentProducer::visitNotExpression(NotExpression<>& expr) {
 }
 

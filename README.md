@@ -597,7 +597,6 @@ make use of these tricks.
 
 ### Core language:
 
-* void as a keyword (and decide void, null, nil, nada?)
 * object literals
 * unary -/+
 * binary operators?

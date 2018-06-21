@@ -30,6 +30,7 @@ enum TokenType {
   TOKEN_TYPE_DO,
   TOKEN_TYPE_TRUE,
   TOKEN_TYPE_FALSE,
+  TOKEN_TYPE_VOID,
   TOKEN_TYPE_INTEGER,
   TOKEN_TYPE_DOUBLE,
   TOKEN_TYPE_DOT,
@@ -77,7 +78,7 @@ class Tokenizer {
     unique_ptr<Token> tokenizeFnOrFalseOrFor();
     unique_ptr<Token> tokenizeTrue();
     unique_ptr<Token> tokenizeOf();
-    unique_ptr<Token> tokenizeVar();
+    unique_ptr<Token> tokenizeVarOrVoid();
     unique_ptr<Token> tokenizeId(vector<char>& buffer);
     istream& input;
   

@@ -1,6 +1,3 @@
-fn getvoid is end
-var void = getvoid()
-
 1 + true
 1 + false
 1 + void

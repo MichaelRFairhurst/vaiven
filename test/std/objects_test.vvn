@@ -1,8 +1,5 @@
 var obj = object()
 
-fn getvoid is end
-var void = getvoid()
-
 assert(obj != object())
 
 assert(obj.toString() == "{}")

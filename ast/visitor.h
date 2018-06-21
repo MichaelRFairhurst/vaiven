@@ -26,6 +26,8 @@ class VariableExpression;
 template<typename RD=void>
 class BoolLiteral;
 template<typename RD=void>
+class VoidLiteral;
+template<typename RD=void>
 class NotExpression;
 template<typename RD=void>
 class EqualityExpression;
@@ -80,6 +82,7 @@ class Visitor {
   virtual void visitStringExpression(StringExpression<RD>& expr)=0;
   virtual void visitVariableExpression(VariableExpression<RD>& expr)=0;
   virtual void visitBoolLiteral(BoolLiteral<RD>& expr)=0;
+  virtual void visitVoidLiteral(VoidLiteral<RD>& expr)=0;
   virtual void visitNotExpression(NotExpression<RD>& expr)=0;
   virtual void visitEqualityExpression(EqualityExpression<RD>& expr)=0;
   virtual void visitInequalityExpression(InequalityExpression<RD>& expr)=0;

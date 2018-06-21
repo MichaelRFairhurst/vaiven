@@ -1,4 +1,4 @@
-fn run of varSoItOptimizes, void is
+fn run of varSoItOptimizes is
   var o = object();
   
   assert(o.foo == void)

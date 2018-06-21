@@ -1,8 +1,5 @@
 var list = []
 
-fn getvoid is end
-var void = getvoid()
-
 assert(list.len() == 0)
 assert(list.toString() == "[]")
 

@@ -45,6 +45,7 @@ class Interpreter : public Visitor<> {
   virtual void visitStringExpression(StringExpression<>& expr);
   virtual void visitVariableExpression(VariableExpression<>& expr);
   virtual void visitBoolLiteral(BoolLiteral<>& expr);
+  virtual void visitVoidLiteral(VoidLiteral<>& expr);
   virtual void visitNotExpression(NotExpression<>& expr);
   virtual void visitEqualityExpression(EqualityExpression<>& expr);
   virtual void visitInequalityExpression(InequalityExpression<>& expr);

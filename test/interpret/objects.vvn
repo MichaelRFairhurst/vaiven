@@ -1,8 +1,5 @@
 var o = object();
 
-fn getvoid is end
-var void = getvoid()
-
 assert(o.foo == void)
 assert(o.bar == void)
 assert(o["foo"] == void)

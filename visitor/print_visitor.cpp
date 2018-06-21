@@ -190,6 +190,10 @@ void PrintVisitor::visitBoolLiteral(BoolLiteral<>& expr) {
   cout << expr.value;
 }
 
+void PrintVisitor::visitVoidLiteral(VoidLiteral<>& expr) {
+  cout << "void";
+}
+
 void PrintVisitor::visitNotExpression(NotExpression<>& expr) {
   cout << "!";
   expr.expr->accept(*this);

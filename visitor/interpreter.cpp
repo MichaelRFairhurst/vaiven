@@ -392,6 +392,10 @@ void Interpreter::visitBoolLiteral(BoolLiteral<>& expr) {
   stack.push(Value(expr.value));
 }
 
+void Interpreter::visitVoidLiteral(VoidLiteral<>& expr) {
+  stack.push(Value());
+}
+
 void Interpreter::visitNotExpression(NotExpression<>& expr) {
   expr.expr->accept(*this);
   Value val = stack.top(); stack.pop();
