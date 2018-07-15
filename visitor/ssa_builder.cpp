@@ -35,6 +35,7 @@ void SsaBuilder::visitIfStatement(IfStatement<>& stmt) {
   map<string, Instruction*> scopeStatePreIf;
   map<string, Instruction*> modifiedTrue;
   scope.fill(scopeStatePreIf);
+  varsToPhi.clear();
 
   {
     ScopeFrame<Instruction*> initScope(scope);
